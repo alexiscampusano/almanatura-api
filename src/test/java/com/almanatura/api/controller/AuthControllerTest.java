@@ -35,6 +35,11 @@ class AuthControllerTest {
     private static final String DISABLED_EMAIL = "old.manager@almanatura.org";
     private static final String DISABLED_PASSWORD = "Sup3rSecret!";
 
+    /** Matches policy for APP_ADMIN_PASSWORD (strong password required at login and bootstrap). */
+    private static final String BOOTSTRAP_ADMIN_EMAIL = "admin@almanatura.org";
+
+    private static final String BOOTSTRAP_ADMIN_PASSWORD = "BootstrapAdmin9!";
+
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
@@ -58,6 +63,54 @@ class AuthControllerTest {
                         .role(Role.EVENT_MANAGER)
                         .enabled(false)
                         .build());
+        userRepository.save(
+                User.builder()
+                        .name("Bootstrap Admin")
+                        .email(BOOTSTRAP_ADMIN_EMAIL)
+                        .passwordHash(passwordEncoder.encode(BOOTSTRAP_ADMIN_PASSWORD))
+                        .role(Role.SUPER_USER)
+                        .enabled(true)
+                        .build());
+    }
+
+    @Test
+    void bootstrapAdminWithStrongPassword_returnsOk() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(LOGIN_PATH)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        loginBody(BOOTSTRAP_ADMIN_EMAIL, BOOTSTRAP_ADMIN_PASSWORD)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.user.email").value(BOOTSTRAP_ADMIN_EMAIL))
+                .andExpect(jsonPath("$.user.role").value(Role.SUPER_USER.name()));
+    }
+
+    @Test
+    void weakPassword_tooShort_returnsValidationFailedProblem() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(LOGIN_PATH)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(loginBody(ENABLED_EMAIL, "short1!A")))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_FAILED.code()))
+                .andExpect(
+                        jsonPath("$.violations[*].field")
+                                .value(org.hamcrest.Matchers.hasItem("password")));
+    }
+
+    @Test
+    void weakPassword_missingUpperCase_returnsValidationFailedProblem() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(LOGIN_PATH)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(loginBody(ENABLED_EMAIL, "noupperdig9!pass")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_FAILED.code()))
+                .andExpect(
+                        jsonPath("$.violations[*].field")
+                                .value(org.hamcrest.Matchers.hasItem("password")));
     }
 
     @Test
@@ -85,7 +138,7 @@ class AuthControllerTest {
         mockMvc.perform(
                         MockMvcRequestBuilders.post(LOGIN_PATH)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(loginBody(ENABLED_EMAIL, "not-the-password")))
+                                .content(loginBody(ENABLED_EMAIL, "NotTheStoredPwd9!")))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value(ErrorCode.INVALID_CREDENTIALS.code()))

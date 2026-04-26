@@ -61,6 +61,10 @@ cp .env.example .env
 # generate strong secrets and put them in .env:
 #   openssl rand -base64 96      -> APP_JWT_SECRET    (HS512 needs >= 64 bytes)
 #   openssl rand -base64 32      -> APP_ENCRYPTION_DNI_KEY
+#
+# APP_ADMIN_PASSWORD (initial super_user bootstrap + /auth/login) must be 12-100
+# ASCII characters with at least one lowercase, one uppercase, one digit, and one
+# special character from: !@#$%^&*()_+-=[]{}|;:,.? — see InternalPasswordPolicy in code.
 ```
 
 Then pick the runtime that matches what you are doing — see
@@ -164,6 +168,8 @@ openssl rand -base64 32      # -> APP_ENCRYPTION_DNI_KEY
 openssl rand -base64 24      # -> MYSQL_PASSWORD and MYSQL_ROOT_PASSWORD
 
 # Edit APP_CORS_ALLOWED_ORIGINS, APP_ADMIN_EMAIL, APP_ADMIN_PASSWORD too.
+# APP_ADMIN_PASSWORD must satisfy the internal password policy (same as login);
+# otherwise the API container will exit on bootstrap.
 nano .env
 ```
 

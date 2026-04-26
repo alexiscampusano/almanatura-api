@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import com.almanatura.api.validation.StrongInternalPassword;
+
 /**
  * Credentials submitted by an internal user (super_user / event_manager) to obtain a JWT.
  *
@@ -17,5 +19,6 @@ public record LoginRequest(
                 @Size(max = 180, message = "email must be at most 180 characters")
                 String email,
         @NotBlank(message = "password is required")
-                @Size(min = 8, max = 100, message = "password must be 8-100 characters")
+                @Size(max = 100, message = "password must be at most 100 characters")
+                @StrongInternalPassword
                 String password) {}

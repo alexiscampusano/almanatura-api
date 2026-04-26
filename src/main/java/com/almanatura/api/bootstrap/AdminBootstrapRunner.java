@@ -10,6 +10,7 @@ import com.almanatura.api.config.AppProperties;
 import com.almanatura.api.entity.User;
 import com.almanatura.api.enums.Role;
 import com.almanatura.api.repository.UserRepository;
+import com.almanatura.api.validation.InternalPasswordPolicy;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,17 @@ public class AdminBootstrapRunner implements ApplicationRunner {
         if (isBlank(email) || isBlank(password)) {
             log.warn("Skipping admin bootstrap: APP_ADMIN_EMAIL / APP_ADMIN_PASSWORD are not set");
             return;
+        }
+
+        try {
+            InternalPasswordPolicy.validateOrThrow(password);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalStateException(
+                    "APP_ADMIN_PASSWORD does not meet the internal password policy: "
+                            + ex.getMessage()
+                            + ". See "
+                            + InternalPasswordPolicy.REQUIREMENTS_MESSAGE,
+                    ex);
         }
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
