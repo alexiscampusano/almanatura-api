@@ -81,6 +81,10 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
+        // Map unknown emails to BadCredentials so login always returns INVALID_CREDENTIALS (401)
+        // and
+        // never leaks existence via AUTHENTICATION_REQUIRED (see UsernameNotFoundException).
+        provider.setHideUserNotFoundExceptions(true);
         return provider;
     }
 
