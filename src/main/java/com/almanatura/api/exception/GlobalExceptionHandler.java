@@ -13,7 +13,10 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -61,6 +64,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.debug("Authentication failure: {}", ex.getMessage());
         return entity(
                 ErrorCode.INVALID_CREDENTIALS, "The provided credentials are invalid", request);
+    }
+
+    @ExceptionHandler({DisabledException.class, LockedException.class})
+    public ResponseEntity<ProblemDetail> handleAccountDisabled(
+            AccountStatusException ex, HttpServletRequest request) {
+        log.info("Login attempt against disabled or locked account");
+        return entity(
+                ErrorCode.ACCOUNT_DISABLED,
+                "This account is disabled. Contact your administrator.",
+                request);
     }
 
     @ExceptionHandler(AuthenticationException.class)
