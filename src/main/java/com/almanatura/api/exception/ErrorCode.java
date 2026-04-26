@@ -19,6 +19,7 @@ public enum ErrorCode {
     MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "Missing request parameter"),
     TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "Invalid parameter type"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Invalid credentials"),
+    ACCOUNT_DISABLED(HttpStatus.UNAUTHORIZED, "Account disabled"),
     AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "Authentication required"),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "Access denied"),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found"),
