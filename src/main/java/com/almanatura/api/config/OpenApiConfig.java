@@ -108,9 +108,11 @@ public class OpenApiConfig {
         schema.addProperty("title", new StringSchema().example("Validation failed"));
         schema.addProperty("status", new IntegerSchema().format("int32").example(400));
         schema.addProperty("detail", new StringSchema().example("One or more fields are invalid"));
-        schema.addProperty("instance", new StringSchema().format("uri").example("/api/v1/admin/events"));
+        schema.addProperty(
+                "instance", new StringSchema().format("uri").example("/api/v1/admin/events"));
         schema.addProperty("code", new StringSchema().example("VALIDATION_FAILED"));
-        schema.addProperty("traceId", new StringSchema().example("65c2f4a1b8d3e7f9a0b1c2d3e4f5a6b7"));
+        schema.addProperty(
+                "traceId", new StringSchema().example("65c2f4a1b8d3e7f9a0b1c2d3e4f5a6b7"));
         schema.addProperty("timestamp", new DateTimeSchema());
         schema.addProperty("violations", violationsSchema());
         return schema;
