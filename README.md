@@ -334,8 +334,9 @@ Public endpoints (no JWT required):
 Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 
 - `GET  /api/v1/auth/me`       – current internal user profile (`super_user` or `event_manager`)
-- `/api/v1/admin/**`           – any internal user
-- `/api/v1/admin/users/**`     – `SUPER_USER` only
+- `POST /api/v1/admin/users`   – create internal user (`UserSummary` response); `SUPER_USER` only
+- `GET  /api/v1/admin/users`   – list all internal users (`UserSummary[]`, sorted by id); `SUPER_USER` only; pagination may be added later
+- `/api/v1/admin/**`           – any internal user (except `/admin/users/**`, which is super_user-only as above)
 
 Passwords are hashed with BCrypt. Sessions are stateless. CORS origins are
 controlled by the `APP_CORS_ALLOWED_ORIGINS` env var.
@@ -380,6 +381,7 @@ Example payload (`POST /api/v1/admin/events` with an invalid body):
 | `code`                      | HTTP | When it appears                                           |
 | --------------------------- | ---- | --------------------------------------------------------- |
 | `VALIDATION_FAILED`         | 400  | Bean Validation (`@Valid`) failed; see `violations[]`     |
+| `EMAIL_ALREADY_IN_USE`      | 409  | Email already registered (e.g. `POST /admin/users`)       |
 | `MALFORMED_REQUEST`         | 400  | Body cannot be parsed (invalid JSON, type mismatch, etc.) |
 | `MISSING_PARAMETER`         | 400  | Required query/path parameter is absent                   |
 | `TYPE_MISMATCH`             | 400  | Parameter value cannot be converted to the declared type  |

@@ -58,6 +58,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return entity(ErrorCode.RESOURCE_NOT_FOUND, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<ProblemDetail> handleEmailAlreadyInUse(
+            EmailAlreadyInUseException ex, HttpServletRequest request) {
+        return entity(ErrorCode.EMAIL_ALREADY_IN_USE, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(
             BadCredentialsException ex, HttpServletRequest request) {
