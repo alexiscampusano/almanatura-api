@@ -1,0 +1,164 @@
+{
+	"info": {
+		"_postman_id": "b328783e-70c6-40c6-8024-f26d14b78303",
+		"name": "AlmaNatura API",
+		"description": "Versioned Postman collection for the AlmaNatura backend.\n\nAuthentication: a single Bearer token is configured at the collection level and read from the `accessToken` collection variable. The `Auth > POST login` request has a Tests script that automatically stores the token, so once you log in every other request authenticates itself.\n\nFolders are pre-organised by epic so each new endpoint added in upcoming tasks has an obvious home.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "GET ping",
+					"id": "90e860a1-37b7-446f-933e-a0e60175860a",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/ping",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ping"
+							]
+						},
+						"description": "Liveness probe. Returns 200 with `{ \"status\": \"UP\" }` when the API process is up and the database connection is reachable."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"reports status UP\", function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql(\"UP\");",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "POST login",
+					"id": "e3863870-80fe-4fb4-bf42-21ec42ca715c",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticates an internal user (super_user / admin / event_creator) and returns a JWT.\n\nThe Tests script of this request automatically stores the returned token in the `accessToken` collection variable, so every subsequent request in the collection is authenticated without manual copy/paste.\n\nNote: this endpoint does not exist yet; it will be implemented in Task 10 (`feat/backend-admin-login`). The request is already wired so that once the endpoint ships you can run it as-is."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"response carries a Bearer token\", function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.accessToken, \"accessToken\").to.be.a(\"string\").and.not.empty;",
+									"    pm.expect(json.tokenType, \"tokenType\").to.eql(\"Bearer\");",
+									"});",
+									"",
+									"const json = pm.response.json();",
+									"if (json && json.accessToken) {",
+									"    pm.collectionVariables.set(\"accessToken\", json.accessToken);",
+									"    console.log(\"accessToken stored in collection variables\");",
+									"}"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Users (admin)",
+			"description": "Internal user management. Populated in Task 11 (`feat/backend-create-users`).",
+			"item": []
+		},
+		{
+			"name": "Events (admin)",
+			"description": "CRUD for cultural events restricted to authenticated admins / event creators. Populated in Tasks 14 and 15.",
+			"item": []
+		},
+		{
+			"name": "Events (public)",
+			"description": "Public read-only endpoints used by the AlmaNatura website. Populated in Task 18.",
+			"item": []
+		},
+		{
+			"name": "Attendees",
+			"description": "Public attendance registration (Task 22) and admin-only attendee listing with DNI decryption (Task 26).",
+			"item": []
+		},
+		{
+			"name": "Reports",
+			"description": "Aggregated reports and history. Populated in Task 25.",
+			"item": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "{{host}}{{contextPath}}",
+			"type": "string",
+			"description": "Composed from the active environment's host + contextPath."
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string",
+			"description": "Filled automatically by the POST login Tests script. Do not commit a value."
+		}
+	]
+}
