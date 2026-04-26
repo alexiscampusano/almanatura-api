@@ -1,0 +1,412 @@
+# AlmaNatura API
+
+REST API powering the cultural events platform of Fundación AlmaNatura.
+Built with Spring Boot 4 and designed mobile-first: a public agenda for elderly users
+and a private admin panel for the foundation's staff.
+
+## Tech stack
+
+| Layer       | Tech                                      |
+| ----------- | ----------------------------------------- |
+| Language    | Java 21                                   |
+| Framework   | Spring Boot 4.0.5 (Web MVC, Data JPA)     |
+| Security    | Spring Security 7 + JJWT 0.12.6 (HS256)   |
+| Database    | MySQL 8                                   |
+| Docs        | Springdoc OpenAPI 3.0.3 (Swagger UI)      |
+| Container   | Docker (multi-stage), docker compose      |
+| Runtime user| Non-root `spring:spring`                  |
+
+## Prerequisites
+
+- Docker + Docker Compose
+- (Optional, for local non-docker runs) Java 21 and the bundled `mvnw`
+
+## Quick start
+
+```bash
+git clone <repo-url>
+cd almanatura-api
+cp .env.example .env
+# generate strong secrets and put them in .env:
+#   openssl rand -base64 96      -> APP_JWT_SECRET    (HS512 needs >= 64 bytes)
+#   openssl rand -base64 32      -> APP_ENCRYPTION_DNI_KEY
+```
+
+Then pick the runtime that matches what you are doing — see
+[Run modes (local / docker / production)](#run-modes-local--docker--production)
+below for the full decision matrix.
+
+Then:
+
+| What           | URL                                                |
+| -------------- | -------------------------------------------------- |
+| API base       | http://localhost:8080/api/v1                       |
+| Smoke test     | http://localhost:8080/api/v1/ping                  |
+| Swagger UI     | http://localhost:8080/api/v1/swagger-ui.html       |
+| OpenAPI JSON   | http://localhost:8080/api/v1/api-docs              |
+| Health (actuator) | http://localhost:8080/api/v1/actuator/health    |
+| phpMyAdmin (`make up-tools`) | http://localhost:8081                |
+
+## Run modes (local / docker / production)
+
+The project supports three runtimes. They are not alternatives — each one is
+the right tool for a different situation. **You never need to edit the
+`SPRING_PROFILES_ACTIVE` value when switching between modes**: each runtime
+selects the correct Spring profile automatically.
+
+| Mode | Spring profile | DB host | Where it runs | Use it when |
+| ---- | -------------- | ------- | ------------- | ----------- |
+| **A. Local (Maven)** | `dev` (from `.env`) | `localhost:3306` (Docker) | Your IDE / shell | Daily backend coding (hot reload + debugger) |
+| **B. Docker dev** | `docker` (forced in compose) | `almanatura-db` (internal network) | Docker containers | Full-stack demo, frontend integration, no JDK needed |
+| **C. Production** | `docker,prod` (forced in compose) | `almanatura-db` (internal network) | Server (VPS / cPanel) | Real deployment behind a reverse proxy |
+
+### Mode A — Local backend dev (recommended for everyday coding)
+
+Runs MySQL in Docker and the API directly on your machine via the Maven
+wrapper. Spring Boot DevTools restarts the context on every save, the IDE
+attaches the debugger natively, and there is no image rebuild loop.
+
+```bash
+docker compose up -d almanatura-db          # MySQL only
+set -a; source .env; set +a                 # load env vars (one shell session)
+./mvnw spring-boot:run                      # API on http://localhost:8080
+```
+
+That's it — no `SPRING_PROFILES_ACTIVE=...` override needed: `.env` already
+sets it to `dev`, which targets `jdbc:mysql://localhost:3306/almanatura`.
+
+> **Tests only:** `./mvnw test` (or `make test`). Uses H2 in memory, no
+> MySQL or Docker required.
+
+### Mode B — Full stack in Docker (no JDK on host)
+
+Builds the multi-stage image and runs the API + MySQL together. Ideal for
+onboarding, frontend integration or validating the image before deploying.
+
+```bash
+make up-logs        # attached, see logs in the terminal
+# or
+make up             # detached; then `make logs-api` to follow
+```
+
+The container forces `SPRING_PROFILES_ACTIVE=docker` regardless of what your
+`.env` says, so you cannot accidentally launch it in dev mode.
+
+| Tool | Command | URL |
+| ---- | ------- | --- |
+| phpMyAdmin (optional) | `make up-tools` | http://localhost:8081 |
+| Remote debugger (JDWP) | `make up-dev` | port `5005` (mounts `./src` ro, DevTools on) |
+
+### Mode C — Production deployment
+
+Production uses an **override file** (`docker-compose.prod.yml`) on top of the
+base `docker-compose.yml`. This override:
+
+- forces `SPRING_PROFILES_ACTIVE=docker,prod` (Swagger off, Actuator hardened,
+  no DevTools, no SQL echo);
+- binds the API to `127.0.0.1:8080` only — your reverse proxy (nginx / Apache
+  / Cloudflare Tunnel) is the single ingress and terminates TLS;
+- removes the host port mapping for MySQL — only the API container can reach
+  it, on the internal `almanatura-network`;
+- sets `restart: always`, JSON-file log rotation and memory limits;
+- excludes phpMyAdmin (the `tools` profile is never enabled).
+
+#### One-time setup on the server
+
+```bash
+git clone <repo-url> && cd almanatura-api
+
+# Production env file — never committed.
+cp .env.production.example .env
+chmod 600 .env
+
+# Generate REAL secrets and paste them into .env:
+openssl rand -base64 96      # -> APP_JWT_SECRET
+openssl rand -base64 32      # -> APP_ENCRYPTION_DNI_KEY
+openssl rand -base64 24      # -> MYSQL_PASSWORD and MYSQL_ROOT_PASSWORD
+
+# Edit APP_CORS_ALLOWED_ORIGINS, APP_ADMIN_EMAIL, APP_ADMIN_PASSWORD too.
+nano .env
+```
+
+#### Daily operations
+
+```bash
+make prod-up          # build + start (detached)
+make prod-logs        # tail logs
+make prod-status      # ps
+make prod-restart     # rolling restart
+make prod-down        # stop (volumes are kept)
+```
+
+…or the equivalent raw commands if you do not want to use `make`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f --tail=200
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+```
+
+#### Why we don't use a `.env.dev` / `.env.prod` split
+
+The `.env` file is gitignored and lives in **one** place: each environment
+has exactly one (your laptop / the server). The "shape" of variables is the
+same; only the values differ. We track two **templates** in git so you know
+what to fill:
+
+- `.env.example` – local development defaults (safe placeholder secrets)
+- `.env.production.example` – production checklist (every secret marked
+  `CHANGE_ME`, instructions on how to generate it)
+
+Real secrets are never in the repository, in CI variables, or in chat. They
+live in `/path/to/almanatura-api/.env` on the server, with permissions `600`.
+
+## Available make targets
+
+Run `make help` for the full list. Most useful:
+
+```
+# Dev / local
+make build | rebuild
+make up | up-logs | up-dev | up-tools
+make down | down-volumes
+make logs | logs-api | logs-db | status
+make shell | db-shell
+make test | verify | coverage
+make format | format-check
+make db-backup | db-restore FILE=...
+make clean
+
+# Production (uses docker-compose.prod.yml override)
+make prod-build
+make prod-up | prod-up-logs
+make prod-down | prod-restart
+make prod-logs | prod-status
+```
+
+## Project structure
+
+The codebase follows a **layered / clean architecture**: HTTP layer (`controller`)
+→ business logic (`service`) → persistence (`repository` + `entity`). Cross-cutting
+concerns live in dedicated packages (`security`, `config`, `exception`, `util`).
+Each package has a single, well-defined responsibility — if a class does not fit
+in any of them, it is probably doing too much.
+
+```
+src/
+├── main/
+│   ├── java/com/almanatura/api/
+│   │   ├── AlmanaturaApiApplication.java   # Spring Boot entry point (@SpringBootApplication)
+│   │   │
+│   │   ├── bootstrap/                      # One-off startup tasks (ApplicationRunner)
+│   │   │   └── AdminBootstrapRunner.java       # Provisions the initial SUPER_USER from env
+│   │   │
+│   │   ├── config/                         # @Configuration beans (no business logic here)
+│   │   │   ├── AppProperties.java              # @ConfigurationProperties for app.* keys
+│   │   │   ├── AuditorAwareConfig.java         # AuditorAware<String> for JPA auditing
+│   │   │   ├── CorsConfig.java                 # CORS rules from APP_CORS_ALLOWED_ORIGINS
+│   │   │   ├── OpenApiConfig.java              # Springdoc/Swagger + RFC 7807 schema
+│   │   │   ├── PasswordEncoderConfig.java      # BCryptPasswordEncoder bean
+│   │   │   └── SecurityConfig.java             # SecurityFilterChain, public vs JWT routes
+│   │   │
+│   │   ├── controller/                     # Thin REST adapters (no business logic)
+│   │   │   └── HealthController.java           # GET /ping (typed HealthResponse record)
+│   │   │
+│   │   ├── dto/                            # Request/response DTOs (records). Filled per Epic.
+│   │   │
+│   │   ├── entity/                         # JPA @Entity classes — DB representation only
+│   │   │   ├── BaseAuditableEntity.java        # createdAt/updatedAt/createdBy + @Version
+│   │   │   └── User.java                       # Internal users (SUPER_USER / EVENT_MANAGER)
+│   │   │
+│   │   ├── enums/                          # Domain enums shared across layers
+│   │   │   └── Role.java
+│   │   │
+│   │   ├── exception/                      # Centralised error handling (RFC 7807)
+│   │   │   ├── ApiErrorWriter.java             # Writes ProblemDetail outside MVC (filters)
+│   │   │   ├── ApiProblems.java                # Factory for ProblemDetail (code/traceId/...)
+│   │   │   ├── ErrorCode.java                  # Stable, machine-readable error catalog
+│   │   │   ├── FieldViolation.java             # {field, message} record for violations[]
+│   │   │   ├── GlobalExceptionHandler.java     # @RestControllerAdvice for all exceptions
+│   │   │   └── ResourceNotFoundException.java  # Domain-level "not found" signal
+│   │   │
+│   │   ├── mapper/                         # MapStruct mappers (Entity ↔ DTO). See package-info.
+│   │   │
+│   │   ├── repository/                     # Spring Data JPA repositories (interfaces only)
+│   │   │   └── UserRepository.java
+│   │   │
+│   │   ├── security/                       # Auth & throttling — Spring Security building blocks
+│   │   │   ├── CustomUserDetailsService.java   # Loads users from the DB for Spring Security
+│   │   │   ├── JwtAccessDeniedHandler.java     # 403 → ProblemDetail
+│   │   │   ├── JwtAuthenticationEntryPoint.java# 401 → ProblemDetail
+│   │   │   ├── JwtAuthenticationFilter.java    # Extracts & validates JWT per request
+│   │   │   ├── JwtService.java                 # Sign/verify HS512 tokens (JJWT)
+│   │   │   └── RateLimitFilter.java            # Bucket4j throttle for /auth & /register
+│   │   │
+│   │   ├── service/                        # Business logic — orchestrates repos + utils
+│   │   │   └── AuthService.java                # Login + JWT issuance (skeleton)
+│   │   │
+│   │   └── util/                           # Stateless helpers, no Spring dependencies
+│   │       └── DniCipherService.java           # AES-256-GCM encrypt/decrypt for DNI
+│   │
+│   └── resources/
+│       ├── application.properties              # Common defaults (active profile via env)
+│       ├── application-dev.properties          # Local non-docker dev (verbose logs, MySQL)
+│       ├── application-docker.properties       # Inside the container (host = almanatura-db)
+│       ├── application-prod.properties         # cPanel / prod (no Swagger, ddl=validate)
+│       └── db/migration/                       # Flyway versioned migrations (V1__*.sql, ...)
+│
+└── test/
+    ├── java/com/almanatura/api/
+    │   ├── AlmanaturaApiApplicationTests.java  # Context loads
+    │   ├── architecture/ArchitectureTest.java  # ArchUnit rules (layer boundaries)
+    │   └── exception/ErrorResponseTest.java    # MockMvc tests for RFC 7807 responses
+    └── resources/
+        ├── application-test.properties         # H2 in-memory, used by @SpringBootTest
+        └── application-integration.properties  # Reserved for Testcontainers (future)
+```
+
+### Conventions enforced by ArchUnit
+
+`ArchitectureTest` is part of the build and will fail the pipeline if any of
+these rules is violated. They exist so the layout above stays meaningful as
+the codebase grows:
+
+- `controller` may **only** depend on `service`, `dto`, `mapper`, `exception`.
+- `service` may not depend on `controller`.
+- `repository` may not depend on `controller` or `service`.
+- `entity` may not depend on `controller`, `service`, `repository` or `dto`.
+- No class outside `config` / `security` may import `org.springframework.security.*`.
+
+## Security model
+
+Public endpoints (no JWT required):
+
+- `GET  /api/v1/ping`
+- `GET  /api/v1/events/**`               (cultural events agenda)
+- `POST /api/v1/events/{id}/register`    (public attendee registration)
+- `POST /api/v1/auth/**`                 (login / refresh)
+- `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`
+
+Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
+
+- `/api/v1/admin/**`           – any internal user
+- `/api/v1/admin/users/**`     – `SUPER_USER` only
+
+Passwords are hashed with BCrypt. Sessions are stateless. CORS origins are
+controlled by the `APP_CORS_ALLOWED_ORIGINS` env var.
+
+## Sensitive data
+
+The DNI of public attendees must be stored encrypted at rest with AES-256-GCM.
+Use `DniCipherService` from any service that touches the field; never persist
+the cleartext. Rotate `APP_ENCRYPTION_DNI_KEY` only with a documented
+re-encryption migration; data encrypted with the previous key cannot be read
+by the new one.
+
+## Error response format (RFC 7807)
+
+Every error returned by the API follows
+[RFC 7807 Problem Details](https://www.rfc-editor.org/rfc/rfc7807) with two
+AlmaNatura extensions: a stable, machine-readable `code` and the OpenTelemetry
+`traceId` of the request. The `Content-Type` is always
+`application/problem+json`.
+
+Example payload (`POST /api/v1/admin/events` with an invalid body):
+
+```json
+{
+  "type": "https://almanatura.org/errors/validation-failed",
+  "title": "Validation failed",
+  "status": 400,
+  "detail": "One or more fields are invalid",
+  "instance": "/api/v1/admin/events",
+  "code": "VALIDATION_FAILED",
+  "traceId": "65c2f4a1b8d3e7f9a0b1c2d3e4f5a6b7",
+  "timestamp": "2026-04-19T20:14:33.421Z",
+  "violations": [
+    { "field": "title", "message": "must not be blank" },
+    { "field": "date",  "message": "must be a future date" }
+  ]
+}
+```
+
+### Catalog of `code`s
+
+| `code`                      | HTTP | When it appears                                           |
+| --------------------------- | ---- | --------------------------------------------------------- |
+| `VALIDATION_FAILED`         | 400  | Bean Validation (`@Valid`) failed; see `violations[]`     |
+| `MALFORMED_REQUEST`         | 400  | Body cannot be parsed (invalid JSON, type mismatch, etc.) |
+| `MISSING_PARAMETER`         | 400  | Required query/path parameter is absent                   |
+| `TYPE_MISMATCH`             | 400  | Parameter value cannot be converted to the declared type  |
+| `INVALID_CREDENTIALS`       | 401  | Wrong email/password on `/auth/login`                     |
+| `AUTHENTICATION_REQUIRED`   | 401  | No (or invalid) JWT on a protected endpoint               |
+| `ACCESS_DENIED`             | 403  | Authenticated user lacks the required role/authority      |
+| `RESOURCE_NOT_FOUND`        | 404  | Endpoint or domain object does not exist                  |
+| `METHOD_NOT_ALLOWED`        | 405  | HTTP method not supported by the endpoint                 |
+| `MEDIA_TYPE_NOT_SUPPORTED`  | 415  | `Content-Type` not accepted by the endpoint               |
+| `RATE_LIMIT_EXCEEDED`       | 429  | Bucket4j throttle on `/auth/login` or `/events/*/register` (response also includes `Retry-After`) |
+| `INTERNAL_ERROR`            | 500  | Unhandled exception; details in server logs               |
+
+### Frontend integration guide
+
+- **Switch on `code`, never on `detail`.** `detail` is a human-readable string
+  intended for support / logs; localized UI messages are derived from `code`.
+- **Use `traceId` in support requests.** Backend logs include the same value
+  via MDC (`logging.pattern.level`), so on-call can pinpoint the request
+  instantly.
+- **Validation errors:** when `code === "VALIDATION_FAILED"`, render
+  field-level messages from `violations[]` next to the corresponding inputs.
+- **Auth lifecycle:** treat `AUTHENTICATION_REQUIRED` as "force re-login" and
+  `INVALID_CREDENTIALS` as "show error inside the login form" — never confuse
+  them.
+- **Rate limit:** when receiving `429`, respect the `Retry-After` header (in
+  seconds) before allowing a retry.
+
+The full schema is published on Swagger UI for every operation under
+`/api/v1/swagger-ui.html`.
+
+## Production checklist
+
+The recommended deployment path is the Docker stack with the production
+override — see [Mode C — Production deployment](#mode-c--production-deployment)
+above for the actual commands. Pre-flight checklist:
+
+1. Server has Docker + Docker Compose installed.
+2. `.env` exists at the project root with permissions `600`, populated from
+   `.env.production.example` with **freshly generated secrets** (never the
+   placeholders, never the dev values).
+3. `APP_CORS_ALLOWED_ORIGINS` lists only the public frontend origin (HTTPS).
+4. A reverse proxy (nginx / Apache / Cloudflare Tunnel) terminates TLS and
+   forwards to `127.0.0.1:${API_PORT}` — the API is not exposed to the
+   internet directly.
+5. After `make prod-up`, `GET /api/v1/actuator/health` returns
+   `{"status":"UP"}` (proxy it through your reverse proxy for the real check).
+6. Set up a recurring `make db-backup` (cron / systemd timer) and verify a
+   restore on a staging copy.
+
+### Alternative: bare-metal jar (cPanel "Setup Java App")
+
+If your hosting only allows running a jar directly (no Docker), the same
+profile system works:
+
+1. `./mvnw -DskipTests package` (locally or in CI) → `target/api-0.0.1-SNAPSHOT.jar`.
+2. Provision a MySQL database in cPanel; record host, database, user, password.
+3. On the server, export every `APP_*` and `SPRING_DATASOURCE_*` env var, plus
+   `SPRING_PROFILES_ACTIVE=prod`.
+4. Run with `java -jar api-0.0.1-SNAPSHOT.jar` (cPanel "Setup Java App" or a
+   systemd unit).
+5. Same health check + CORS rule as above.
+
+## Security notes
+
+- **Never commit `.env`.** It is git-ignored; only `.env.example` is tracked.
+- Rotate `APP_JWT_SECRET` and `APP_ENCRYPTION_DNI_KEY` on every environment
+  promotion and on any suspected leak.
+- Production runs `ddl-auto=validate`; schema changes go through migrations
+  or manual DDL, never through Hibernate auto-update.
+- The `dev` profile is for development only — it enables verbose logs,
+  hot-reload and the JDWP debugger.
+
+## License
+
+Private — Fundación AlmaNatura.
