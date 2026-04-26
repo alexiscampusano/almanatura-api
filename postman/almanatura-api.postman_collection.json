@@ -118,6 +118,46 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "GET me",
+					"id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Returns the authenticated internal user's safe profile (`id`, `email`, `name`, `role`). Uses the collection Bearer token from `accessToken` (run **POST login** first)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"body has user fields\", function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.id).to.be.a(\"number\");",
+									"    pm.expect(json.email).to.be.a(\"string\").and.not.empty;",
+									"    pm.expect(json.name).to.be.a(\"string\");",
+									"    pm.expect(json.role).to.be.oneOf([\"SUPER_USER\", \"EVENT_MANAGER\"]);",
+									"});"
+								]
+							}
+						}
+					]
 				}
 			]
 		},

@@ -48,8 +48,15 @@ public class SecurityConfig {
                                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/auth/**")
+                                auth.requestMatchers(HttpMethod.POST, "/auth/login")
                                         .permitAll()
+                                        // Harness path for ErrorResponseTest (controller lives in
+                                        // test sources only;
+                                        // production has no mapping here → 404).
+                                        .requestMatchers("/auth/test/**")
+                                        .permitAll()
+                                        .requestMatchers("/auth/**")
+                                        .authenticated()
                                         .requestMatchers(HttpMethod.GET, "/events", "/events/**")
                                         .permitAll()
                                         .requestMatchers(HttpMethod.POST, "/events/*/register")

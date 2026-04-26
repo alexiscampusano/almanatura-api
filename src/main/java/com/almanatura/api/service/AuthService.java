@@ -3,6 +3,7 @@ package com.almanatura.api.service;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,8 @@ import com.almanatura.api.dto.LoginRequest;
 import com.almanatura.api.dto.LoginResponse;
 import com.almanatura.api.dto.UserSummary;
 import com.almanatura.api.entity.User;
+import com.almanatura.api.exception.ResourceNotFoundException;
+import com.almanatura.api.repository.UserRepository;
 import com.almanatura.api.security.JwtService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +39,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final AppProperties appProperties;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
@@ -55,5 +59,25 @@ public class AuthService {
                 TOKEN_TYPE_BEARER,
                 expiresInSeconds,
                 new UserSummary(user.getId(), user.getEmail(), user.getName(), user.getRole()));
+    }
+
+    /**
+     * Returns the current internal user from the security context, re-loaded from the database so
+     * enabled flag and profile fields stay consistent with persistence.
+     */
+    @Transactional(readOnly = true)
+    public UserSummary getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof User principal)) {
+            throw new IllegalStateException("Expected an authenticated User principal");
+        }
+        User user =
+                userRepository
+                        .findByEmailIgnoreCase(principal.getEmail())
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "User no longer exists: " + principal.getEmail()));
+        return new UserSummary(user.getId(), user.getEmail(), user.getName(), user.getRole());
     }
 }
