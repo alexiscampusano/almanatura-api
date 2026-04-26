@@ -24,7 +24,7 @@ and a private admin panel for the foundation's staff.
 ## Quick start
 
 ```bash
-git clone <repo-url>
+git https://github.com/alexiscampusano/almanatura-api
 cd almanatura-api
 cp .env.example .env
 # generate strong secrets and put them in .env:
