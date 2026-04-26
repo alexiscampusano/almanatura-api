@@ -47,6 +47,13 @@ Then:
 | Health (actuator) | http://localhost:8080/api/v1/actuator/health    |
 | phpMyAdmin (`make up-tools`) | http://localhost:8081                |
 
+## API requests collection
+
+A versioned Postman collection lives under [`postman/`](postman/) with the
+`Almanatura — Local` environment, Bearer auth wired at the collection level
+and a login Tests script that auto-stores the JWT for the rest of the
+requests. See [`postman/README.md`](postman/README.md) for import and usage.
+
 ## Run modes (local / docker / production)
 
 The project supports three runtimes. They are not alternatives — each one is
