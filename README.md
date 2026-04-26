@@ -18,6 +18,35 @@ and a private admin panel for the foundation's staff.
 | Container   | Docker (multi-stage), docker compose      |
 | Runtime user| Non-root `spring:spring`                  |
 
+## Branching model
+
+This repository uses a two-branch flow tailored to a single backend
+maintainer integrating against an external frontend team:
+
+| Branch                 | Purpose                                                              | Stability                                                |
+| ---------------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
+| `main`                 | Stable surface consumed by the frontend. Tagged on every release.    | Production-grade. Only receives PRs from `develop`.      |
+| `develop`              | Integration branch where features land first.                        | Should build & test green, but may carry partial work.   |
+| `feat/*`, `chore/*`, `fix/*` | Short-lived branches for a single task or change.              | Volatile. Squash-merged into `develop` via PR.           |
+
+**Day-to-day flow:** branch off `develop`, open a PR back into `develop`,
+squash-merge once CI is green and the PR is reviewed.
+
+**Releases:** when a coherent set of features is ready (for example,
+auth + user management for v0.1.0), open a PR `develop → main`, merge it
+with a real merge commit, and tag the resulting commit:
+
+```bash
+git checkout main && git pull
+git tag -a v0.1.0 -m "Release v0.1.0 - auth and user management"
+git push origin v0.1.0
+```
+
+The frontend should pin against tags or `main`, never against `develop`.
+
+The CI badge above intentionally reports the status of `main` only:
+`develop` is allowed to be momentarily red while a refactor is in flight.
+
 ## Prerequisites
 
 - Docker + Docker Compose
