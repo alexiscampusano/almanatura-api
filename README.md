@@ -1,5 +1,7 @@
 # AlmaNatura API
 
+[![CI](https://github.com/alexiscampusano/almanatura-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alexiscampusano/almanatura-api/actions/workflows/ci.yml?query=branch%3Amain)
+
 REST API powering the cultural events platform of Fundación AlmaNatura.
 Built with Spring Boot 4 and designed mobile-first: a public agenda for elderly users
 and a private admin panel for the foundation's staff.
