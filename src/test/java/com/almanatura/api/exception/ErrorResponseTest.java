@@ -68,7 +68,7 @@ class ErrorResponseTest {
 
     @Test
     void protectedEndpointWithoutAuth_returnsAuthenticationRequiredProblem() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/admin/users/me"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/auth/me"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value(ErrorCode.AUTHENTICATION_REQUIRED.code()));
@@ -77,7 +77,7 @@ class ErrorResponseTest {
     @Test
     void protectedEndpointWrongRole_returnsAccessDeniedProblem() throws Exception {
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/admin/users/me")
+                        MockMvcRequestBuilders.get("/admin/users/1")
                                 .with(
                                         org.springframework.security.test.web.servlet.request
                                                 .SecurityMockMvcRequestPostProcessors.user(
@@ -110,7 +110,7 @@ class ErrorResponseTest {
     @Test
     void healthEndpoint_setsTraceIdHeaderAndProblemContainsTraceWhenFails() throws Exception {
         // Quick sanity check that the traceId field exists (may be null if tracing not active).
-        mockMvc.perform(MockMvcRequestBuilders.get("/admin/users/me"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/auth/me"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(header().exists("Content-Type"));

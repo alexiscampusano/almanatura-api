@@ -328,11 +328,12 @@ Public endpoints (no JWT required):
 - `GET  /api/v1/ping`
 - `GET  /api/v1/events/**`               (cultural events agenda)
 - `POST /api/v1/events/{id}/register`    (public attendee registration)
-- `POST /api/v1/auth/**`                 (login / refresh)
+- `POST /api/v1/auth/login`              (internal login; future refresh would be another explicit route)
 - `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`
 
 Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 
+- `GET  /api/v1/auth/me`       – current internal user profile (`super_user` or `event_manager`)
 - `/api/v1/admin/**`           – any internal user
 - `/api/v1/admin/users/**`     – `SUPER_USER` only
 

@@ -15,7 +15,7 @@ The collection is organised by epic so each upcoming task has an obvious home:
 | Folder            | Purpose                                                     | Status                                                              |
 | ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------------- |
 | `Health`          | `GET /ping` liveness probe.                                 | Ready to use today.                                                 |
-| `Auth`            | `POST /auth/login` returning a JWT.                         | Request scaffolded; backend endpoint ships in Task 10.              |
+| `Auth`            | `POST /auth/login` (JWT) and `GET /auth/me` (profile, Bearer). | Ready: login + current user profile.                               |
 | `Users (admin)`   | Internal user management (super_user / admin / creator).    | Empty, populated in Task 11.                                        |
 | `Events (admin)`  | CRUD for cultural events behind authentication.             | Empty, populated in Tasks 14 and 15.                                |
 | `Events (public)` | Public read-only feed used by the website.                  | Empty, populated in Task 18.                                        |
