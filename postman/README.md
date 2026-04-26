@@ -35,7 +35,7 @@ The collection has Bearer auth configured at the root level pointing to the `acc
 Workflow:
 
 1. Open **Auth → POST login**.
-2. Set `adminPassword` in the environment (top-right gear icon → "Almanatura — Local"). Leave it as `secret`. **Do not commit a value to git.**
+2. Set `adminPassword` in the environment (top-right gear icon → "Almanatura — Local"). It must match `APP_ADMIN_PASSWORD` in your `.env` and meet the API policy (12-100 chars, mixed case, digit, allowed special — see README / `InternalPasswordPolicy`). Leave it as `secret`. **Do not commit a value to git.**
 3. Hit **Send**. The Tests script captures the JWT and stores it in `pm.collectionVariables.accessToken`.
 4. Every other request now authenticates automatically.
 
