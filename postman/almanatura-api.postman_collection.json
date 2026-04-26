@@ -163,8 +163,96 @@
 		},
 		{
 			"name": "Users (admin)",
-			"description": "Internal user management. Populated in Task 11 (`feat/backend-create-users`).",
-			"item": []
+			"description": "Internal user management: create and list users. Requires super_user JWT (login first).",
+			"item": [
+				{
+					"name": "POST create user",
+					"id": "c2d4e6f8-0a1b-4c3d-9e7f-112233445566",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New Event Manager\",\n  \"email\": \"new.manager@almanatura.org\",\n  \"password\": \"ChangeMeAfterLogin9!\",\n  \"role\": \"EVENT_MANAGER\",\n  \"enabled\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							]
+						},
+						"description": "Creates an internal user. Password must meet the API internal policy (see README). Returns 409 if the email is already in use."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"body is UserSummary\", function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.id).to.be.a(\"number\");",
+									"    pm.expect(json.email).to.be.a(\"string\").and.not.empty;",
+									"    pm.expect(json.name).to.be.a(\"string\");",
+									"    pm.expect(json.role).to.be.oneOf([\"SUPER_USER\", \"EVENT_MANAGER\"]);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "GET list users",
+					"id": "d3e5f7a9-1b2c-5d4e-0f8a-223344556677",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"users"
+							]
+						},
+						"description": "Lists all internal users as safe projections, sorted by id. Uses collection Bearer token (super_user)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"body is a non-empty array\", function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json).to.be.an(\"array\");",
+									"    pm.expect(json.length).to.be.at.least(1);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "Events (admin)",
