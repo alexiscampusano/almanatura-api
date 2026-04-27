@@ -338,7 +338,9 @@ Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 - `GET  /api/v1/admin/users`   – list all internal users (`UserSummary[]`, sorted by id); `SUPER_USER` only; pagination may be added later
 - `POST /api/v1/admin/events`  – create cultural event (`EventResponse`, status `DRAFT`); `SUPER_USER` or `EVENT_MANAGER`
 - `GET  /api/v1/admin/events`  – list events (`EventResponse[]`, sorted by `startsAt`); same roles; pagination may be added later
-- `GET  /api/v1/admin/events/{id}` – event by id; update/delete in Task 15
+- `GET  /api/v1/admin/events/{id}` – event by id
+- `PUT  /api/v1/admin/events/{id}` – replace fields + `status` (`DRAFT` \| `PUBLISHED` \| `CANCELLED`); same roles
+- `DELETE /api/v1/admin/events/{id}` – remove event (**204**)
 - `/api/v1/admin/**`           – any internal user (except `/admin/users/**`, which is super_user-only as above)
 
 Passwords are hashed with BCrypt. Sessions are stateless. CORS origins are

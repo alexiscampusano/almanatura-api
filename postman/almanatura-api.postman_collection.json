@@ -256,7 +256,7 @@
 		},
 		{
 			"name": "Events (admin)",
-			"description": "Create and read cultural events (Task 14). Update/delete in Task 15. Requires internal JWT (super_user or event_manager).",
+			"description": "CRUD for cultural events. Requires internal JWT (super_user or event_manager). Run POST create first to set lastEventId.",
 			"item": [
 				{
 					"name": "POST create event",
@@ -374,6 +374,84 @@
 									"pm.test(\"id matches request\", function () {",
 									"    const id = pm.collectionVariables.get(\"lastEventId\");",
 									"    pm.expect(String(pm.response.json().id)).to.eql(id);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "PUT update event",
+					"id": "b7c9d1e3-5f60-7182-9304-b5c6d7e8f901",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Taller de memoria (editado)\",\n  \"description\": \"Actividad para mayores — cupo actualizado\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Sala polivalente\",\n  \"maxAttendees\": 30,\n  \"status\": \"PUBLISHED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/events/{{lastEventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"events",
+								"{{lastEventId}}"
+							]
+						},
+						"description": "Full replace including status (DRAFT, PUBLISHED, CANCELLED). Requires lastEventId from POST create."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"status is PUBLISHED\", function () {",
+									"    pm.expect(pm.response.json().status).to.eql(\"PUBLISHED\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "DELETE event",
+					"id": "c8d0e2f4-6071-8293-0415-c6d7e8f9012a",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/events/{{lastEventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"events",
+								"{{lastEventId}}"
+							]
+						},
+						"description": "Deletes the event (204). Run after PUT or use an id you no longer need."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
 									"});"
 								]
 							}

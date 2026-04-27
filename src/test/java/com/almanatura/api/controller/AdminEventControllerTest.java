@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.almanatura.api.entity.User;
+import com.almanatura.api.enums.EventStatus;
 import com.almanatura.api.enums.Role;
 import com.almanatura.api.exception.ErrorCode;
 import com.almanatura.api.repository.CulturalEventRepository;
@@ -78,6 +79,23 @@ class AdminEventControllerTest {
                         MockMvcRequestBuilders.post(EVENTS_PATH)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(minimalEventJson()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(ErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void update_withoutAuth_returnsAuthenticationRequired() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.put(EVENTS_PATH + "/1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(updateEventJson("X", EventStatus.PUBLISHED)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(ErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
+    @Test
+    void delete_withoutAuth_returnsAuthenticationRequired() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete(EVENTS_PATH + "/1"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(ErrorCode.AUTHENTICATION_REQUIRED.code()));
     }
@@ -169,6 +187,101 @@ class AdminEventControllerTest {
                 .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_FAILED.code()));
     }
 
+    @Test
+    void update_unknownId_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.put(EVENTS_PATH + "/9999")
+                                .with(user(superUser))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(updateEventJson("Nope", EventStatus.DRAFT)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.code()));
+    }
+
+    @Test
+    void update_valid_returnsOkAndNewFields() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(EVENTS_PATH)
+                                .with(user(superUser))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(minimalEventJson()))
+                .andExpect(status().isCreated());
+        long id = culturalEventRepository.findAllByOrderByStartsAtAsc().getFirst().getId();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.put(EVENTS_PATH + "/" + id)
+                                .with(user(superUser))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        "{"
+                                                + "\"title\":\"Updated title\","
+                                                + "\"description\":\"New desc\","
+                                                + "\"startsAt\":\"2030-09-01T10:00:00Z\","
+                                                + "\"endsAt\":\"2030-09-01T12:00:00Z\","
+                                                + "\"location\":\"Sala B\","
+                                                + "\"maxAttendees\":15,"
+                                                + "\"status\":\"PUBLISHED\""
+                                                + "}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Updated title"))
+                .andExpect(jsonPath("$.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.location").value("Sala B"))
+                .andExpect(jsonPath("$.maxAttendees").value(15));
+    }
+
+    @Test
+    void update_endBeforeStart_returnsValidationFailed() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(EVENTS_PATH)
+                                .with(user(superUser))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(minimalEventJson()))
+                .andExpect(status().isCreated());
+        long id = culturalEventRepository.findAllByOrderByStartsAtAsc().getFirst().getId();
+        Instant start = Instant.parse("2030-06-10T18:00:00Z");
+        Instant end = Instant.parse("2030-06-10T12:00:00Z");
+        String body =
+                "{\"title\":\"Bad\",\"startsAt\":\""
+                        + start
+                        + "\",\"endsAt\":\""
+                        + end
+                        + "\",\"status\":\"DRAFT\"}";
+        mockMvc.perform(
+                        MockMvcRequestBuilders.put(EVENTS_PATH + "/" + id)
+                                .with(user(superUser))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_FAILED.code()));
+    }
+
+    @Test
+    void delete_unknownId_returnsNotFound() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete(EVENTS_PATH + "/8888").with(user(superUser)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.code()));
+    }
+
+    @Test
+    void delete_existing_returnsNoContentAndGetReturnsNotFound() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(EVENTS_PATH)
+                                .with(user(superUser))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(minimalEventJson()))
+                .andExpect(status().isCreated());
+        long id = culturalEventRepository.findAllByOrderByStartsAtAsc().getFirst().getId();
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(EVENTS_PATH + "/" + id).with(user(superUser)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(MockMvcRequestBuilders.get(EVENTS_PATH + "/" + id).with(user(superUser)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.code()));
+    }
+
     private static String minimalEventJson() {
         return "{\"title\":\"Minimal\",\"startsAt\":\""
                 + Instant.parse("2030-05-01T10:00:00Z")
@@ -183,6 +296,18 @@ class AdminEventControllerTest {
                 + "\"endsAt\":\"2030-07-15T16:30:00Z\","
                 + "\"location\":\"Sala A\","
                 + "\"maxAttendees\":20"
+                + "}";
+    }
+
+    private static String updateEventJson(String title, EventStatus status) {
+        return "{"
+                + "\"title\":\""
+                + title
+                + "\","
+                + "\"startsAt\":\"2030-08-01T10:00:00Z\","
+                + "\"status\":\""
+                + status.name()
+                + "\""
                 + "}";
     }
 }
