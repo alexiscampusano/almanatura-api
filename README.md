@@ -326,7 +326,7 @@ the codebase grows:
 Public endpoints (no JWT required):
 
 - `GET  /api/v1/ping`
-- `GET  /api/v1/events/**`               (cultural events agenda)
+- `GET  /api/v1/events/**`               (public cultural events agenda; implemented in Task 18)
 - `POST /api/v1/events/{id}/register`    (public attendee registration)
 - `POST /api/v1/auth/login`              (internal login; future refresh would be another explicit route)
 - `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`
@@ -336,6 +336,9 @@ Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 - `GET  /api/v1/auth/me`       – current internal user profile (`super_user` or `event_manager`)
 - `POST /api/v1/admin/users`   – create internal user (`UserSummary` response); `SUPER_USER` only
 - `GET  /api/v1/admin/users`   – list all internal users (`UserSummary[]`, sorted by id); `SUPER_USER` only; pagination may be added later
+- `POST /api/v1/admin/events`  – create cultural event (`EventResponse`, status `DRAFT`); `SUPER_USER` or `EVENT_MANAGER`
+- `GET  /api/v1/admin/events`  – list events (`EventResponse[]`, sorted by `startsAt`); same roles; pagination may be added later
+- `GET  /api/v1/admin/events/{id}` – event by id; update/delete in Task 15
 - `/api/v1/admin/**`           – any internal user (except `/admin/users/**`, which is super_user-only as above)
 
 Passwords are hashed with BCrypt. Sessions are stateless. CORS origins are

@@ -256,8 +256,131 @@
 		},
 		{
 			"name": "Events (admin)",
-			"description": "CRUD for cultural events restricted to authenticated admins / event creators. Populated in Tasks 14 and 15.",
-			"item": []
+			"description": "Create and read cultural events (Task 14). Update/delete in Task 15. Requires internal JWT (super_user or event_manager).",
+			"item": [
+				{
+					"name": "POST create event",
+					"id": "e4f6a8b0-2c3d-5e6f-7081-92a3b4c5d6e7",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Taller de memoria\",\n  \"description\": \"Actividad para mayores\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Sala polivalente\",\n  \"maxAttendees\": 25\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/events",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"events"
+							]
+						},
+						"description": "Creates an event in DRAFT status. endsAt must be after startsAt when provided."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"const json = pm.response.json();",
+									"if (json && json.id != null) {",
+									"    pm.collectionVariables.set(\"lastEventId\", String(json.id));",
+									"}",
+									"",
+									"pm.test(\"status is DRAFT\", function () {",
+									"    pm.expect(pm.response.json().status).to.eql(\"DRAFT\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "GET list events",
+					"id": "f5a7b9c1-3d4e-6f70-8192-a3b4c5d6e7f8",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/events",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"events"
+							]
+						},
+						"description": "Lists all events sorted by start time (ascending)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"body is array\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "GET event by id",
+					"id": "a6b8c0d2-4e5f-7081-8293-b4c5d6e7f809",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/events/{{lastEventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"events",
+								"{{lastEventId}}"
+							]
+						},
+						"description": "Uses `lastEventId` set by POST create event (run that first, or set the variable manually)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"id matches request\", function () {",
+									"    const id = pm.collectionVariables.get(\"lastEventId\");",
+									"    pm.expect(String(pm.response.json().id)).to.eql(id);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "Events (public)",
@@ -287,6 +410,12 @@
 			"value": "",
 			"type": "string",
 			"description": "Filled automatically by the POST login Tests script. Do not commit a value."
+		},
+		{
+			"key": "lastEventId",
+			"value": "",
+			"type": "string",
+			"description": "Set by Events (admin) → POST create event. Used by GET event by id."
 		}
 	]
 }
