@@ -17,7 +17,7 @@ The collection is organised by epic so each upcoming task has an obvious home:
 | `Health`          | `GET /ping` liveness probe.                                 | Ready to use today.                                                 |
 | `Auth`            | `POST /auth/login` (JWT) and `GET /auth/me` (profile, Bearer). | Ready: login + current user profile.                               |
 | `Users (admin)`   | `POST /admin/users`, `GET /admin/users` (Bearer, super_user). | Ready: create + list internal users.                                |
-| `Events (admin)`  | `POST/GET /admin/events`, `GET .../events/{id}` (Bearer).   | Task 14: create + read; Task 15: update + delete.                   |
+| `Events (admin)`  | Full CRUD: `POST/GET/PUT/DELETE` under `/admin/events` (Bearer). | Ready.                                                              |
 | `Events (public)` | Public read-only feed used by the website.                  | Empty, populated in Task 18.                                        |
 | `Attendees`       | Public registration + admin attendee listing with DNI decryption. | Empty, populated in Tasks 22 and 26.                          |
 | `Reports`         | Aggregated history and reports.                             | Empty, populated in Task 25.                                        |
