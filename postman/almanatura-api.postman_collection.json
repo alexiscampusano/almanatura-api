@@ -540,7 +540,7 @@
 		},
 		{
 			"name": "Attendees",
-			"description": "Public attendance registration (Task 22 — ready). Admin attendee listing with DNI decryption is Task 26.",
+			"description": "Public registration (Task 22) and admin attendee listing with decrypted DNI (Task 26).",
 			"item": [
 				{
 					"name": "POST register for event",
@@ -592,6 +592,44 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "GET admin attendees for event",
+					"id": "a4b5c6d7-e8f9-0011-aabb-ccddeeff0022",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/events/{{publicEventId}}/attendees",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"events",
+								"{{publicEventId}}",
+								"attendees"
+							]
+						},
+						"description": "Lists registrants for the event (any event status). Requires Bearer JWT (super_user or event_manager). Response includes decrypted national ID — handle as sensitive data. Set `publicEventId` or reuse `lastEventId` from admin create."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200 or 401\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+									"});",
+									"if (pm.response.code === 200) {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json).to.be.an(\"array\");",
+									"}"
+								]
+							}
+						}
+					]
 				}
 			]
 		},
@@ -624,7 +662,7 @@
 			"key": "publicEventId",
 			"value": "",
 			"type": "string",
-			"description": "Optional id for Events (public) → GET event by id (use a published event id from the list)."
+			"description": "Optional event id for public GET/detail/register and admin GET attendees (can mirror `lastEventId`)."
 		}
 	]
 }

@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.almanatura.api.dto.AdminAttendeeResponse;
 import com.almanatura.api.dto.CreateEventRequest;
 import com.almanatura.api.dto.EventResponse;
 import com.almanatura.api.dto.UpdateEventRequest;
+import com.almanatura.api.service.AdminAttendeeService;
 import com.almanatura.api.service.AdminEventService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,10 +32,12 @@ import lombok.RequiredArgsConstructor;
 @Tag(
         name = "Events (admin)",
         description =
-                "CRUD for cultural events. Requires an internal JWT (super_user or event_manager).")
+                "CRUD for cultural events and listing registrants per event. Requires an internal"
+                        + " JWT (super_user or event_manager).")
 public class AdminEventController {
 
     private final AdminEventService adminEventService;
+    private final AdminAttendeeService adminAttendeeService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -54,6 +58,18 @@ public class AdminEventController {
                             + " later.")
     public List<EventResponse> list() {
         return adminEventService.findAll();
+    }
+
+    @GetMapping("/{id}/attendees")
+    @Operation(
+            summary = "List attendees for a cultural event",
+            description =
+                    "Returns registrants for the given event id (any status), sorted by"
+                        + " registration time. Includes decrypted national ID — internal staff only"
+                        + " (super_user or event_manager). Returns 404 if the event id does not"
+                        + " exist.")
+    public List<AdminAttendeeResponse> listAttendees(@PathVariable long id) {
+        return adminAttendeeService.listForEvent(id);
     }
 
     @GetMapping("/{id}")
