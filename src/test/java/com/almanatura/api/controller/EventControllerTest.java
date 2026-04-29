@@ -20,6 +20,7 @@ import com.almanatura.api.entity.CulturalEvent;
 import com.almanatura.api.enums.EventStatus;
 import com.almanatura.api.exception.ErrorCode;
 import com.almanatura.api.repository.CulturalEventRepository;
+import com.almanatura.api.repository.EventAttendeeRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,9 +32,11 @@ class EventControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private CulturalEventRepository culturalEventRepository;
+    @Autowired private EventAttendeeRepository eventAttendeeRepository;
 
     @BeforeEach
     void setUp() {
+        eventAttendeeRepository.deleteAll();
         culturalEventRepository.deleteAll();
     }
 

@@ -23,6 +23,7 @@ import com.almanatura.api.enums.EventStatus;
 import com.almanatura.api.enums.Role;
 import com.almanatura.api.exception.ErrorCode;
 import com.almanatura.api.repository.CulturalEventRepository;
+import com.almanatura.api.repository.EventAttendeeRepository;
 import com.almanatura.api.repository.UserRepository;
 
 @SpringBootTest
@@ -36,6 +37,7 @@ class AdminEventControllerTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
     @Autowired private CulturalEventRepository culturalEventRepository;
+    @Autowired private EventAttendeeRepository eventAttendeeRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
     private User superUser;
@@ -43,6 +45,7 @@ class AdminEventControllerTest {
 
     @BeforeEach
     void setUp() {
+        eventAttendeeRepository.deleteAll();
         culturalEventRepository.deleteAll();
         userRepository.deleteAll();
         superUser =
