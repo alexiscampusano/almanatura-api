@@ -327,7 +327,7 @@ Public endpoints (no JWT required):
 
 - `GET  /api/v1/ping`
 - `GET  /api/v1/events`, `GET /api/v1/events/{id}` — public cultural agenda **without JWT**: list/detail only events with `status = PUBLISHED` (sorted by `startsAt` ascending on the list; no pagination in MVP). `404` `RESOURCE_NOT_FOUND` on detail if the id is missing or not published (`DRAFT` / `CANCELLED`).
-- `POST /api/v1/events/{id}/register`    (public attendee registration)
+- `POST /api/v1/events/{id}/register` — **without JWT**: register for a **PUBLISHED** event with `fullName`, `email`, `dni`, optional `phone`; DNI stored encrypted (`AES-256-GCM`). **`201`** + `{ id, eventId, registeredAt }`. **`404`** `RESOURCE_NOT_FOUND` if the event is missing or not published. **`409`** `EVENT_AT_CAPACITY` when `max_attendees` is set and reached; **`409`** `ATTENDEE_ALREADY_REGISTERED` when the same email is used twice for that event. **`429`** if rate-limited (same bucket as documented for this path).
 - `POST /api/v1/auth/login`              (internal login; future refresh would be another explicit route)
 - `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`
 
@@ -387,6 +387,8 @@ Example payload (`POST /api/v1/admin/events` with an invalid body):
 | --------------------------- | ---- | --------------------------------------------------------- |
 | `VALIDATION_FAILED`         | 400  | Bean Validation (`@Valid`) failed; see `violations[]`     |
 | `EMAIL_ALREADY_IN_USE`      | 409  | Email already registered (e.g. `POST /admin/users`)       |
+| `EVENT_AT_CAPACITY`         | 409  | `POST /events/{id}/register` when `maxAttendees` is reached |
+| `ATTENDEE_ALREADY_REGISTERED` | 409 | Same email twice for the same event (`POST /events/{id}/register`) |
 | `MALFORMED_REQUEST`         | 400  | Body cannot be parsed (invalid JSON, type mismatch, etc.) |
 | `MISSING_PARAMETER`         | 400  | Required query/path parameter is absent                   |
 | `TYPE_MISMATCH`             | 400  | Parameter value cannot be converted to the declared type  |

@@ -540,8 +540,60 @@
 		},
 		{
 			"name": "Attendees",
-			"description": "Public attendance registration (Task 22) and admin-only attendee listing with DNI decryption (Task 26).",
-			"item": []
+			"description": "Public attendance registration (Task 22 — ready). Admin attendee listing with DNI decryption is Task 26.",
+			"item": [
+				{
+					"name": "POST register for event",
+					"id": "f3a4b5c6-d7e8-9900-aabb-ccddeeff0011",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"María López\",\n  \"email\": \"maria@example.org\",\n  \"dni\": \"12345678A\",\n  \"phone\": \"600123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/events/{{publicEventId}}/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{publicEventId}}",
+								"register"
+							]
+						},
+						"description": "Registers for a published event. Set `publicEventId` to a PUBLISHED event id (e.g. from Events (public) → GET list, after publishing via admin PUT). Returns 201 with attendee id; 409 when duplicate email or capacity reached."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 201 or 4xx\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 400, 404, 409, 429]);",
+									"});",
+									"if (pm.response.code === 201) {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json).to.have.property(\"id\");",
+									"    pm.expect(json).to.have.property(\"eventId\");",
+									"    pm.expect(json).to.have.property(\"registeredAt\");",
+									"}"
+								]
+							}
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "Reports",

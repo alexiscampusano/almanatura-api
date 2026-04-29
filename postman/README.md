@@ -19,7 +19,7 @@ The collection is organised by epic so each upcoming task has an obvious home:
 | `Users (admin)`   | `POST /admin/users`, `GET /admin/users` (Bearer, super_user). | Ready: create + list internal users.                                |
 | `Events (admin)`  | Full CRUD: `POST/GET/PUT/DELETE` under `/admin/events` (Bearer). | Ready.                                                              |
 | `Events (public)` | `GET /events`, `GET /events/{id}` — published events only (no Bearer). | Ready: list + detail; optional `publicEventId`. |
-| `Attendees`       | Public registration + admin attendee listing with DNI decryption. | Empty, populated in Tasks 22 and 26.                          |
+| `Attendees`       | `POST /events/{id}/register` (public); admin attendee APIs pending Task 26. | Ready: public registration; optional `publicEventId`. |
 | `Reports`         | Aggregated history and reports.                             | Empty, populated in Task 25.                                        |
 
 ## How to import
