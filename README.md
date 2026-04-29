@@ -341,7 +341,8 @@ Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 - `GET  /api/v1/admin/events/{id}` – event by id
 - `PUT  /api/v1/admin/events/{id}` – replace fields + `status` (`DRAFT` \| `PUBLISHED` \| `CANCELLED`); same roles
 - `DELETE /api/v1/admin/events/{id}` – remove event (**204**)
-- `GET  /api/v1/admin/events/{eventId}/attendees` – list registrants for that event (`AdminAttendeeResponse[]`, sorted by registration time; **includes decrypted national ID** for authorized internal users only — treat as sensitive data)
+- `GET  /api/v1/admin/reports/summary` – dashboard aggregates: events **per** `EventStatus`, plus total events and total public registrations (JSON only, no personal data); `SUPER_USER` or `EVENT_MANAGER`
+- `GET  /api/v1/admin/reports/events/attendance` – each cultural event with **`attendeeCount`**, ordered by count descending then `startsAt` ascending (no attendee PII); same roles
 - `/api/v1/admin/**`           – any internal user (except `/admin/users/**`, which is super_user-only as above)
 
 Passwords are hashed with BCrypt. Sessions are stateless. CORS origins are

@@ -23,6 +23,7 @@ public interface EventMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
+    @Mapping(target = "attendees", ignore = true)
     CulturalEvent toEntity(CreateEventRequest request);
 
     @Mapping(target = "id", ignore = true)
@@ -31,6 +32,7 @@ public interface EventMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
+    @Mapping(target = "attendees", ignore = true)
     void updateEntity(UpdateEventRequest request, @MappingTarget CulturalEvent entity);
 
     EventResponse toResponse(CulturalEvent entity);

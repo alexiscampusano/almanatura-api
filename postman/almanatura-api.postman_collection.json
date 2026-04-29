@@ -635,8 +635,85 @@
 		},
 		{
 			"name": "Reports",
-			"description": "Aggregated reports and history. Populated in Task 25.",
-			"item": []
+			"description": "Aggregated metrics for internal dashboards: organization summary and per-event registration counts (Bearer JWT). No attendee personal data.",
+			"item": [
+				{
+					"name": "GET organization summary",
+					"id": "b7c8d9e0-f1a2-4455-b667-8899aabbccdd",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/reports/summary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"reports",
+								"summary"
+							]
+						},
+						"description": "Returns eventsByStatus (count per DRAFT/PUBLISHED/CANCELLED), totalEvents, totalRegistrations. Aggregates only."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200 or 401\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+									"});",
+									"if (pm.response.code === 200) {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json).to.have.property(\"eventsByStatus\");",
+									"    pm.expect(json).to.have.property(\"totalEvents\");",
+									"    pm.expect(json).to.have.property(\"totalRegistrations\");",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "GET events by attendance",
+					"id": "c8d9e0f1-a2b3-5566-c778-9900bbaaccdd",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/reports/events/attendance",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"admin",
+								"reports",
+								"events",
+								"attendance"
+							]
+						},
+						"description": "Lists every event with id, title, startsAt, status, attendeeCount. Sorted by attendee count descending."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200 or 401\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+									"});",
+									"if (pm.response.code === 200) {",
+									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
+									"}"
+								]
+							}
+						}
+					]
+				}
+			]
 		}
 	],
 	"variable": [
