@@ -64,9 +64,9 @@ public class EventController {
             summary = "Register for a published event",
             description =
                     "Creates an attendee row with encrypted DNI. Returns 404 if the event does not"
-                        + " exist or is not PUBLISHED; 409 EVENT_AT_CAPACITY when maxAttendees is"
-                        + " reached; 409 ATTENDEE_ALREADY_REGISTERED when the same email is used"
-                        + " twice for the same event.")
+                            + " exist or is not PUBLISHED; 409 EVENT_AT_CAPACITY when maxAttendees is"
+                            + " reached; 409 ATTENDEE_ALREADY_REGISTERED when the same email is used"
+                            + " twice for the same event.")
     public RegistrationResponse register(
             @PathVariable long id, @Valid @RequestBody RegisterAttendeeRequest body) {
         return eventRegistrationService.register(id, body);
