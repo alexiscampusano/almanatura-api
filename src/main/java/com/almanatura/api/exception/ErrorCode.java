@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "Validation failed"),
     EMAIL_ALREADY_IN_USE(HttpStatus.CONFLICT, "Email already in use"),
+    EVENT_AT_CAPACITY(HttpStatus.CONFLICT, "Event at capacity"),
+    ATTENDEE_ALREADY_REGISTERED(HttpStatus.CONFLICT, "Already registered for this event"),
     MALFORMED_REQUEST(HttpStatus.BAD_REQUEST, "Malformed request body"),
     MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "Missing request parameter"),
     TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "Invalid parameter type"),

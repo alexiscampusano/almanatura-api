@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -62,6 +63,43 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ProblemDetail> handleEmailAlreadyInUse(
             EmailAlreadyInUseException ex, HttpServletRequest request) {
         return entity(ErrorCode.EMAIL_ALREADY_IN_USE, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(EventAtCapacityException.class)
+    public ResponseEntity<ProblemDetail> handleEventAtCapacity(
+            EventAtCapacityException ex, HttpServletRequest request) {
+        return entity(ErrorCode.EVENT_AT_CAPACITY, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AttendeeAlreadyRegisteredException.class)
+    public ResponseEntity<ProblemDetail> handleAttendeeAlreadyRegistered(
+            AttendeeAlreadyRegisteredException ex, HttpServletRequest request) {
+        return entity(ErrorCode.ATTENDEE_ALREADY_REGISTERED, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ProblemDetail> handleDataIntegrity(
+            DataIntegrityViolationException ex, HttpServletRequest request) {
+        Throwable cause = ex.getMostSpecificCause();
+        String msg = cause.getMessage();
+        if (msg != null
+                && (msg.contains("uq_event_attendees_event_email")
+                        || msg.contains("EVENT_EMAIL")
+                        || msg.contains("event_email"))) {
+            return entity(
+                    ErrorCode.ATTENDEE_ALREADY_REGISTERED,
+                    "An attendee with this email is already registered for this event.",
+                    request);
+        }
+        log.warn(
+                "Data integrity violation at {} {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                ex);
+        return entity(
+                ErrorCode.INTERNAL_ERROR,
+                "An unexpected error occurred. Please contact support if the problem persists.",
+                request);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
