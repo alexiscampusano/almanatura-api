@@ -462,8 +462,81 @@
 		},
 		{
 			"name": "Events (public)",
-			"description": "Public read-only endpoints used by the AlmaNatura website. Populated in Task 18.",
-			"item": []
+			"description": "Public read-only endpoints used by the AlmaNatura website. Only PUBLISHED events; no Bearer token.",
+			"item": [
+				{
+					"name": "GET list published events",
+					"id": "d1e2f3a4-b5c6-7788-9900-aabbccddeeff",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/events",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events"
+							]
+						},
+						"description": "Lists published events only, sorted by startsAt ascending. Does not return drafts or cancelled events."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"body is array\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "GET event by id",
+					"id": "e2f3a4b5-c6d7-8899-aabbccddeeff",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/events/{{publicEventId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"events",
+								"{{publicEventId}}"
+							]
+						},
+						"description": "Published event by numeric id. Set `publicEventId` manually or copy an id from GET list published events. Returns 404 if the event does not exist or is not PUBLISHED."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200 or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "Attendees",
@@ -494,6 +567,12 @@
 			"value": "",
 			"type": "string",
 			"description": "Set by Events (admin) → POST create event. Used by GET event by id."
+		},
+		{
+			"key": "publicEventId",
+			"value": "",
+			"type": "string",
+			"description": "Optional id for Events (public) → GET event by id (use a published event id from the list)."
 		}
 	]
 }
