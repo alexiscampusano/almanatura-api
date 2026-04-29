@@ -326,7 +326,7 @@ the codebase grows:
 Public endpoints (no JWT required):
 
 - `GET  /api/v1/ping`
-- `GET  /api/v1/events/**`               (public cultural events agenda; implemented in Task 18)
+- `GET  /api/v1/events`, `GET /api/v1/events/{id}` — public cultural agenda **without JWT**: list/detail only events with `status = PUBLISHED` (sorted by `startsAt` ascending on the list; no pagination in MVP). `404` `RESOURCE_NOT_FOUND` on detail if the id is missing or not published (`DRAFT` / `CANCELLED`).
 - `POST /api/v1/events/{id}/register`    (public attendee registration)
 - `POST /api/v1/auth/login`              (internal login; future refresh would be another explicit route)
 - `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`
