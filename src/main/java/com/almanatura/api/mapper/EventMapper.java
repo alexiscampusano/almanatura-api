@@ -8,6 +8,7 @@ import org.mapstruct.MappingTarget;
 
 import com.almanatura.api.dto.CreateEventRequest;
 import com.almanatura.api.dto.EventResponse;
+import com.almanatura.api.dto.PublicEventResponse;
 import com.almanatura.api.dto.UpdateEventRequest;
 import com.almanatura.api.entity.CulturalEvent;
 
@@ -33,4 +34,6 @@ public interface EventMapper {
     void updateEntity(UpdateEventRequest request, @MappingTarget CulturalEvent entity);
 
     EventResponse toResponse(CulturalEvent entity);
+
+    PublicEventResponse toPublicResponse(CulturalEvent entity);
 }
