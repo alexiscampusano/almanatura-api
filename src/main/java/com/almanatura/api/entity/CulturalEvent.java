@@ -1,15 +1,19 @@
 package com.almanatura.api.entity;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import com.almanatura.api.enums.EventStatus;
@@ -56,4 +60,9 @@ public class CulturalEvent extends BaseAuditableEntity {
     @Column(nullable = false, length = 32)
     @Builder.Default
     private EventStatus status = EventStatus.DRAFT;
+
+    /** Lazy inverse mapping for aggregate queries (reports); never expose via API directly. */
+    @OneToMany(mappedBy = "culturalEvent", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<EventAttendee> attendees = new ArrayList<>();
 }
