@@ -91,7 +91,9 @@ class AdminReportControllerTest {
     void summary_asEventManager_returnsAggregates() throws Exception {
         seedReportScenario();
 
-        mockMvc.perform(MockMvcRequestBuilders.get(REPORTS_BASE + "/summary").with(user(eventManager)))
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get(REPORTS_BASE + "/summary")
+                                .with(user(eventManager)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.totalEvents").value(4))
@@ -137,8 +139,7 @@ class AdminReportControllerTest {
                                 .build());
 
         for (int i = 0; i < 3; i++) {
-            eventAttendeeRepository.save(
-                    attendee(top, "u" + i + "@x.org", "1111111" + i + "H"));
+            eventAttendeeRepository.save(attendee(top, "u" + i + "@x.org", "1111111" + i + "H"));
         }
         eventAttendeeRepository.save(attendee(second, "only@x.org", "22222222J"));
 
