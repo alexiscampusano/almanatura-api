@@ -232,65 +232,105 @@ make prod-logs | prod-status
 
 The codebase follows a **layered / clean architecture**: HTTP layer (`controller`)
 → business logic (`service`) → persistence (`repository` + `entity`). Cross-cutting
-concerns live in dedicated packages (`security`, `config`, `exception`, `util`).
-Each package has a single, well-defined responsibility — if a class does not fit
+concerns live in dedicated packages (`security`, `config`, `exception`, `util`,
+`validation`). Each package has a single, well-defined responsibility — if a class does not fit
 in any of them, it is probably doing too much.
 
 ```
 src/
 ├── main/
 │   ├── java/com/almanatura/api/
-│   │   ├── AlmanaturaApiApplication.java   # Spring Boot entry point (@SpringBootApplication)
+│   │   ├── AlmanaturaApiApplication.java       # Spring Boot entry point (@SpringBootApplication)
 │   │   │
-│   │   ├── bootstrap/                      # One-off startup tasks (ApplicationRunner)
-│   │   │   └── AdminBootstrapRunner.java       # Provisions the initial SUPER_USER from env
+│   │   ├── bootstrap/
+│   │   │   └── AdminBootstrapRunner.java       # Seeds initial SUPER_USER from env when configured
 │   │   │
-│   │   ├── config/                         # @Configuration beans (no business logic here)
+│   │   ├── config/
 │   │   │   ├── AppProperties.java              # @ConfigurationProperties for app.* keys
-│   │   │   ├── AuditorAwareConfig.java         # AuditorAware<String> for JPA auditing
-│   │   │   ├── CorsConfig.java                 # CORS rules from APP_CORS_ALLOWED_ORIGINS
-│   │   │   ├── OpenApiConfig.java              # Springdoc/Swagger + RFC 7807 schema
-│   │   │   ├── PasswordEncoderConfig.java      # BCryptPasswordEncoder bean
-│   │   │   └── SecurityConfig.java             # SecurityFilterChain, public vs JWT routes
+│   │   │   ├── AuditorAwareConfig.java        # AuditorAware<String> for JPA auditing metadata
+│   │   │   ├── CorsConfig.java                # CORS from APP_CORS_ALLOWED_ORIGINS
+│   │   │   ├── OpenApiConfig.java             # Springdoc/OpenAPI + shared RFC 7807 schema bits
+│   │   │   ├── PasswordEncoderConfig.java     # BCryptPasswordEncoder bean
+│   │   │   └── SecurityConfig.java            # SecurityFilterChain — public routes vs JWT
 │   │   │
-│   │   ├── controller/                     # Thin REST adapters (no business logic)
-│   │   │   └── HealthController.java           # GET /ping (typed HealthResponse record)
+│   │   ├── controller/
+│   │   │   ├── AuthController.java            # POST /auth/login, GET /auth/me
+│   │   │   ├── AdminUserController.java       # POST/GET /admin/users (SUPER_USER)
+│   │   │   ├── AdminEventController.java      # CRUD /admin/events + GET …/events/{id}/attendees
+│   │   │   ├── AdminReportController.java      # GET /admin/reports/summary, …/events/attendance
+│   │   │   ├── EventController.java           # Public GET /events (+/{id}); POST …/register
+│   │   │   └── HealthController.java          # GET /ping (+ nested HealthResponse record)
 │   │   │
-│   │   ├── dto/                            # Request/response DTOs (records). Filled per Epic.
+│   │   ├── dto/
+│   │   │   ├── LoginRequest.java
+│   │   │   ├── LoginResponse.java
+│   │   │   ├── CreateUserRequest.java
+│   │   │   ├── UserSummary.java
+│   │   │   ├── CreateEventRequest.java
+│   │   │   ├── UpdateEventRequest.java
+│   │   │   ├── EventResponse.java
+│   │   │   ├── PublicEventResponse.java
+│   │   │   ├── RegisterAttendeeRequest.java
+│   │   │   ├── RegistrationResponse.java
+│   │   │   ├── AdminAttendeeResponse.java      # Includes decrypted national ID — internal only
+│   │   │   ├── ReportsSummaryResponse.java      # Aggregate dashboard metrics
+│   │   │   ├── EventStatusCount.java           # Nested status/count pair for summaries
+│   │   │   └── EventAttendanceReportRow.java      # Event + attendeeCount for rankings
 │   │   │
-│   │   ├── entity/                         # JPA @Entity classes — DB representation only
-│   │   │   ├── BaseAuditableEntity.java        # createdAt/updatedAt/createdBy + @Version
-│   │   │   └── User.java                       # Internal users (SUPER_USER / EVENT_MANAGER)
+│   │   ├── entity/
+│   │   │   ├── BaseAuditableEntity.java        # createdAt/updatedAt + audit + @Version
+│   │   │   ├── User.java                       # Internal users (SUPER_USER / EVENT_MANAGER)
+│   │   │   ├── CulturalEvent.java               # Agenda domain row + lazy attendees mapping
+│   │   │   └── EventAttendee.java               # Registration row (encrypted DNI at rest)
 │   │   │
-│   │   ├── enums/                          # Domain enums shared across layers
-│   │   │   └── Role.java
+│   │   ├── enums/
+│   │   │   ├── Role.java
+│   │   │   └── EventStatus.java                 # Cultural event lifecycle flags
 │   │   │
-│   │   ├── exception/                      # Centralised error handling (RFC 7807)
-│   │   │   ├── ApiErrorWriter.java             # Writes ProblemDetail outside MVC (filters)
-│   │   │   ├── ApiProblems.java                # Factory for ProblemDetail (code/traceId/...)
-│   │   │   ├── ErrorCode.java                  # Stable, machine-readable error catalog
-│   │   │   ├── FieldViolation.java             # {field, message} record for violations[]
-│   │   │   ├── GlobalExceptionHandler.java     # @RestControllerAdvice for all exceptions
-│   │   │   └── ResourceNotFoundException.java  # Domain-level "not found" signal
+│   │   ├── exception/
+│   │   │   ├── ApiErrorWriter.java             # ProblemDetail serialization outside MVC
+│   │   │   ├── ApiProblems.java                # Builds ProblemDetail (code/traceId/extensions)
+│   │   │   ├── GlobalExceptionHandler.java      # Maps exceptions → RFC 7807 responses
+│   │   │   ├── ResourceNotFoundException.java
+│   │   │   ├── EmailAlreadyInUseException.java
+│   │   │   ├── EventAtCapacityException.java
+│   │   │   ├── AttendeeAlreadyRegisteredException.java
+│   │   │   ├── FieldViolation.java
+│   │   │   └── ErrorCode.java                   # Canonical error identifiers for ProblemDetail.code
 │   │   │
-│   │   ├── mapper/                         # MapStruct mappers (Entity ↔ DTO). See package-info.
+│   │   ├── mapper/
+│   │   │   ├── package-info.java
+│   │   │   └── EventMapper.java                  # CulturalEvent ⇄ admin/public event DTOs
 │   │   │
-│   │   ├── repository/                     # Spring Data JPA repositories (interfaces only)
-│   │   │   └── UserRepository.java
+│   │   ├── repository/
+│   │   │   ├── UserRepository.java
+│   │   │   ├── CulturalEventRepository.java     # Includes aggregate queries for reports
+│   │   │   └── EventAttendeeRepository.java
 │   │   │
-│   │   ├── security/                       # Auth & throttling — Spring Security building blocks
-│   │   │   ├── CustomUserDetailsService.java   # Loads users from the DB for Spring Security
+│   │   ├── security/
+│   │   │   ├── CustomUserDetailsService.java   # Spring Security user lookup
 │   │   │   ├── JwtAccessDeniedHandler.java     # 403 → ProblemDetail
-│   │   │   ├── JwtAuthenticationEntryPoint.java# 401 → ProblemDetail
-│   │   │   ├── JwtAuthenticationFilter.java    # Extracts & validates JWT per request
+│   │   │   ├── JwtAuthenticationEntryPoint.java # 401 → ProblemDetail
+│   │   │   ├── JwtAuthenticationFilter.java    # Bearer extraction + validation
 │   │   │   ├── JwtService.java                 # Sign/verify HS512 tokens (JJWT)
-│   │   │   └── RateLimitFilter.java            # Bucket4j throttle for /auth & /register
+│   │   │   └── RateLimitFilter.java            # Bucket4j on /auth/login & /events/*/register
 │   │   │
-│   │   ├── service/                        # Business logic — orchestrates repos + utils
-│   │   │   └── AuthService.java                # Login + JWT issuance (skeleton)
+│   │   ├── service/
+│   │   │   ├── AuthService.java                # Issues JWTs for internal login
+│   │   │   ├── AdminUserService.java            # Internal user creation + listing
+│   │   │   ├── AdminEventService.java           # Cultural event CRUD orchestration
+│   │   │   ├── AdminAttendeeService.java        # Lists attendees with decrypted DNI (authorized)
+│   │   │   ├── PublicEventService.java          # Published agenda filters (no JWT)
+│   │   │   ├── EventRegistrationService.java   # Public registration + encryption + capacity rules
+│   │   │   └── AdminReportService.java          # Summary + event/attendance aggregates
 │   │   │
-│   │   └── util/                           # Stateless helpers, no Spring dependencies
-│   │       └── DniCipherService.java           # AES-256-GCM encrypt/decrypt for DNI
+│   │   ├── validation/
+│   │   │   ├── InternalPasswordPolicy.java     # Documents internal password rules
+│   │   │   ├── StrongInternalPassword.java      # Bean Validation annotation for admin passwords
+│   │   │   └── StrongInternalPasswordValidator.java
+│   │   │
+│   │   └── util/
+│   │       └── DniCipherService.java           # AES-GCM helpers for attendee national IDs
 │   │
 │   └── resources/
 │       ├── application.properties              # Common defaults (active profile via env)
@@ -301,9 +341,22 @@ src/
 │
 └── test/
     ├── java/com/almanatura/api/
-    │   ├── AlmanaturaApiApplicationTests.java  # Context loads
-    │   ├── architecture/ArchitectureTest.java  # ArchUnit rules (layer boundaries)
-    │   └── exception/ErrorResponseTest.java    # MockMvc tests for RFC 7807 responses
+    │   ├── AbstractIntegrationTest.java        # Optional MySQL Testcontainers base (@Profile integration)
+    │   ├── AlmanaturaApiApplicationTests.java  # Context loads smoke test
+    │   ├── architecture/
+    │   │   └── ArchitectureTest.java           # ArchUnit layered rules
+    │   ├── controller/
+    │   │   ├── AdminAttendeeControllerTest.java
+    │   │   ├── AdminEventControllerTest.java
+    │   │   ├── AdminReportControllerTest.java
+    │   │   ├── AdminUserControllerTest.java
+    │   │   ├── AuthControllerTest.java
+    │   │   ├── EventControllerTest.java
+    │   │   └── EventRegistrationControllerTest.java
+    │   ├── exception/
+    │   │   └── ErrorResponseTest.java          # MockMvc coverage for ProblemDetail responses
+    │   └── validation/
+    │       └── InternalPasswordPolicyTest.java
     └── resources/
         ├── application-test.properties         # H2 in-memory, used by @SpringBootTest
         └── application-integration.properties  # Reserved for Testcontainers (future)
