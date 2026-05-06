@@ -2,9 +2,21 @@
 
 [![CI](https://github.com/alexiscampusano/almanatura-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alexiscampusano/almanatura-api/actions/workflows/ci.yml?query=branch%3Amain)
 
-REST API powering the cultural events platform of Fundación AlmaNatura.
-Built with Spring Boot 4 and designed mobile-first: a public agenda for elderly users
-and a private admin panel for the foundation's staff.
+REST API powering Fundación AlmaNatura’s rural-actors platform: **projects** with a
+mandatory **strategic pillar**, anonymous **applications**, an **actor directory** after
+staff approval, and a JWT-protected back office. All API literals are **English**
+(`ProjectPillar`, statuses, messages); the frontend owns localization.
+
+## Strategic pillars (`ProjectPillar`)
+
+Stable enum values everywhere (JSON, query params, database):
+
+`TECHNOLOGY`, `EDUCATION`, `ENTREPRENEURSHIP`, `HEALTH`, `CULTURE`
+
+## Application workflow (`ApplicationStatus`)
+
+`SUBMITTED` → `UNDER_REVIEW` → (`NEEDS_INFO` | `REJECTED` | `APPROVED`) →
+`REGISTERED_AS_ACTOR` (creates `Actor`). Terminal: `REJECTED`, `REGISTERED_AS_ACTOR`.
 
 ## Tech stack
 
@@ -256,56 +268,67 @@ src/
 │   │   ├── controller/
 │   │   │   ├── AuthController.java            # POST /auth/login, GET /auth/me
 │   │   │   ├── AdminUserController.java       # POST/GET /admin/users (SUPER_USER)
-│   │   │   ├── AdminEventController.java      # CRUD /admin/events + GET …/events/{id}/attendees
-│   │   │   ├── AdminReportController.java      # GET /admin/reports/summary, …/events/attendance
-│   │   │   ├── EventController.java           # Public GET /events (+/{id}); POST …/register
-│   │   │   └── HealthController.java          # GET /ping (+ nested HealthResponse record)
+│   │   │   ├── ProjectController.java         # Public GET /projects, /projects/{id}
+│   │   │   ├── ActorController.java           # Public GET /actors (?pillar=)
+│   │   │   ├── ApplicationController.java     # Public POST /applications
+│   │   │   ├── AdminProjectController.java    # CRUD /admin/projects
+│   │   │   ├── AdminApplicationController.java # GET/PATCH /admin/applications
+│   │   │   ├── AdminActorController.java      # GET /admin/actors
+│   │   │   ├── AdminReportController.java     # GET …/reports/summary, …/projects/applications
+│   │   │   └── HealthController.java          # GET /ping
 │   │   │
 │   │   ├── dto/
 │   │   │   ├── LoginRequest.java
 │   │   │   ├── LoginResponse.java
 │   │   │   ├── CreateUserRequest.java
 │   │   │   ├── UserSummary.java
-│   │   │   ├── CreateEventRequest.java
-│   │   │   ├── UpdateEventRequest.java
-│   │   │   ├── EventResponse.java
-│   │   │   ├── PublicEventResponse.java
-│   │   │   ├── RegisterAttendeeRequest.java
-│   │   │   ├── RegistrationResponse.java
-│   │   │   ├── AdminAttendeeResponse.java      # Includes decrypted national ID — internal only
-│   │   │   ├── ReportsSummaryResponse.java      # Aggregate dashboard metrics
-│   │   │   ├── EventStatusCount.java           # Nested status/count pair for summaries
-│   │   │   └── EventAttendanceReportRow.java      # Event + attendeeCount for rankings
+│   │   │   ├── CreateProjectRequest.java
+│   │   │   ├── UpdateProjectRequest.java
+│   │   │   ├── ProjectResponse.java
+│   │   │   ├── PublicProjectResponse.java
+│   │   │   ├── PublicActorResponse.java
+│   │   │   ├── SubmitApplicationRequest.java
+│   │   │   ├── ApplicationSubmittedResponse.java
+│   │   │   ├── AdminApplicationResponse.java  # Decrypted national ID — internal only
+│   │   │   ├── PatchApplicationStatusRequest.java
+│   │   │   ├── ReportsSummaryResponse.java
+│   │   │   ├── ProjectStatusCount.java
+│   │   │   └── ProjectApplicationReportRow.java
 │   │   │
 │   │   ├── entity/
-│   │   │   ├── BaseAuditableEntity.java        # createdAt/updatedAt + audit + @Version
-│   │   │   ├── User.java                       # Internal users (SUPER_USER / EVENT_MANAGER)
-│   │   │   ├── CulturalEvent.java               # Agenda domain row + lazy attendees mapping
-│   │   │   └── EventAttendee.java               # Registration row (encrypted DNI at rest)
+│   │   │   ├── BaseAuditableEntity.java
+│   │   │   ├── User.java
+│   │   │   ├── Project.java
+│   │   │   ├── Actor.java
+│   │   │   └── ProjectApplication.java
 │   │   │
 │   │   ├── enums/
 │   │   │   ├── Role.java
-│   │   │   └── EventStatus.java                 # Cultural event lifecycle flags
+│   │   │   ├── ProjectPillar.java
+│   │   │   ├── ProjectStatus.java
+│   │   │   └── ApplicationStatus.java
 │   │   │
 │   │   ├── exception/
-│   │   │   ├── ApiErrorWriter.java             # ProblemDetail serialization outside MVC
-│   │   │   ├── ApiProblems.java                # Builds ProblemDetail (code/traceId/extensions)
-│   │   │   ├── GlobalExceptionHandler.java      # Maps exceptions → RFC 7807 responses
+│   │   │   ├── ApiErrorWriter.java
+│   │   │   ├── ApiProblems.java
+│   │   │   ├── GlobalExceptionHandler.java
 │   │   │   ├── ResourceNotFoundException.java
 │   │   │   ├── EmailAlreadyInUseException.java
-│   │   │   ├── EventAtCapacityException.java
-│   │   │   ├── AttendeeAlreadyRegisteredException.java
+│   │   │   ├── ApplicationAlreadyExistsException.java
+│   │   │   ├── InvalidApplicationTransitionException.java
+│   │   │   ├── ProjectHasApplicationsException.java
 │   │   │   ├── FieldViolation.java
-│   │   │   └── ErrorCode.java                   # Canonical error identifiers for ProblemDetail.code
+│   │   │   └── ErrorCode.java
 │   │   │
 │   │   ├── mapper/
 │   │   │   ├── package-info.java
-│   │   │   └── EventMapper.java                  # CulturalEvent ⇄ admin/public event DTOs
+│   │   │   └── ProjectMapper.java
 │   │   │
 │   │   ├── repository/
 │   │   │   ├── UserRepository.java
-│   │   │   ├── CulturalEventRepository.java     # Includes aggregate queries for reports
-│   │   │   └── EventAttendeeRepository.java
+│   │   │   ├── ProjectRepository.java
+│   │   │   ├── ActorRepository.java
+│   │   │   └── ProjectApplicationRepository.java
 │   │   │
 │   │   ├── security/
 │   │   │   ├── CustomUserDetailsService.java   # Spring Security user lookup
@@ -313,16 +336,19 @@ src/
 │   │   │   ├── JwtAuthenticationEntryPoint.java # 401 → ProblemDetail
 │   │   │   ├── JwtAuthenticationFilter.java    # Bearer extraction + validation
 │   │   │   ├── JwtService.java                 # Sign/verify HS512 tokens (JJWT)
-│   │   │   └── RateLimitFilter.java            # Bucket4j on /auth/login & /events/*/register
+│   │   │   └── RateLimitFilter.java            # Bucket4j on /auth/login & POST /applications
 │   │   │
 │   │   ├── service/
-│   │   │   ├── AuthService.java                # Issues JWTs for internal login
-│   │   │   ├── AdminUserService.java            # Internal user creation + listing
-│   │   │   ├── AdminEventService.java           # Cultural event CRUD orchestration
-│   │   │   ├── AdminAttendeeService.java        # Lists attendees with decrypted DNI (authorized)
-│   │   │   ├── PublicEventService.java          # Published agenda filters (no JWT)
-│   │   │   ├── EventRegistrationService.java   # Public registration + encryption + capacity rules
-│   │   │   └── AdminReportService.java          # Summary + event/attendance aggregates
+│   │   │   ├── ApplicationStatusTransitions.java # Allowed PATCH transitions (domain guard)
+│   │   │   ├── AuthService.java
+│   │   │   ├── AdminUserService.java
+│   │   │   ├── AdminProjectService.java
+│   │   │   ├── AdminApplicationService.java
+│   │   │   ├── AdminActorService.java
+│   │   │   ├── AdminReportService.java
+│   │   │   ├── PublicProjectService.java
+│   │   │   ├── PublicActorService.java
+│   │   │   └── ApplicationSubmissionService.java
 │   │   │
 │   │   ├── validation/
 │   │   │   ├── InternalPasswordPolicy.java     # Documents internal password rules
@@ -330,7 +356,7 @@ src/
 │   │   │   └── StrongInternalPasswordValidator.java
 │   │   │
 │   │   └── util/
-│   │       └── DniCipherService.java           # AES-GCM helpers for attendee national IDs
+│   │       └── DniCipherService.java           # AES-GCM for applicant national IDs
 │   │
 │   └── resources/
 │       ├── application.properties              # Common defaults (active profile via env)
@@ -346,13 +372,13 @@ src/
     │   ├── architecture/
     │   │   └── ArchitectureTest.java           # ArchUnit layered rules
     │   ├── controller/
-    │   │   ├── AdminAttendeeControllerTest.java
-    │   │   ├── AdminEventControllerTest.java
+    │   │   ├── AdminApplicationControllerTest.java
+    │   │   ├── AdminProjectControllerTest.java
     │   │   ├── AdminReportControllerTest.java
     │   │   ├── AdminUserControllerTest.java
+    │   │   ├── ApplicationControllerTest.java
     │   │   ├── AuthControllerTest.java
-    │   │   ├── EventControllerTest.java
-    │   │   └── EventRegistrationControllerTest.java
+    │   │   └── ProjectControllerTest.java
     │   ├── exception/
     │   │   └── ErrorResponseTest.java          # MockMvc coverage for ProblemDetail responses
     │   └── validation/
@@ -379,35 +405,35 @@ the codebase grows:
 Public endpoints (no JWT required):
 
 - `GET  /api/v1/ping`
-- `GET  /api/v1/events`, `GET /api/v1/events/{id}` — public cultural agenda **without JWT**: list/detail only events with `status = PUBLISHED` (sorted by `startsAt` ascending on the list; no pagination in MVP). `404` `RESOURCE_NOT_FOUND` on detail if the id is missing or not published (`DRAFT` / `CANCELLED`).
-- `POST /api/v1/events/{id}/register` — **without JWT**: register for a **PUBLISHED** event with `fullName`, `email`, `dni`, optional `phone`; DNI stored encrypted (`AES-256-GCM`). **`201`** + `{ id, eventId, registeredAt }`. **`404`** `RESOURCE_NOT_FOUND` if the event is missing or not published. **`409`** `EVENT_AT_CAPACITY` when `max_attendees` is set and reached; **`409`** `ATTENDEE_ALREADY_REGISTERED` when the same email is used twice for that event. **`429`** if rate-limited (same bucket as documented for this path).
-- `POST /api/v1/auth/login`              (internal login; future refresh would be another explicit route)
+- `GET  /api/v1/projects`, `GET /api/v1/projects/{id}` — **PUBLISHED** projects only; optional `?pillar=` (`ProjectPillar`). List sorted by `startsAt` ascending. **`404`** `RESOURCE_NOT_FOUND` on detail if missing or not published.
+- `GET  /api/v1/actors` — public directory (`fullName`, `region` only); optional `?pillar=`; includes actors with `REGISTERED_AS_ACTOR` applications on **PUBLISHED** projects for that pillar.
+- `POST /api/v1/applications` — anonymous application to a **PUBLISHED** project; body: `projectId`, `fullName`, `email`, `dni`, optional `phone`; DNI encrypted at rest. **`201`** + `{ id, projectId, submittedAt }`. **`404`** if project missing/not published; **`409`** `APPLICATION_ALREADY_EXISTS` if the same email already applied to that project; **`429`** rate limit (same bucket family as documented for this path).
+- `POST /api/v1/auth/login` — internal login
 - `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`
 
 Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 
-- `GET  /api/v1/auth/me`       – current internal user profile (`super_user` or `event_manager`)
-- `POST /api/v1/admin/users`   – create internal user (`UserSummary` response); `SUPER_USER` only
-- `GET  /api/v1/admin/users`   – list all internal users (`UserSummary[]`, sorted by id); `SUPER_USER` only; pagination may be added later
-- `POST /api/v1/admin/events`  – create cultural event (`EventResponse`, status `DRAFT`); `SUPER_USER` or `EVENT_MANAGER`
-- `GET  /api/v1/admin/events`  – list events (`EventResponse[]`, sorted by `startsAt`); same roles; pagination may be added later
-- `GET  /api/v1/admin/events/{id}` – event by id
-- `PUT  /api/v1/admin/events/{id}` – replace fields + `status` (`DRAFT` \| `PUBLISHED` \| `CANCELLED`); same roles
-- `DELETE /api/v1/admin/events/{id}` – remove event (**204**)
-- `GET  /api/v1/admin/reports/summary` – dashboard aggregates: events **per** `EventStatus`, plus total events and total public registrations (JSON only, no personal data); `SUPER_USER` or `EVENT_MANAGER`
-- `GET  /api/v1/admin/reports/events/attendance` – each cultural event with **`attendeeCount`**, ordered by count descending then `startsAt` ascending (no attendee PII); same roles
-- `/api/v1/admin/**`           – any internal user (except `/admin/users/**`, which is super_user-only as above)
+- `GET  /api/v1/auth/me` — current internal user (`SUPER_USER` or `EVENT_MANAGER`)
+- `POST /api/v1/admin/users`, `GET /api/v1/admin/users` — `SUPER_USER` only
+- `POST /api/v1/admin/projects` — create project (`DRAFT`); `SUPER_USER` or `EVENT_MANAGER`
+- `GET  /api/v1/admin/projects` — list all projects (sorted by `startsAt`)
+- `GET /api/v1/admin/projects/{id}`, `PUT /api/v1/admin/projects/{id}`, `DELETE /api/v1/admin/projects/{id}` — **`409`** `PROJECT_HAS_APPLICATIONS` on delete when rows still exist
+- `GET /api/v1/admin/applications` — optional `?projectId=&status=`
+- `GET /api/v1/admin/applications/{id}`, `PATCH /api/v1/admin/applications/{id}` — status transitions; **`400`** `INVALID_APPLICATION_TRANSITION` when illegal; `REGISTERED_AS_ACTOR` creates `Actor`
+- `GET /api/v1/admin/actors`, `GET /api/v1/admin/actors/{id}`
+- `GET /api/v1/admin/reports/summary` — counts per `ProjectStatus`, total projects, total applications (no PII)
+- `GET /api/v1/admin/reports/projects/applications` — each project with `applicationCount`, ordered by count desc then `startsAt`
+- `/api/v1/admin/**` — `SUPER_USER` or `EVENT_MANAGER` except `/admin/users/**` (super only)
 
 Passwords are hashed with BCrypt. Sessions are stateless. CORS origins are
 controlled by the `APP_CORS_ALLOWED_ORIGINS` env var.
 
 ## Sensitive data
 
-The DNI of public attendees must be stored encrypted at rest with AES-256-GCM.
-Use `DniCipherService` from any service that touches the field; never persist
-the cleartext. Rotate `APP_ENCRYPTION_DNI_KEY` only with a documented
-re-encryption migration; data encrypted with the previous key cannot be read
-by the new one.
+National ID numbers (`dni`) on **applications** are stored encrypted at rest (AES-256-GCM).
+Use `DniCipherService` in services; never persist cleartext. Public listings **never** return
+decrypted PII. Admin application responses may include decrypted values for authorized staff only.
+Rotate `APP_ENCRYPTION_DNI_KEY` only with a documented re-encryption migration.
 
 ## Error response format (RFC 7807)
 
@@ -417,7 +443,7 @@ AlmaNatura extensions: a stable, machine-readable `code` and the OpenTelemetry
 `traceId` of the request. The `Content-Type` is always
 `application/problem+json`.
 
-Example payload (`POST /api/v1/admin/events` with an invalid body):
+Example payload (`POST /api/v1/admin/projects` with an invalid body):
 
 ```json
 {
@@ -425,7 +451,7 @@ Example payload (`POST /api/v1/admin/events` with an invalid body):
   "title": "Validation failed",
   "status": 400,
   "detail": "One or more fields are invalid",
-  "instance": "/api/v1/admin/events",
+  "instance": "/api/v1/admin/projects",
   "code": "VALIDATION_FAILED",
   "traceId": "65c2f4a1b8d3e7f9a0b1c2d3e4f5a6b7",
   "timestamp": "2026-04-19T20:14:33.421Z",
@@ -442,8 +468,9 @@ Example payload (`POST /api/v1/admin/events` with an invalid body):
 | --------------------------- | ---- | --------------------------------------------------------- |
 | `VALIDATION_FAILED`         | 400  | Bean Validation (`@Valid`) failed; see `violations[]`     |
 | `EMAIL_ALREADY_IN_USE`      | 409  | Email already registered (e.g. `POST /admin/users`)       |
-| `EVENT_AT_CAPACITY`         | 409  | `POST /events/{id}/register` when `maxAttendees` is reached |
-| `ATTENDEE_ALREADY_REGISTERED` | 409 | Same email twice for the same event (`POST /events/{id}/register`) |
+| `APPLICATION_ALREADY_EXISTS` | 409 | Same email twice for the same project (`POST /applications`) |
+| `INVALID_APPLICATION_TRANSITION` | 400 | Illegal `PATCH /admin/applications/{id}` status change |
+| `PROJECT_HAS_APPLICATIONS` | 409 | `DELETE /admin/projects/{id}` while applications exist   |
 | `MALFORMED_REQUEST`         | 400  | Body cannot be parsed (invalid JSON, type mismatch, etc.) |
 | `MISSING_PARAMETER`         | 400  | Required query/path parameter is absent                   |
 | `TYPE_MISMATCH`             | 400  | Parameter value cannot be converted to the declared type  |
@@ -453,7 +480,7 @@ Example payload (`POST /api/v1/admin/events` with an invalid body):
 | `RESOURCE_NOT_FOUND`        | 404  | Endpoint or domain object does not exist                  |
 | `METHOD_NOT_ALLOWED`        | 405  | HTTP method not supported by the endpoint                 |
 | `MEDIA_TYPE_NOT_SUPPORTED`  | 415  | `Content-Type` not accepted by the endpoint               |
-| `RATE_LIMIT_EXCEEDED`       | 429  | Bucket4j throttle on `/auth/login` or `/events/*/register` (response also includes `Retry-After`) |
+| `RATE_LIMIT_EXCEEDED`       | 429  | Bucket4j throttle on `/auth/login` or `POST /applications` (`Retry-After` header) |
 | `INTERNAL_ERROR`            | 500  | Unhandled exception; details in server logs               |
 
 ### Frontend integration guide

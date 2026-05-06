@@ -255,11 +255,11 @@
 			]
 		},
 		{
-			"name": "Events (admin)",
-			"description": "CRUD for cultural events. Requires internal JWT (super_user or event_manager). Run POST create first to set lastEventId.",
+			"name": "Projects (admin)",
+			"description": "CRUD for rural projects. Requires JWT. POST create sets `lastProjectId`.",
 			"item": [
 				{
-					"name": "POST create event",
+					"name": "POST create project",
 					"id": "e4f6a8b0-2c3d-5e6f-7081-92a3b4c5d6e7",
 					"request": {
 						"method": "POST",
@@ -271,19 +271,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Taller de memoria\",\n  \"description\": \"Actividad para mayores\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Sala polivalente\",\n  \"maxAttendees\": 25\n}"
+							"raw": "{\n  \"title\": \"Beekeeping workshop\",\n  \"description\": \"Rural skills course\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Village hall\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/admin/events",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"events"
-							]
+							"raw": "{{baseUrl}}/admin/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "projects"]
 						},
-						"description": "Creates an event in DRAFT status. endsAt must be after startsAt when provided."
+						"description": "Creates a project in DRAFT status."
 					},
 					"event": [
 						{
@@ -294,12 +289,10 @@
 									"pm.test(\"status code is 201\", function () {",
 									"    pm.response.to.have.status(201);",
 									"});",
-									"",
 									"const json = pm.response.json();",
 									"if (json && json.id != null) {",
-									"    pm.collectionVariables.set(\"lastEventId\", String(json.id));",
+									"    pm.collectionVariables.set(\"lastProjectId\", String(json.id));",
 									"}",
-									"",
 									"pm.test(\"status is DRAFT\", function () {",
 									"    pm.expect(pm.response.json().status).to.eql(\"DRAFT\");",
 									"});"
@@ -309,22 +302,17 @@
 					]
 				},
 				{
-					"name": "GET list events",
+					"name": "GET list projects",
 					"id": "f5a7b9c1-3d4e-6f70-8192-a3b4c5d6e7f8",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/events",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"events"
-							]
+							"raw": "{{baseUrl}}/admin/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "projects"]
 						},
-						"description": "Lists all events sorted by start time (ascending)."
+						"description": "Lists all projects sorted by startsAt ascending."
 					},
 					"event": [
 						{
@@ -344,23 +332,17 @@
 					]
 				},
 				{
-					"name": "GET event by id",
+					"name": "GET project by id",
 					"id": "a6b8c0d2-4e5f-7081-8293-b4c5d6e7f809",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/events/{{lastEventId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"events",
-								"{{lastEventId}}"
-							]
+							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "projects", "{{lastProjectId}}"]
 						},
-						"description": "Uses `lastEventId` set by POST create event (run that first, or set the variable manually)."
+						"description": "Uses lastProjectId from POST create."
 					},
 					"event": [
 						{
@@ -370,10 +352,6 @@
 								"exec": [
 									"pm.test(\"status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"id matches request\", function () {",
-									"    const id = pm.collectionVariables.get(\"lastEventId\");",
-									"    pm.expect(String(pm.response.json().id)).to.eql(id);",
 									"});"
 								]
 							}
@@ -381,7 +359,7 @@
 					]
 				},
 				{
-					"name": "PUT update event",
+					"name": "PUT update project",
 					"id": "b7c9d1e3-5f60-7182-9304-b5c6d7e8f901",
 					"request": {
 						"method": "PUT",
@@ -393,20 +371,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Taller de memoria (editado)\",\n  \"description\": \"Actividad para mayores — cupo actualizado\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Sala polivalente\",\n  \"maxAttendees\": 30,\n  \"status\": \"PUBLISHED\"\n}"
+							"raw": "{\n  \"title\": \"Beekeeping workshop (updated)\",\n  \"description\": \"Rural skills\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Village hall\",\n  \"status\": \"PUBLISHED\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/admin/events/{{lastEventId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"events",
-								"{{lastEventId}}"
-							]
+							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "projects", "{{lastProjectId}}"]
 						},
-						"description": "Full replace including status (DRAFT, PUBLISHED, CANCELLED). Requires lastEventId from POST create."
+						"description": "Full replace including ProjectStatus."
 					},
 					"event": [
 						{
@@ -416,9 +388,6 @@
 								"exec": [
 									"pm.test(\"status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"status is PUBLISHED\", function () {",
-									"    pm.expect(pm.response.json().status).to.eql(\"PUBLISHED\");",
 									"});"
 								]
 							}
@@ -426,23 +395,17 @@
 					]
 				},
 				{
-					"name": "DELETE event",
+					"name": "DELETE project",
 					"id": "c8d0e2f4-6071-8293-0415-c6d7e8f9012a",
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/events/{{lastEventId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"events",
-								"{{lastEventId}}"
-							]
+							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "projects", "{{lastProjectId}}"]
 						},
-						"description": "Deletes the event (204). Run after PUT or use an id you no longer need."
+						"description": "204 when no applications reference the project."
 					},
 					"event": [
 						{
@@ -450,8 +413,8 @@
 							"script": {
 								"type": "text/javascript",
 								"exec": [
-									"pm.test(\"status code is 204\", function () {",
-									"    pm.response.to.have.status(204);",
+									"pm.test(\"status code is 204 or 409\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([204, 409]);",
 									"});"
 								]
 							}
@@ -461,28 +424,22 @@
 			]
 		},
 		{
-			"name": "Events (public)",
-			"description": "Public read-only endpoints used by the AlmaNatura website. Only PUBLISHED events; no Bearer token.",
+			"name": "Projects (public)",
+			"description": "Published projects only. Optional ?pillar= filter.",
 			"item": [
 				{
-					"name": "GET list published events",
+					"name": "GET list published projects",
 					"id": "d1e2f3a4-b5c6-7788-9900-aabbccddeeff",
 					"request": {
-						"auth": {
-							"type": "noauth"
-						},
+						"auth": {"type": "noauth"},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/events",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"events"
-							]
+							"raw": "{{baseUrl}}/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects"]
 						},
-						"description": "Lists published events only, sorted by startsAt ascending. Does not return drafts or cancelled events."
+						"description": "Lists PUBLISHED projects sorted by startsAt."
 					},
 					"event": [
 						{
@@ -502,25 +459,18 @@
 					]
 				},
 				{
-					"name": "GET event by id",
+					"name": "GET project by id",
 					"id": "e2f3a4b5-c6d7-8899-aabbccddeeff",
 					"request": {
-						"auth": {
-							"type": "noauth"
-						},
+						"auth": {"type": "noauth"},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/events/{{publicEventId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"events",
-								"{{publicEventId}}"
-							]
+							"raw": "{{baseUrl}}/projects/{{publicProjectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects", "{{publicProjectId}}"]
 						},
-						"description": "Published event by numeric id. Set `publicEventId` manually or copy an id from GET list published events. Returns 404 if the event does not exist or is not PUBLISHED."
+						"description": "Set publicProjectId to a published project id."
 					},
 					"event": [
 						{
@@ -539,39 +489,22 @@
 			]
 		},
 		{
-			"name": "Attendees",
-			"description": "Public registration (Task 22) and admin attendee listing with decrypted DNI (Task 26).",
+			"name": "Actors (public)",
+			"description": "Directory entries (no PII).",
 			"item": [
 				{
-					"name": "POST register for event",
+					"name": "GET list actors",
 					"id": "f3a4b5c6-d7e8-9900-aabb-ccddeeff0011",
 					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"fullName\": \"María López\",\n  \"email\": \"maria@example.org\",\n  \"dni\": \"12345678A\",\n  \"phone\": \"600123456\"\n}"
-						},
+						"auth": {"type": "noauth"},
+						"method": "GET",
+						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/events/{{publicEventId}}/register",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"events",
-								"{{publicEventId}}",
-								"register"
-							]
+							"raw": "{{baseUrl}}/actors",
+							"host": ["{{baseUrl}}"],
+							"path": ["actors"]
 						},
-						"description": "Registers for a published event. Set `publicEventId` to a PUBLISHED event id (e.g. from Events (public) → GET list, after publishing via admin PUT). Returns 201 with attendee id; 409 when duplicate email or capacity reached."
+						"description": "Optional query: ?pillar=EDUCATION"
 					},
 					"event": [
 						{
@@ -579,39 +512,70 @@
 							"script": {
 								"type": "text/javascript",
 								"exec": [
-									"pm.test(\"status code is 201 or 4xx\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([201, 400, 404, 409, 429]);",
-									"});",
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Applications",
+			"description": "Public POST /applications; admin search and PATCH.",
+			"item": [
+				{
+					"name": "POST submit application",
+					"id": "a4b5c6d7-e8f9-0011-aabb-ccddeeff0022",
+					"request": {
+						"auth": {"type": "noauth"},
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"projectId\": {{publicProjectId}},\n  \"fullName\": \"Sample Applicant\",\n  \"email\": \"applicant@example.org\",\n  \"dni\": \"12345678Z\",\n  \"phone\": \"+34123456789\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/applications",
+							"host": ["{{baseUrl}}"],
+							"path": ["applications"]
+						},
+						"description": "Set publicProjectId to a numeric PUBLISHED project id."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
 									"if (pm.response.code === 201) {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json).to.have.property(\"id\");",
-									"    pm.expect(json).to.have.property(\"eventId\");",
-									"    pm.expect(json).to.have.property(\"registeredAt\");",
-									"}"
+									"    const j = pm.response.json();",
+									"    pm.collectionVariables.set(\"lastApplicationId\", String(j.id));",
+									"}",
+									"pm.test(\"status code sane\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 400, 404, 409, 429]);",
+									"});"
 								]
 							}
 						}
 					]
 				},
 				{
-					"name": "GET admin attendees for event",
-					"id": "a4b5c6d7-e8f9-0011-aabb-ccddeeff0022",
+					"name": "GET admin list applications",
+					"id": "b5c6d7e8-f9a0-1122-bccd-deeff001133",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/events/{{publicEventId}}/attendees",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"events",
-								"{{publicEventId}}",
-								"attendees"
-							]
+							"raw": "{{baseUrl}}/admin/applications",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "applications"]
 						},
-						"description": "Lists registrants for the event (any event status). Requires Bearer JWT (super_user or event_manager). Response includes decrypted national ID — handle as sensitive data. Set `publicEventId` or reuse `lastEventId` from admin create."
+						"description": "Optional ?projectId=&status=SUBMITTED"
 					},
 					"event": [
 						{
@@ -619,13 +583,42 @@
 							"script": {
 								"type": "text/javascript",
 								"exec": [
-									"pm.test(\"status code is 200 or 401\", function () {",
+									"pm.test(\"200 or 401\", function () {",
 									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
-									"});",
-									"if (pm.response.code === 200) {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json).to.be.an(\"array\");",
-									"}"
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "PATCH application status",
+					"id": "c6d7e8f9-a0b1-2233-cdde-eff00113344",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"UNDER_REVIEW\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/applications/{{lastApplicationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "applications", "{{lastApplicationId}}"]
+						},
+						"description": "Requires lastApplicationId from POST submit. Adjust status to match workflow."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"200 or 4xx\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]);",
+									"});"
 								]
 							}
 						}
@@ -635,7 +628,7 @@
 		},
 		{
 			"name": "Reports",
-			"description": "Aggregated metrics for internal dashboards: organization summary and per-event registration counts (Bearer JWT). No attendee personal data.",
+			"description": "Aggregated metrics: project status counts and applications per project (Bearer JWT). No applicant PII in these endpoints.",
 			"item": [
 				{
 					"name": "GET organization summary",
@@ -654,7 +647,7 @@
 								"summary"
 							]
 						},
-						"description": "Returns eventsByStatus (count per DRAFT/PUBLISHED/CANCELLED), totalEvents, totalRegistrations. Aggregates only."
+						"description": "Returns projectsByStatus, totalProjects, totalApplications. Aggregates only."
 					},
 					"event": [
 						{
@@ -667,9 +660,9 @@
 									"});",
 									"if (pm.response.code === 200) {",
 									"    const json = pm.response.json();",
-									"    pm.expect(json).to.have.property(\"eventsByStatus\");",
-									"    pm.expect(json).to.have.property(\"totalEvents\");",
-									"    pm.expect(json).to.have.property(\"totalRegistrations\");",
+									"    pm.expect(json).to.have.property(\"projectsByStatus\");",
+									"    pm.expect(json).to.have.property(\"totalProjects\");",
+									"    pm.expect(json).to.have.property(\"totalApplications\");",
 									"}"
 								]
 							}
@@ -677,24 +670,24 @@
 					]
 				},
 				{
-					"name": "GET events by attendance",
+					"name": "GET projects by application count",
 					"id": "c8d9e0f1-a2b3-5566-c778-9900bbaaccdd",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/admin/reports/events/attendance",
+							"raw": "{{baseUrl}}/admin/reports/projects/applications",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"admin",
 								"reports",
-								"events",
-								"attendance"
+								"projects",
+								"applications"
 							]
 						},
-						"description": "Lists every event with id, title, startsAt, status, attendeeCount. Sorted by attendee count descending."
+						"description": "Each project with applicationCount. Sorted by count descending."
 					},
 					"event": [
 						{
@@ -730,16 +723,22 @@
 			"description": "Filled automatically by the POST login Tests script. Do not commit a value."
 		},
 		{
-			"key": "lastEventId",
+			"key": "lastProjectId",
 			"value": "",
 			"type": "string",
-			"description": "Set by Events (admin) → POST create event. Used by GET event by id."
+			"description": "Set by Projects (admin) → POST create project."
 		},
 		{
-			"key": "publicEventId",
+			"key": "publicProjectId",
 			"value": "",
 			"type": "string",
-			"description": "Optional event id for public GET/detail/register and admin GET attendees (can mirror `lastEventId`)."
+			"description": "Published project id for public GET detail and POST /applications."
+		},
+		{
+			"key": "lastApplicationId",
+			"value": "",
+			"type": "string",
+			"description": "Set by Applications → POST submit when response is 201."
 		}
 	]
 }
