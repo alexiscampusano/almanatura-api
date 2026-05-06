@@ -7,12 +7,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.almanatura.api.dto.EventAttendanceReportRow;
-import com.almanatura.api.dto.EventStatusCount;
+import com.almanatura.api.dto.ProjectApplicationReportRow;
+import com.almanatura.api.dto.ProjectStatusCount;
 import com.almanatura.api.dto.ReportsSummaryResponse;
-import com.almanatura.api.enums.EventStatus;
-import com.almanatura.api.repository.CulturalEventRepository;
-import com.almanatura.api.repository.EventAttendeeRepository;
+import com.almanatura.api.enums.ProjectStatus;
+import com.almanatura.api.repository.ProjectApplicationRepository;
+import com.almanatura.api.repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,27 +20,27 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminReportService {
 
-    private final CulturalEventRepository culturalEventRepository;
-    private final EventAttendeeRepository eventAttendeeRepository;
+    private final ProjectRepository projectRepository;
+    private final ProjectApplicationRepository projectApplicationRepository;
 
     @Transactional(readOnly = true)
     public ReportsSummaryResponse summary() {
-        List<EventStatusCount> byStatus =
-                Arrays.stream(EventStatus.values())
+        List<ProjectStatusCount> byStatus =
+                Arrays.stream(ProjectStatus.values())
                         .map(
                                 status ->
-                                        new EventStatusCount(
+                                        new ProjectStatusCount(
                                                 status,
-                                                culturalEventRepository.countByStatus(status)))
+                                                projectRepository.countByStatus(status)))
                         .sorted(Comparator.comparing(e -> e.status().name()))
                         .toList();
-        long totalEvents = culturalEventRepository.count();
-        long totalRegistrations = eventAttendeeRepository.count();
-        return new ReportsSummaryResponse(byStatus, totalEvents, totalRegistrations);
+        long totalProjects = projectRepository.count();
+        long totalApplications = projectApplicationRepository.count();
+        return new ReportsSummaryResponse(byStatus, totalProjects, totalApplications);
     }
 
     @Transactional(readOnly = true)
-    public List<EventAttendanceReportRow> eventsByAttendance() {
-        return culturalEventRepository.findAllOrderByAttendeeCountDescStartsAtAsc();
+    public List<ProjectApplicationReportRow> projectsByApplicationCount() {
+        return projectRepository.findAllOrderByApplicationCountDescStartsAtAsc();
     }
 }

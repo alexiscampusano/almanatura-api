@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.almanatura.api.config.AppProperties;
@@ -37,16 +36,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
     private static final String LOGIN_PATH = "/auth/login";
-    private static final String REGISTER_PATH_PATTERN = "/events/*/register";
+    private static final String APPLICATION_SUBMIT_PATH = "/applications";
     private static final String RETRY_AFTER_SECONDS = "60";
 
     private final AppProperties properties;
     private final ApiErrorWriter errorWriter;
 
     private final Map<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> registerBuckets = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> applicationSubmitBuckets = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(
@@ -93,9 +91,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return loginBuckets.computeIfAbsent(ip, k -> newBucket(cfg));
         }
 
-        if (PATH_MATCHER.match(REGISTER_PATH_PATTERN, path)) {
+        if (APPLICATION_SUBMIT_PATH.equals(path)) {
             AppProperties.RateLimit.Bucket cfg = properties.rateLimit().register();
-            return registerBuckets.computeIfAbsent(ip, k -> newBucket(cfg));
+            return applicationSubmitBuckets.computeIfAbsent(ip, k -> newBucket(cfg));
         }
 
         return null;

@@ -37,7 +37,7 @@ public class OpenApiConfig {
                 .info(
                         new Info()
                                 .title("AlmaNatura API")
-                                .description("REST API for the AlmaNatura cultural events platform")
+                                .description("REST API for the AlmaNatura rural actors and projects platform")
                                 .version("v1")
                                 .license(
                                         new License()
@@ -109,7 +109,7 @@ public class OpenApiConfig {
         schema.addProperty("status", new IntegerSchema().format("int32").example(400));
         schema.addProperty("detail", new StringSchema().example("One or more fields are invalid"));
         schema.addProperty(
-                "instance", new StringSchema().format("uri").example("/api/v1/admin/events"));
+                "instance", new StringSchema().format("uri").example("/api/v1/admin/projects"));
         schema.addProperty("code", new StringSchema().example("VALIDATION_FAILED"));
         schema.addProperty(
                 "traceId", new StringSchema().example("65c2f4a1b8d3e7f9a0b1c2d3e4f5a6b7"));

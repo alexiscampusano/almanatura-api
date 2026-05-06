@@ -12,15 +12,16 @@ postman/
 
 The collection is organised by epic so each upcoming task has an obvious home:
 
-| Folder            | Purpose                                                     | Status                                                              |
-| ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------------- |
-| `Health`          | `GET /ping` liveness probe.                                 | Ready to use today.                                                 |
-| `Auth`            | `POST /auth/login` (JWT) and `GET /auth/me` (profile, Bearer). | Ready: login + current user profile.                               |
-| `Users (admin)`   | `POST /admin/users`, `GET /admin/users` (Bearer, super_user). | Ready: create + list internal users.                                |
-| `Events (admin)`  | Full CRUD: `POST/GET/PUT/DELETE` under `/admin/events` (Bearer). | Ready.                                                              |
-| `Events (public)` | `GET /events`, `GET /events/{id}` — published events only (no Bearer). | Ready: list + detail; optional `publicEventId`. |
-| `Attendees`       | `POST /events/{id}/register` (public); `GET /admin/events/{id}/attendees` (Bearer). | Ready: public registration + admin list with decrypted DNI. |
-| `Reports`         | `GET /admin/reports/summary`, `GET /admin/reports/events/attendance` (Bearer). | Ready: organization aggregates + per-event registration counts (no PII). |
+| Folder              | Purpose                                                                 | Status        |
+| ------------------- | ----------------------------------------------------------------------- | ------------- |
+| `Health`            | `GET /ping` liveness probe.                                             | Ready.        |
+| `Auth`              | `POST /auth/login` (JWT) and `GET /auth/me` (profile, Bearer).          | Ready.        |
+| `Users (admin)`     | `POST /admin/users`, `GET /admin/users` (Bearer, super_user).           | Ready.        |
+| `Projects (admin)`  | CRUD under `/admin/projects` (Bearer).                                  | Ready.        |
+| `Projects (public)` | `GET /projects`, `GET /projects/{id}` — PUBLISHED only (no Bearer).    | Ready.        |
+| `Actors (public)`   | `GET /actors` — directory, optional `?pillar=` (no Bearer).            | Ready.        |
+| `Applications`      | `POST /applications` (public); `GET` / `PATCH` `/admin/applications` (Bearer). | Ready. |
+| `Reports`           | `GET /admin/reports/summary`, `GET /admin/reports/projects/applications` (Bearer). | Ready. |
 
 ## How to import
 
@@ -43,15 +44,17 @@ When the token expires (default 24h, see `APP_JWT_EXPIRATION_MS`) just run **POS
 
 ## Environment variables
 
-| Variable        | Type    | Default                | Notes                                                                                              |
-| --------------- | ------- | ---------------------- | -------------------------------------------------------------------------------------------------- |
-| `host`          | default | `http://localhost:8080`| Adjust when targeting a deployed instance behind a reverse proxy.                                  |
-| `contextPath`   | default | `/api/v1`              | Mirrors `server.servlet.context-path` from `src/main/resources/application.properties`.            |
-| `accessToken`   | secret  | empty                  | Filled automatically by the login Tests script. Never commit a value.                              |
-| `adminEmail`    | default | `admin@almanatura.org` | Matches `APP_ADMIN_EMAIL` from `.env`.                                                              |
-| `adminPassword` | secret  | empty                  | Each developer pastes their own value locally. **Never commit a value.**                            |
+| Variable          | Type    | Default                | Notes                                                                                              |
+| ----------------- | ------- | ---------------------- | -------------------------------------------------------------------------------------------------- |
+| `host`            | default | `http://localhost:8080`| Adjust when targeting a deployed instance behind a reverse proxy.                                  |
+| `contextPath`     | default | `/api/v1`              | Mirrors `server.servlet.context-path` from `src/main/resources/application.properties`.          |
+| `accessToken`     | secret  | empty                  | Filled automatically by the login Tests script. Never commit a value.                              |
+| `adminEmail`      | default | `admin@almanatura.org` | Matches `APP_ADMIN_EMAIL` from `.env`.                                                              |
+| `adminPassword`   | secret  | empty                  | Each developer pastes their own value locally. **Never commit a value.**                            |
 
-The collection itself derives `baseUrl = {{host}}{{contextPath}}`, so requests reference `{{baseUrl}}/...` and you only ever change `host` when pointing to a different environment.
+The collection derives `baseUrl = {{host}}{{contextPath}}`, so requests reference `{{baseUrl}}/...` and you only ever change `host` when pointing to a different environment.
+
+Collection variables (set automatically or manually): `lastProjectId`, `publicProjectId`, `lastApplicationId` — see folder descriptions.
 
 ## Running against another environment
 
@@ -61,4 +64,5 @@ Duplicate `Almanatura — Local`, name it `Almanatura — Staging` (or similar),
 
 - **`401 Unauthorized` on protected requests** — your `accessToken` is empty or expired. Run `Auth → POST login`.
 - **`429 Too Many Requests` on login** — the rate-limit filter (`RateLimitFilter`, Bucket4j) is throttling that client IP. Wait the configured window or relax `APP_RATELIMIT_LOGIN_*` for local development.
+- **`429` on `POST /applications`** — same mechanism via `app.rate-limit.register` properties.
 - **Connection refused** — the API is not running. Check `make up` (Docker) or `make run` (local Maven) and that `host` in the environment matches.
