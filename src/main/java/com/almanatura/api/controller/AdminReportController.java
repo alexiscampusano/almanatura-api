@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.almanatura.api.dto.EventAttendanceReportRow;
+import com.almanatura.api.dto.ProjectApplicationReportRow;
 import com.almanatura.api.dto.ReportsSummaryResponse;
 import com.almanatura.api.service.AdminReportService;
 
@@ -19,10 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(
         name = "Reports (admin)",
-        description =
-                "Aggregated metrics for cultural events and registrations. Requires an internal"
-                        + " JWT (super_user or event_manager). No personal attendee data in these"
-                        + " endpoints.")
+        description = "Aggregated metrics for projects and applications. No applicant PII.")
 public class AdminReportController {
 
     private final AdminReportService adminReportService;
@@ -31,19 +28,18 @@ public class AdminReportController {
     @Operation(
             summary = "Organization summary",
             description =
-                    "Returns event counts by lifecycle status plus total events and total public"
-                            + " registrations (aggregates only, no PII).")
+                    "Project counts by lifecycle status plus totals (no personal applicant data).")
     public ReportsSummaryResponse summary() {
         return adminReportService.summary();
     }
 
-    @GetMapping("/events/attendance")
+    @GetMapping("/projects/applications")
     @Operation(
-            summary = "Events ranked by registration count",
+            summary = "Projects ranked by application count",
             description =
-                    "Lists every cultural event with its attendee count. Ordered by count"
-                            + " descending, then by start time ascending for ties.")
-    public List<EventAttendanceReportRow> eventsByAttendance() {
-        return adminReportService.eventsByAttendance();
+                    "Each project with application count, ordered by count descending then start"
+                            + " time.")
+    public List<ProjectApplicationReportRow> projectsByApplicationCount() {
+        return adminReportService.projectsByApplicationCount();
     }
 }

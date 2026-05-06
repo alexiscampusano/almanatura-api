@@ -35,7 +35,7 @@ class ErrorResponseTest {
 
     @Test
     void notFound_returnsResourceNotFoundProblem() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/events/999999"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/projects/999999"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.code()))

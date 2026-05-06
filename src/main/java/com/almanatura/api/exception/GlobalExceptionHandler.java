@@ -65,16 +65,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return entity(ErrorCode.EMAIL_ALREADY_IN_USE, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(EventAtCapacityException.class)
-    public ResponseEntity<ProblemDetail> handleEventAtCapacity(
-            EventAtCapacityException ex, HttpServletRequest request) {
-        return entity(ErrorCode.EVENT_AT_CAPACITY, ex.getMessage(), request);
+    @ExceptionHandler(ApplicationAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handleApplicationAlreadyExists(
+            ApplicationAlreadyExistsException ex, HttpServletRequest request) {
+        return entity(ErrorCode.APPLICATION_ALREADY_EXISTS, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(AttendeeAlreadyRegisteredException.class)
-    public ResponseEntity<ProblemDetail> handleAttendeeAlreadyRegistered(
-            AttendeeAlreadyRegisteredException ex, HttpServletRequest request) {
-        return entity(ErrorCode.ATTENDEE_ALREADY_REGISTERED, ex.getMessage(), request);
+    @ExceptionHandler(InvalidApplicationTransitionException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidTransition(
+            InvalidApplicationTransitionException ex, HttpServletRequest request) {
+        return entity(ErrorCode.INVALID_APPLICATION_TRANSITION, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ProjectHasApplicationsException.class)
+    public ResponseEntity<ProblemDetail> handleProjectHasApplications(
+            ProjectHasApplicationsException ex, HttpServletRequest request) {
+        return entity(ErrorCode.PROJECT_HAS_APPLICATIONS, ex.getMessage(), request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -83,12 +89,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         Throwable cause = ex.getMostSpecificCause();
         String msg = cause.getMessage();
         if (msg != null
-                && (msg.contains("uq_event_attendees_event_email")
-                        || msg.contains("EVENT_EMAIL")
-                        || msg.contains("event_email"))) {
+                && (msg.contains("uq_applications_project_email")
+                        || msg.contains("applications_project"))) {
             return entity(
-                    ErrorCode.ATTENDEE_ALREADY_REGISTERED,
-                    "An attendee with this email is already registered for this event.",
+                    ErrorCode.APPLICATION_ALREADY_EXISTS,
+                    "An application with this email already exists for this project.",
                     request);
         }
         log.warn(
