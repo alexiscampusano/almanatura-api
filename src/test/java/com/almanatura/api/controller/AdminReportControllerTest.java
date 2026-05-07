@@ -18,11 +18,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.almanatura.api.entity.ActivityParticipation;
-import com.almanatura.api.entity.Actor;
 import com.almanatura.api.entity.OutboundNotification;
 import com.almanatura.api.entity.Project;
-import com.almanatura.api.entity.ProjectActivity;
 import com.almanatura.api.entity.ProjectApplication;
 import com.almanatura.api.entity.ProjectImpactEntry;
 import com.almanatura.api.entity.User;
@@ -32,10 +29,8 @@ import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.enums.ProjectStatus;
 import com.almanatura.api.enums.Role;
 import com.almanatura.api.exception.ErrorCode;
-import com.almanatura.api.repository.ActivityParticipationRepository;
 import com.almanatura.api.repository.ActorRepository;
 import com.almanatura.api.repository.OutboundNotificationRepository;
-import com.almanatura.api.repository.ProjectActivityRepository;
 import com.almanatura.api.repository.ProjectApplicationRepository;
 import com.almanatura.api.repository.ProjectImpactEntryRepository;
 import com.almanatura.api.repository.ProjectRepository;
@@ -54,9 +49,7 @@ class AdminReportControllerTest {
     @Autowired private UserRepository userRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectApplicationRepository projectApplicationRepository;
-    @Autowired private ActivityParticipationRepository activityParticipationRepository;
     @Autowired private ActorRepository actorRepository;
-    @Autowired private ProjectActivityRepository projectActivityRepository;
     @Autowired private ProjectImpactEntryRepository projectImpactEntryRepository;
     @Autowired private OutboundNotificationRepository outboundNotificationRepository;
     @Autowired private PasswordEncoder passwordEncoder;
@@ -67,12 +60,10 @@ class AdminReportControllerTest {
 
     @BeforeEach
     void setUp() {
-        activityParticipationRepository.deleteAll();
         projectImpactEntryRepository.deleteAll();
         outboundNotificationRepository.deleteAll();
         projectApplicationRepository.deleteAll();
         actorRepository.deleteAll();
-        projectActivityRepository.deleteAll();
         projectRepository.deleteAll();
         userRepository.deleteAll();
         superUser =
@@ -128,14 +119,12 @@ class AdminReportControllerTest {
                 .andExpect(jsonPath("$.projectsByStatus[1].count").value(1))
                 .andExpect(jsonPath("$.projectsByStatus[2].status").value("PUBLISHED"))
                 .andExpect(jsonPath("$.projectsByStatus[2].count").value(2))
-                .andExpect(jsonPath("$.totalProjectActivities").value(0))
-                .andExpect(jsonPath("$.totalActivityParticipations").value(0))
                 .andExpect(jsonPath("$.totalImpactEntries").value(0))
                 .andExpect(jsonPath("$.totalOutboundNotifications").value(0));
     }
 
     @Test
-    void summary_includesPlanningAndFollowUpRollups() throws Exception {
+    void summary_includesImpactAndNotificationRollups() throws Exception {
         Project p =
                 projectRepository.save(
                         Project.builder()
@@ -144,24 +133,6 @@ class AdminReportControllerTest {
                                 .startsAt(Instant.parse("2030-08-01T10:00:00Z"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
-        ProjectActivity act1 =
-                projectActivityRepository.save(
-                        ProjectActivity.builder()
-                                .project(p)
-                                .title("Session 1")
-                                .startsAt(Instant.parse("2030-08-10T10:00:00Z"))
-                                .build());
-        projectActivityRepository.save(
-                ProjectActivity.builder()
-                        .project(p)
-                        .title("Session 2")
-                        .startsAt(Instant.parse("2030-08-11T10:00:00Z"))
-                        .build());
-        Actor actor =
-                actorRepository.save(
-                        Actor.builder().fullName("Participant").region("South").build());
-        activityParticipationRepository.save(
-                ActivityParticipation.builder().activity(act1).actor(actor).build());
         projectImpactEntryRepository.save(
                 ProjectImpactEntry.builder()
                         .project(p)
@@ -180,8 +151,6 @@ class AdminReportControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalProjects").value(1))
                 .andExpect(jsonPath("$.totalApplications").value(0))
-                .andExpect(jsonPath("$.totalProjectActivities").value(2))
-                .andExpect(jsonPath("$.totalActivityParticipations").value(1))
                 .andExpect(jsonPath("$.totalImpactEntries").value(1))
                 .andExpect(jsonPath("$.totalOutboundNotifications").value(1));
     }

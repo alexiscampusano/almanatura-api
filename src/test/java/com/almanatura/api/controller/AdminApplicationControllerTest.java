@@ -24,10 +24,8 @@ import com.almanatura.api.enums.ApplicationStatus;
 import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.enums.ProjectStatus;
 import com.almanatura.api.enums.Role;
-import com.almanatura.api.repository.ActivityParticipationRepository;
 import com.almanatura.api.repository.ActorRepository;
 import com.almanatura.api.repository.OutboundNotificationRepository;
-import com.almanatura.api.repository.ProjectActivityRepository;
 import com.almanatura.api.repository.ProjectApplicationRepository;
 import com.almanatura.api.repository.ProjectImpactEntryRepository;
 import com.almanatura.api.repository.ProjectRepository;
@@ -45,8 +43,6 @@ class AdminApplicationControllerTest {
     @Autowired private UserRepository userRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectApplicationRepository projectApplicationRepository;
-    @Autowired private ActivityParticipationRepository activityParticipationRepository;
-    @Autowired private ProjectActivityRepository projectActivityRepository;
     @Autowired private ProjectImpactEntryRepository projectImpactEntryRepository;
     @Autowired private OutboundNotificationRepository outboundNotificationRepository;
     @Autowired private ActorRepository actorRepository;
@@ -57,11 +53,9 @@ class AdminApplicationControllerTest {
 
     @BeforeEach
     void setUp() {
-        activityParticipationRepository.deleteAll();
         projectImpactEntryRepository.deleteAll();
         outboundNotificationRepository.deleteAll();
         projectApplicationRepository.deleteAll();
-        projectActivityRepository.deleteAll();
         actorRepository.deleteAll();
         projectRepository.deleteAll();
         userRepository.deleteAll();

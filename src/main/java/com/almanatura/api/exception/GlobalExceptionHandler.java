@@ -104,13 +104,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                     "An application with this email already exists for this project.",
                     request);
         }
-        if (msg != null
-                && (msg.contains("uq_activity_actor") || msg.contains("activity_participations"))) {
-            return entity(
-                    ErrorCode.PARTICIPATION_ALREADY_EXISTS,
-                    "A participation already exists for this activity and actor.",
-                    request);
-        }
         log.warn(
                 "Data integrity violation at {} {}",
                 request.getMethod(),
