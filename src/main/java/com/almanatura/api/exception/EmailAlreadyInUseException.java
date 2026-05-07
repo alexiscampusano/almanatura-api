@@ -6,7 +6,7 @@ package com.almanatura.api.exception;
  */
 public class EmailAlreadyInUseException extends RuntimeException {
 
-    public EmailAlreadyInUseException(String email) {
-        super("An account with this email already exists: " + email);
+    public EmailAlreadyInUseException(@SuppressWarnings("unused") String email) {
+        super("Email already in use");
     }
 }

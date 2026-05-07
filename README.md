@@ -492,6 +492,14 @@ Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 Passwords are hashed with BCrypt. Sessions are stateless. CORS origins are
 controlled by the `APP_CORS_ALLOWED_ORIGINS` env var.
 
+### Hardening and deployment notes
+
+- **Rate-limit client identity**: By default (`APP_RATELIMIT_TRUST_FORWARDED_HEADERS=false`), login and `POST /applications` buckets use **only** the servlet remote address, so arbitrary clients cannot spoof `X-Forwarded-For` to bypass limits. Set **`APP_RATELIMIT_TRUST_FORWARDED_HEADERS=true`** only when every request passes through a **trusted** reverse proxy that controls forwarded headers.
+- **Horizontal scaling**: In-memory Bucket4j counters are **not** shared across JVM replicas; enforce limits at an edge gateway/WAF or move buckets to a shared store (e.g. Redis).
+- **JWT lifecycle**: Tokens remain valid until expiry unless you add revocation (denylist, shorter TTL + refresh, or key rotation with a planned logout). Prefer a **shorter `APP_JWT_EXPIRATION_MS`** in production when product constraints allow; rotating **`APP_JWT_SECRET`** invalidates all outstanding tokens—plan explicitly.
+- **HTTP security headers**: The API sends baseline headers (e.g. `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, CSP safe for a JSON-only surface, `Permissions-Policy`). Terminate TLS at the proxy or JVM and prefer **HSTS at the edge** when serving HTTPS.
+- **Forwarded headers**: If you enable `server.forward-headers-strategy` behind a proxy, read Spring Boot’s guidance so scheme/host/client IP match reality; combine with the rate-limit trust flag above.
+
 ## Sensitive data
 
 National ID numbers (`dni`) on **applications** are stored encrypted at rest (AES-256-GCM).
@@ -531,7 +539,7 @@ Example payload (`POST /api/v1/admin/projects` with an invalid body):
 | `code`                      | HTTP | When it appears                                           |
 | --------------------------- | ---- | --------------------------------------------------------- |
 | `VALIDATION_FAILED`         | 400  | Bean Validation (`@Valid`) failed; see `violations[]`     |
-| `EMAIL_ALREADY_IN_USE`      | 409  | Email already registered (e.g. `POST /admin/users`)       |
+| `EMAIL_ALREADY_IN_USE`      | 409  | Email already registered (e.g. `POST /admin/users`); response omits the address |
 | `APPLICATION_ALREADY_EXISTS` | 409 | Same email twice for the same project (`POST /applications`) |
 | `PARTICIPATION_ALREADY_EXISTS` | 409 | Duplicate invite for the same activity + actor (`POST .../participations`) |
 | `INVALID_APPLICATION_TRANSITION` | 400 | Illegal `PATCH /admin/applications/{id}` status change |

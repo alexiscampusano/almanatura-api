@@ -62,7 +62,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(EmailAlreadyInUseException.class)
     public ResponseEntity<ProblemDetail> handleEmailAlreadyInUse(
             EmailAlreadyInUseException ex, HttpServletRequest request) {
-        return entity(ErrorCode.EMAIL_ALREADY_IN_USE, ex.getMessage(), request);
+        log.debug("Email conflict on {} (detail omitted from response)", request.getRequestURI());
+        return entity(
+                ErrorCode.EMAIL_ALREADY_IN_USE, ErrorCode.EMAIL_ALREADY_IN_USE.title(), request);
     }
 
     @ExceptionHandler(ApplicationAlreadyExistsException.class)
