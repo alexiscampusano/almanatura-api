@@ -13,6 +13,8 @@ import com.almanatura.api.enums.ProjectStatus;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
+    boolean existsByTitleIgnoreCase(String title);
+
     long countByStatus(ProjectStatus status);
 
     List<Project> findByStatusOrderByStartsAtAsc(ProjectStatus status);
