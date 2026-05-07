@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Admin REST API for project lifecycle (create, read, update, delete). */
 @RestController
 @RequestMapping("/admin/projects")
 @RequiredArgsConstructor

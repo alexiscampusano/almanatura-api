@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Admin CRUD for project schedule lines. */
 @RestController
 @RequestMapping("/admin/projects/{projectId}/activities")
 @RequiredArgsConstructor

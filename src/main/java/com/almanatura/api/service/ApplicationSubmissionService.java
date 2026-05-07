@@ -19,6 +19,7 @@ import com.almanatura.api.util.DniCipherService;
 
 import lombok.RequiredArgsConstructor;
 
+/** Validates uniqueness and encrypts applicant payloads before persistence. */
 @Service
 @RequiredArgsConstructor
 public class ApplicationSubmissionService {

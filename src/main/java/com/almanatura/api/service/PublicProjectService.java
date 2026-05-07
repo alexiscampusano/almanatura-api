@@ -17,6 +17,7 @@ import com.almanatura.api.repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Read models for published projects and their sanitized activity schedule. */
 @Service
 @RequiredArgsConstructor
 public class PublicProjectService {

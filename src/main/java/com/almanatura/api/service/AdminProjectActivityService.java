@@ -17,6 +17,7 @@ import com.almanatura.api.repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Mutates {@link com.almanatura.api.entity.ProjectActivity} rows scoped under owning projects. */
 @Service
 @RequiredArgsConstructor
 public class AdminProjectActivityService {

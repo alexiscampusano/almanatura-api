@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Nested REST API for activity participation (invite, list, patch status). */
 @RestController
 @RequestMapping("/admin/projects/{projectId}/activities/{activityId}/participations")
 @RequiredArgsConstructor
@@ -39,7 +40,9 @@ public class AdminActivityParticipationController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Invite actor to activity",
-            description = "Creates participation in INVITED status.")
+            description =
+                    "Creates participation in INVITED status. 409 PARTICIPATION_ALREADY_EXISTS when"
+                            + " that actor is already linked to this activity.")
     public ActivityParticipationResponse invite(
             @PathVariable long projectId,
             @PathVariable long activityId,
