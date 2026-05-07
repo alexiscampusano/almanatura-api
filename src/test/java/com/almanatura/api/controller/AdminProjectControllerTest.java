@@ -25,9 +25,7 @@ import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.enums.ProjectStatus;
 import com.almanatura.api.enums.Role;
 import com.almanatura.api.exception.ErrorCode;
-import com.almanatura.api.repository.ActivityParticipationRepository;
 import com.almanatura.api.repository.OutboundNotificationRepository;
-import com.almanatura.api.repository.ProjectActivityRepository;
 import com.almanatura.api.repository.ProjectApplicationRepository;
 import com.almanatura.api.repository.ProjectImpactEntryRepository;
 import com.almanatura.api.repository.ProjectRepository;
@@ -45,8 +43,6 @@ class AdminProjectControllerTest {
     @Autowired private UserRepository userRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectApplicationRepository projectApplicationRepository;
-    @Autowired private ActivityParticipationRepository activityParticipationRepository;
-    @Autowired private ProjectActivityRepository projectActivityRepository;
     @Autowired private ProjectImpactEntryRepository projectImpactEntryRepository;
     @Autowired private OutboundNotificationRepository outboundNotificationRepository;
     @Autowired private PasswordEncoder passwordEncoder;
@@ -56,11 +52,9 @@ class AdminProjectControllerTest {
 
     @BeforeEach
     void setUp() {
-        activityParticipationRepository.deleteAll();
         projectImpactEntryRepository.deleteAll();
         outboundNotificationRepository.deleteAll();
         projectApplicationRepository.deleteAll();
-        projectActivityRepository.deleteAll();
         projectRepository.deleteAll();
         userRepository.deleteAll();
         eventManager =

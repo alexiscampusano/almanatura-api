@@ -424,123 +424,6 @@
 			]
 		},
 		{
-			"name": "Project activities (admin)",
-			"description": "Nested under /admin/projects/{projectId}/activities. Uses lastProjectId.",
-			"item": [
-				{
-					"name": "POST create activity",
-					"id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-					"request": {
-						"method": "POST",
-						"header": [
-							{"key": "Content-Type", "value": "application/json"}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"title\": \"Field day\",\n  \"description\": \"Community meet\",\n  \"startsAt\": \"2030-06-01T14:00:00Z\",\n  \"location\": \"Village barn\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/activities",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}", "activities"]
-						},
-						"description": "Creates a project activity (defaults to SCHEDULED). Stores id in lastActivityId."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"const json = pm.response.json();",
-									"if (json && json.id != null) {",
-									"    pm.collectionVariables.set(\"lastActivityId\", String(json.id));",
-									"}"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET list activities",
-					"id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/activities",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}", "activities"]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Activity participation (admin)",
-			"description": "Invite actors and PATCH status. Uses lastProjectId, lastActivityId, lastActorId.",
-			"item": [
-				{
-					"name": "POST invite actor",
-					"id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
-					"request": {
-						"method": "POST",
-						"header": [
-							{"key": "Content-Type", "value": "application/json"}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"actorId\": {{lastActorId}}\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/activities/{{lastActivityId}}/participations",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}", "activities", "{{lastActivityId}}", "participations"]
-						}
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 201 or 409\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
-									"});",
-									"if (pm.response.code === 201) {",
-									"    const j = pm.response.json();",
-									"    if (j && j.id) pm.collectionVariables.set(\"lastParticipationId\", String(j.id));",
-									"}"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "PATCH participation status",
-					"id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{"key": "Content-Type", "value": "application/json"}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"status\": \"CONFIRMED\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/activities/{{lastActivityId}}/participations/{{lastParticipationId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}", "activities", "{{lastActivityId}}", "participations", "{{lastParticipationId}}"]
-						}
-					}
-				}
-			]
-		},
-		{
 			"name": "Impact & notifications (admin)",
 			"description": "Stub notification log and project impact entries.",
 			"item": [
@@ -660,21 +543,6 @@
 						}
 					]
 				},
-				{
-					"name": "GET published project activities",
-					"id": "b0c1d2e3-f4a5-4657-89ab-cdef01234567",
-					"request": {
-						"auth": {"type": "noauth"},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/projects/{{publicProjectId}}/activities",
-							"host": ["{{baseUrl}}"],
-							"path": ["projects", "{{publicProjectId}}", "activities"]
-						},
-						"description": "404 if project is not PUBLISHED."
-					}
-				}
 			]
 		},
 		{
@@ -836,7 +704,7 @@
 								"summary"
 							]
 						},
-						"description": "Returns projectsByStatus, totals for projects, applications, project activities, participations, impact entries, and outbound notification records. Aggregates only; no applicant PII."
+						"description": "Returns projectsByStatus, totals for projects, applications, impact entries, and outbound notification records. Aggregates only; no applicant PII."
 					},
 					"event": [
 						{
@@ -852,11 +720,9 @@
 									"    pm.expect(json).to.have.property(\"projectsByStatus\");",
 									"    pm.expect(json).to.have.property(\"totalProjects\");",
 									"    pm.expect(json).to.have.property(\"totalApplications\");",
-									"    pm.expect(json).to.have.property(\"totalProjectActivities\");",
-									"    pm.expect(json).to.have.property(\"totalActivityParticipations\");",
 									"    pm.expect(json).to.have.property(\"totalImpactEntries\");",
 									"    pm.expect(json).to.have.property(\"totalOutboundNotifications\");",
-									"}"
+								"}"
 								]
 							}
 						}
@@ -914,24 +780,6 @@
 			"value": "",
 			"type": "string",
 			"description": "Filled automatically by the POST login Tests script. Do not commit a value."
-		},
-		{
-			"key": "lastActivityId",
-			"value": "",
-			"type": "string",
-			"description": "Set by Project activities (admin) → POST create activity."
-		},
-		{
-			"key": "lastParticipationId",
-			"value": "",
-			"type": "string",
-			"description": "Set by Activity participation (admin) → POST invite actor on 201."
-		},
-		{
-			"key": "lastActorId",
-			"value": "",
-			"type": "string",
-			"description": "Actor id for participation invites (from GET /admin/actors or your data)."
 		},
 		{
 			"key": "lastProjectId",
