@@ -24,7 +24,7 @@ The collection is organised by epic so each upcoming task has an obvious home:
 | `Projects (public)` | `GET /projects`, `GET /projects/{id}`, `GET /projects/{id}/activities` — PUBLISHED only (no Bearer). | Ready. |
 | `Actors (public)`   | `GET /actors` — directory, optional `?pillar=` (no Bearer).            | Ready.        |
 | `Applications`      | `POST /applications` (public); `GET` / `PATCH` `/admin/applications` (Bearer). | Ready. |
-| `Reports`           | `GET /admin/reports/summary`, `GET /admin/reports/projects/applications` (Bearer). | Ready. |
+| `Reports`           | `GET /admin/reports/summary` (incl. planning rollups), `GET /admin/reports/projects/applications` (Bearer). | Ready. |
 
 ## How to import
 

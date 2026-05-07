@@ -434,7 +434,7 @@ Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 - `GET /api/v1/admin/applications` — optional `?projectId=&status=`
 - `GET /api/v1/admin/applications/{id}`, `PATCH /api/v1/admin/applications/{id}` — status transitions; **`400`** `INVALID_APPLICATION_TRANSITION` when illegal; `REGISTERED_AS_ACTOR` creates `Actor`
 - `GET /api/v1/admin/actors`, `GET /api/v1/admin/actors/{id}`
-- `GET /api/v1/admin/reports/summary` — counts per `ProjectStatus`, total projects, total applications (no PII)
+- `GET /api/v1/admin/reports/summary` — counts per `ProjectStatus`, total projects and applications, plus planning/follow-up rollups: total project activities, activity participations, impact entries, and outbound notification rows (counts only; no applicant PII)
 - `GET /api/v1/admin/reports/projects/applications` — each project with `applicationCount`, ordered by count desc then `startsAt`
 - `/api/v1/admin/**` — `SUPER_USER` or `EVENT_MANAGER` except `/admin/users/**` (super only)
 

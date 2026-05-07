@@ -836,7 +836,7 @@
 								"summary"
 							]
 						},
-						"description": "Returns projectsByStatus, totalProjects, totalApplications. Aggregates only."
+						"description": "Returns projectsByStatus, totals for projects, applications, project activities, participations, impact entries, and outbound notification records. Aggregates only; no applicant PII."
 					},
 					"event": [
 						{
@@ -852,6 +852,10 @@
 									"    pm.expect(json).to.have.property(\"projectsByStatus\");",
 									"    pm.expect(json).to.have.property(\"totalProjects\");",
 									"    pm.expect(json).to.have.property(\"totalApplications\");",
+									"    pm.expect(json).to.have.property(\"totalProjectActivities\");",
+									"    pm.expect(json).to.have.property(\"totalActivityParticipations\");",
+									"    pm.expect(json).to.have.property(\"totalImpactEntries\");",
+									"    pm.expect(json).to.have.property(\"totalOutboundNotifications\");",
 									"}"
 								]
 							}
