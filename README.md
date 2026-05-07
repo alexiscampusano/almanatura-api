@@ -38,6 +38,16 @@ Staff-driven attendance workflow: `INVITED`, `CONFIRMED`, `DECLINED`, `ATTENDED`
 | Container   | Docker (multi-stage), docker compose      |
 | Runtime user| Non-root `spring:spring`                  |
 
+## Database migrations (Flyway)
+
+Versioned SQL lives under [`src/main/resources/db/migration/`](src/main/resources/db/migration/).
+
+**Legacy steps V2–V3** create tables from an older “cultural events” model. **V4** immediately drops
+those tables and introduces the rural core (`projects`, `applications`, `actors`). The early scripts
+stay in the repository so existing environments keep a **stable Flyway history and checksums**;
+removing or rewriting V2–V3 would break `flyway validate` on databases that already applied them.
+Greenfield runs still execute V2 → V3 → V4 → … so the drop leaves only the current schema.
+
 ## Branching model
 
 This repository uses a two-branch flow tailored to a single backend
@@ -407,6 +417,10 @@ the codebase grows:
 - `repository` may not depend on `controller` or `service`.
 - `entity` may not depend on `controller`, `service`, `repository` or `dto`.
 - No class outside `config` / `security` may import `org.springframework.security.*`.
+
+**Layout note:** The codebase uses **package-by-layer** (`controller`, `service`, …), not
+package-by-feature. That matches `ArchitectureTest` and is an intentional trade-off versus guides
+that recommend feature packages; migrating would be a large refactor.
 
 ## Security model
 

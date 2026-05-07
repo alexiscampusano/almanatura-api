@@ -8,7 +8,11 @@
  * <p>Conventions:
  *
  * <ul>
- *   <li>One mapper per aggregate (e.g. {@code UserMapper}, {@code EventMapper}).
+ *   <li>One mapper interface per aggregate where practical: {@link
+ *       com.almanatura.api.mapper.ProjectMapper} for {@code Project}; {@link
+ *       com.almanatura.api.mapper.ProjectActivityMapper} also covers planning/follow-up DTOs
+ *       (activities, activity participation responses, outbound notification rows, impact entries)
+ *       to avoid a large set of tiny interfaces.
  *   <li>Mappers must not depend on services or repositories — only DTO ↔ Entity translation.
  *   <li>Sensitive fields (e.g. password hashes, encrypted DNI) must be {@code @Mapping(ignore =
  *       true)} in the entity → DTO direction.
