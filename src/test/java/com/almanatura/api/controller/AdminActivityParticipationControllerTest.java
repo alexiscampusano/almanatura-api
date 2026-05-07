@@ -17,13 +17,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import com.almanatura.api.entity.Actor;
 import com.almanatura.api.entity.Project;
-import com.almanatura.api.entity.ProjectApplication;
+import com.almanatura.api.entity.ProjectActivity;
 import com.almanatura.api.entity.User;
-import com.almanatura.api.enums.ApplicationStatus;
+import com.almanatura.api.enums.ProjectActivityStatus;
 import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.enums.ProjectStatus;
 import com.almanatura.api.enums.Role;
+import com.almanatura.api.exception.ErrorCode;
 import com.almanatura.api.repository.ActivityParticipationRepository;
 import com.almanatura.api.repository.ActorRepository;
 import com.almanatura.api.repository.OutboundNotificationRepository;
@@ -32,14 +34,11 @@ import com.almanatura.api.repository.ProjectApplicationRepository;
 import com.almanatura.api.repository.ProjectImpactEntryRepository;
 import com.almanatura.api.repository.ProjectRepository;
 import com.almanatura.api.repository.UserRepository;
-import com.almanatura.api.util.DniCipherService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class AdminApplicationControllerTest {
-
-    private static final String BASE = "/admin/applications";
+class AdminActivityParticipationControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
@@ -51,7 +50,6 @@ class AdminApplicationControllerTest {
     @Autowired private OutboundNotificationRepository outboundNotificationRepository;
     @Autowired private ActorRepository actorRepository;
     @Autowired private PasswordEncoder passwordEncoder;
-    @Autowired private DniCipherService dniCipherService;
 
     private User eventManager;
 
@@ -62,77 +60,117 @@ class AdminApplicationControllerTest {
         outboundNotificationRepository.deleteAll();
         projectApplicationRepository.deleteAll();
         projectActivityRepository.deleteAll();
-        actorRepository.deleteAll();
         projectRepository.deleteAll();
+        actorRepository.deleteAll();
         userRepository.deleteAll();
         eventManager =
                 userRepository.save(
                         User.builder()
-                                .name("Reviewer")
-                                .email("reviewer@almanatura.org")
-                                .passwordHash(passwordEncoder.encode("Reviewer9!Z"))
+                                .name("Mgr")
+                                .email("mgr.part@almanatura.org")
+                                .passwordHash(passwordEncoder.encode("MgrPart9!Z"))
                                 .role(Role.EVENT_MANAGER)
                                 .enabled(true)
                                 .build());
     }
 
     @Test
-    void patch_approvedToRegistered_createsActor() throws Exception {
-        Project project =
-                projectRepository.save(
-                        Project.builder()
-                                .title("Incubator")
-                                .pillar(ProjectPillar.ENTREPRENEURSHIP)
-                                .startsAt(Instant.parse("2030-01-01T10:00:00Z"))
-                                .status(ProjectStatus.PUBLISHED)
-                                .build());
-        ProjectApplication app =
-                projectApplicationRepository.save(
-                        ProjectApplication.builder()
-                                .project(project)
-                                .status(ApplicationStatus.APPROVED)
-                                .fullName("Founder One")
-                                .email("founder@example.org")
-                                .dniEncrypted(dniCipherService.encrypt("12345678Z"))
-                                .build());
-
-        mockMvc.perform(
-                        MockMvcRequestBuilders.patch(BASE + "/" + app.getId())
-                                .with(user(eventManager))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"status\":\"REGISTERED_AS_ACTOR\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("REGISTERED_AS_ACTOR"))
-                .andExpect(jsonPath("$.actorId").isNumber())
-                .andExpect(jsonPath("$.nationalId").value("12345678Z"));
-    }
-
-    @Test
-    void patch_invalidTransition_returnsBadRequest() throws Exception {
-        Project project =
+    void inviteAndPatchStatus() throws Exception {
+        Project p =
                 projectRepository.save(
                         Project.builder()
                                 .title("P")
+                                .pillar(ProjectPillar.HEALTH)
+                                .startsAt(Instant.parse("2030-01-01T10:00:00Z"))
+                                .status(ProjectStatus.PUBLISHED)
+                                .build());
+        ProjectActivity act =
+                projectActivityRepository.save(
+                        ProjectActivity.builder()
+                                .project(p)
+                                .title("Workshop")
+                                .startsAt(Instant.parse("2030-02-01T10:00:00Z"))
+                                .status(ProjectActivityStatus.SCHEDULED)
+                                .build());
+        Actor actor =
+                actorRepository.save(
+                        Actor.builder().fullName("Rural lead").region("North").build());
+
+        String base =
+                "/admin/projects/" + p.getId() + "/activities/" + act.getId() + "/participations";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(base)
+                                .with(user(eventManager))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        { "actorId": %d }
+                                        """
+                                                .formatted(actor.getId())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("INVITED"))
+                .andExpect(jsonPath("$.actorId").value(actor.getId().intValue()));
+
+        long partId =
+                activityParticipationRepository
+                        .findByActivity_IdOrderByIdAsc(act.getId())
+                        .getFirst()
+                        .getId();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.patch(base + "/" + partId)
+                                .with(user(eventManager))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        { "status": "CONFIRMED" }
+                                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
+    }
+
+    @Test
+    void inviteDuplicate_returnsConflict() throws Exception {
+        Project p =
+                projectRepository.save(
+                        Project.builder()
+                                .title("P2")
                                 .pillar(ProjectPillar.CULTURE)
                                 .startsAt(Instant.parse("2030-01-01T10:00:00Z"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
-        ProjectApplication app =
-                projectApplicationRepository.save(
-                        ProjectApplication.builder()
-                                .project(project)
-                                .status(ApplicationStatus.SUBMITTED)
-                                .fullName("A")
-                                .email("a@example.org")
-                                .dniEncrypted(dniCipherService.encrypt("87654321X"))
+        ProjectActivity act =
+                projectActivityRepository.save(
+                        ProjectActivity.builder()
+                                .project(p)
+                                .title("Meet")
+                                .startsAt(Instant.parse("2030-02-01T10:00:00Z"))
+                                .status(ProjectActivityStatus.SCHEDULED)
                                 .build());
+        Actor actor = actorRepository.save(Actor.builder().fullName("A").build());
+
+        String base =
+                "/admin/projects/" + p.getId() + "/activities/" + act.getId() + "/participations";
+        String body =
+                """
+                { "actorId": %d }
+                """
+                        .formatted(actor.getId());
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.patch(BASE + "/" + app.getId())
+                        MockMvcRequestBuilders.post(base)
                                 .with(user(eventManager))
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"status\":\"REGISTERED_AS_ACTOR\"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_APPLICATION_TRANSITION"));
+                                .content(body))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(base)
+                                .with(user(eventManager))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value(ErrorCode.PARTICIPATION_ALREADY_EXISTS.code()));
     }
 }

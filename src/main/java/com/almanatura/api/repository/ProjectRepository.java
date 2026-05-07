@@ -22,6 +22,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     Optional<Project> findByIdAndStatus(long id, ProjectStatus status);
 
+    boolean existsByIdAndStatus(long id, ProjectStatus status);
+
     List<Project> findAllByOrderByStartsAtAsc();
 
     @Query(

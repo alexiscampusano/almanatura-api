@@ -6,12 +6,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.almanatura.api.enums.ProjectPillar;
+import com.almanatura.api.enums.ProjectActivityStatus;
 
-public record CreateProjectRequest(
+public record UpdateProjectActivityRequest(
         @NotBlank @Size(max = 255) String title,
         @Size(max = 10_000) String description,
-        @NotNull ProjectPillar pillar,
-        Instant startsAt,
+        @NotNull Instant startsAt,
         Instant endsAt,
-        @Size(max = 255) String location) {}
+        @Size(max = 255) String location,
+        @NotNull ProjectActivityStatus status) {}

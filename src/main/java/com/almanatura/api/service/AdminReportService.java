@@ -30,8 +30,7 @@ public class AdminReportService {
                         .map(
                                 status ->
                                         new ProjectStatusCount(
-                                                status,
-                                                projectRepository.countByStatus(status)))
+                                                status, projectRepository.countByStatus(status)))
                         .sorted(Comparator.comparing(e -> e.status().name()))
                         .toList();
         long totalProjects = projectRepository.count();

@@ -21,9 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/applications")
 @RequiredArgsConstructor
-@Tag(
-        name = "Applications (public)",
-        description = "Anonymous project applications. No JWT.")
+@Tag(name = "Applications (public)", description = "Anonymous project applications. No JWT.")
 public class ApplicationController {
 
     private final ApplicationSubmissionService applicationSubmissionService;
