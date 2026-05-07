@@ -284,69 +284,98 @@ src/
 │   │   │   └── SecurityConfig.java            # SecurityFilterChain — public routes vs JWT
 │   │   │
 │   │   ├── controller/
-│   │   │   ├── AuthController.java            # POST /auth/login, GET /auth/me
+│   │   │   ├── AdminActivityParticipationController.java  # Nested …/activities/…/participations (JWT)
+│   │   │   ├── AdminActorController.java      # GET /admin/actors
+│   │   │   ├── AdminApplicationController.java # GET/PATCH /admin/applications
+│   │   │   ├── AdminOutboundNotificationController.java   # POST /admin/notifications (stub)
+│   │   │   ├── AdminProjectActivityController.java        # CRUD /admin/projects/{id}/activities
+│   │   │   ├── AdminProjectController.java    # CRUD /admin/projects
+│   │   │   ├── AdminProjectImpactController.java          # GET/POST …/projects/{id}/impact-entries
+│   │   │   ├── AdminReportController.java     # GET …/reports/summary, …/projects/applications
 │   │   │   ├── AdminUserController.java       # POST/GET /admin/users (SUPER_USER)
-│   │   │   ├── ProjectController.java         # Public GET /projects, /projects/{id}
 │   │   │   ├── ActorController.java           # Public GET /actors (?pillar=)
 │   │   │   ├── ApplicationController.java     # Public POST /applications
-│   │   │   ├── AdminProjectController.java    # CRUD /admin/projects
-│   │   │   ├── AdminApplicationController.java # GET/PATCH /admin/applications
-│   │   │   ├── AdminActorController.java      # GET /admin/actors
-│   │   │   ├── AdminReportController.java     # GET …/reports/summary, …/projects/applications
-│   │   │   └── HealthController.java          # GET /ping
+│   │   │   ├── AuthController.java            # POST /auth/login, GET /auth/me
+│   │   │   ├── HealthController.java          # GET /ping
+│   │   │   └── ProjectController.java        # Public GET /projects, /{id}, /{id}/activities
 │   │   │
 │   │   ├── dto/
+│   │   │   ├── ActivityParticipationResponse.java
+│   │   │   ├── AdminApplicationResponse.java  # Decrypted national ID — internal only
+│   │   │   ├── ApplicationSubmittedResponse.java
+│   │   │   ├── CreateOutboundNotificationRequest.java
+│   │   │   ├── CreateProjectActivityRequest.java
+│   │   │   ├── CreateProjectImpactEntryRequest.java
+│   │   │   ├── CreateProjectRequest.java
+│   │   │   ├── CreateUserRequest.java
+│   │   │   ├── InviteActivityParticipationRequest.java
 │   │   │   ├── LoginRequest.java
 │   │   │   ├── LoginResponse.java
-│   │   │   ├── CreateUserRequest.java
-│   │   │   ├── UserSummary.java
-│   │   │   ├── CreateProjectRequest.java
-│   │   │   ├── UpdateProjectRequest.java
-│   │   │   ├── ProjectResponse.java
-│   │   │   ├── PublicProjectResponse.java
-│   │   │   ├── PublicActorResponse.java
-│   │   │   ├── SubmitApplicationRequest.java
-│   │   │   ├── ApplicationSubmittedResponse.java
-│   │   │   ├── AdminApplicationResponse.java  # Decrypted national ID — internal only
+│   │   │   ├── OutboundNotificationResponse.java
+│   │   │   ├── PatchActivityParticipationRequest.java
 │   │   │   ├── PatchApplicationStatusRequest.java
-│   │   │   ├── ReportsSummaryResponse.java
+│   │   │   ├── ProjectActivityResponse.java
+│   │   │   ├── ProjectApplicationReportRow.java
+│   │   │   ├── ProjectImpactEntryResponse.java
+│   │   │   ├── ProjectResponse.java
 │   │   │   ├── ProjectStatusCount.java
-│   │   │   └── ProjectApplicationReportRow.java
+│   │   │   ├── PublicActorResponse.java
+│   │   │   ├── PublicProjectActivityResponse.java
+│   │   │   ├── PublicProjectResponse.java
+│   │   │   ├── ReportsSummaryResponse.java
+│   │   │   ├── SubmitApplicationRequest.java
+│   │   │   ├── UpdateProjectActivityRequest.java
+│   │   │   ├── UpdateProjectRequest.java
+│   │   │   └── UserSummary.java
 │   │   │
 │   │   ├── entity/
-│   │   │   ├── BaseAuditableEntity.java
-│   │   │   ├── User.java
-│   │   │   ├── Project.java
+│   │   │   ├── ActivityParticipation.java
 │   │   │   ├── Actor.java
-│   │   │   └── ProjectApplication.java
+│   │   │   ├── BaseAuditableEntity.java
+│   │   │   ├── OutboundNotification.java
+│   │   │   ├── Project.java
+│   │   │   ├── ProjectActivity.java
+│   │   │   ├── ProjectApplication.java
+│   │   │   ├── ProjectImpactEntry.java
+│   │   │   └── User.java
 │   │   │
 │   │   ├── enums/
-│   │   │   ├── Role.java
+│   │   │   ├── ActivityParticipationStatus.java
+│   │   │   ├── ApplicationStatus.java
+│   │   │   ├── NotificationChannel.java
+│   │   │   ├── OutboundNotificationStatus.java
+│   │   │   ├── ProjectActivityStatus.java
 │   │   │   ├── ProjectPillar.java
 │   │   │   ├── ProjectStatus.java
-│   │   │   └── ApplicationStatus.java
+│   │   │   └── Role.java
 │   │   │
 │   │   ├── exception/
 │   │   │   ├── ApiErrorWriter.java
 │   │   │   ├── ApiProblems.java
-│   │   │   ├── GlobalExceptionHandler.java
-│   │   │   ├── ResourceNotFoundException.java
-│   │   │   ├── EmailAlreadyInUseException.java
 │   │   │   ├── ApplicationAlreadyExistsException.java
-│   │   │   ├── InvalidApplicationTransitionException.java
-│   │   │   ├── ProjectHasApplicationsException.java
+│   │   │   ├── EmailAlreadyInUseException.java
+│   │   │   ├── ErrorCode.java                 # Stable RFC7807 extension `code` values
 │   │   │   ├── FieldViolation.java
-│   │   │   └── ErrorCode.java
+│   │   │   ├── GlobalExceptionHandler.java
+│   │   │   ├── InvalidApplicationTransitionException.java
+│   │   │   ├── ParticipationAlreadyExistsException.java   # Maps to PARTICIPATION_ALREADY_EXISTS
+│   │   │   ├── ProjectHasApplicationsException.java
+│   │   │   └── ResourceNotFoundException.java
 │   │   │
 │   │   ├── mapper/
 │   │   │   ├── package-info.java
+│   │   │   ├── ProjectActivityMapper.java    # Activities, participation, notification & impact DTOs
 │   │   │   └── ProjectMapper.java
 │   │   │
 │   │   ├── repository/
-│   │   │   ├── UserRepository.java
-│   │   │   ├── ProjectRepository.java
+│   │   │   ├── ActivityParticipationRepository.java
 │   │   │   ├── ActorRepository.java
-│   │   │   └── ProjectApplicationRepository.java
+│   │   │   ├── OutboundNotificationRepository.java
+│   │   │   ├── ProjectActivityRepository.java
+│   │   │   ├── ProjectApplicationRepository.java
+│   │   │   ├── ProjectImpactEntryRepository.java
+│   │   │   ├── ProjectRepository.java
+│   │   │   └── UserRepository.java
 │   │   │
 │   │   ├── security/
 │   │   │   ├── CustomUserDetailsService.java   # Spring Security user lookup
@@ -357,16 +386,20 @@ src/
 │   │   │   └── RateLimitFilter.java            # Bucket4j on /auth/login & POST /applications
 │   │   │
 │   │   ├── service/
-│   │   │   ├── ApplicationStatusTransitions.java # Allowed PATCH transitions (domain guard)
-│   │   │   ├── AuthService.java
-│   │   │   ├── AdminUserService.java
-│   │   │   ├── AdminProjectService.java
-│   │   │   ├── AdminApplicationService.java
+│   │   │   ├── AdminActivityParticipationService.java
 │   │   │   ├── AdminActorService.java
+│   │   │   ├── AdminApplicationService.java
+│   │   │   ├── AdminOutboundNotificationService.java
+│   │   │   ├── AdminProjectActivityService.java
+│   │   │   ├── AdminProjectImpactService.java
+│   │   │   ├── AdminProjectService.java
 │   │   │   ├── AdminReportService.java
-│   │   │   ├── PublicProjectService.java
+│   │   │   ├── AdminUserService.java
+│   │   │   ├── ApplicationStatusTransitions.java # Allowed PATCH transitions (domain guard)
+│   │   │   ├── ApplicationSubmissionService.java
+│   │   │   ├── AuthService.java
 │   │   │   ├── PublicActorService.java
-│   │   │   └── ApplicationSubmissionService.java
+│   │   │   └── PublicProjectService.java
 │   │   │
 │   │   ├── validation/
 │   │   │   ├── InternalPasswordPolicy.java     # Documents internal password rules
@@ -390,8 +423,12 @@ src/
     │   ├── architecture/
     │   │   └── ArchitectureTest.java           # ArchUnit layered rules
     │   ├── controller/
+    │   │   ├── AdminActivityParticipationControllerTest.java
     │   │   ├── AdminApplicationControllerTest.java
+    │   │   ├── AdminOutboundNotificationControllerTest.java
+    │   │   ├── AdminProjectActivityControllerTest.java
     │   │   ├── AdminProjectControllerTest.java
+    │   │   ├── AdminProjectImpactControllerTest.java
     │   │   ├── AdminReportControllerTest.java
     │   │   ├── AdminUserControllerTest.java
     │   │   ├── ApplicationControllerTest.java

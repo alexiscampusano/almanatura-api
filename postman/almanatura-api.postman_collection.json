@@ -91,7 +91,7 @@
 								"login"
 							]
 						},
-						"description": "Authenticates an internal user (super_user / admin / event_creator) and returns a JWT.\n\nThe Tests script of this request automatically stores the returned token in the `accessToken` collection variable, so every subsequent request in the collection is authenticated without manual copy/paste.\n\nNote: this endpoint does not exist yet; it will be implemented in Task 10 (`feat/backend-admin-login`). The request is already wired so that once the endpoint ships you can run it as-is."
+						"description": "Authenticates an internal user (`SUPER_USER` or `EVENT_MANAGER`) and returns a JWT.\n\nThe Tests script stores the returned token in the `accessToken` collection variable so subsequent requests authenticate automatically. Subject to IP rate limiting (see README)."
 					},
 					"event": [
 						{

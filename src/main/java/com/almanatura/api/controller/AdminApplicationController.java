@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Admin REST API for reviewing and transitioning project applications. */
 @RestController
 @RequestMapping("/admin/applications")
 @RequiredArgsConstructor

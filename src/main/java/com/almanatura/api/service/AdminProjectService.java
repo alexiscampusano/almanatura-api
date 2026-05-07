@@ -18,6 +18,7 @@ import com.almanatura.api.repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Owns project aggregates for internal CRUD and guarded deletes. */
 @Service
 @RequiredArgsConstructor
 public class AdminProjectService {

@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** JWT issuance and introspection for internal staff accounts. */
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor

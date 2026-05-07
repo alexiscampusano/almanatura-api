@@ -11,6 +11,7 @@ import com.almanatura.api.repository.ActorRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Business logic for admin-facing actor lookups (sorted listings and detail). */
 @Service
 @RequiredArgsConstructor
 public class AdminActorService {

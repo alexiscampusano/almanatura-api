@@ -5,6 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(
+        description =
+                "Anonymous application to a published project. National ID (dni) is encrypted at"
+                    + " rest; duplicate email per project yields 409 APPLICATION_ALREADY_EXISTS.")
 public record SubmitApplicationRequest(
         @NotNull Long projectId,
         @NotBlank @Size(max = 255) String fullName,

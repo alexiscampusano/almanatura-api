@@ -21,6 +21,7 @@ import com.almanatura.api.repository.ProjectActivityRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Invites actors onto activities and coordinates participation status updates. */
 @Service
 @RequiredArgsConstructor
 public class AdminActivityParticipationService {

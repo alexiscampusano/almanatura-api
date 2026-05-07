@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Internal REST endpoints for the actor directory. */
 @RestController
 @RequestMapping("/admin/actors")
 @RequiredArgsConstructor

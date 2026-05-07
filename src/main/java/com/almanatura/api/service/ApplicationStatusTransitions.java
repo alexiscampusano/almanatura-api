@@ -7,6 +7,7 @@ import java.util.Set;
 import com.almanatura.api.enums.ApplicationStatus;
 import com.almanatura.api.exception.InvalidApplicationTransitionException;
 
+/** Central guard for legal {@link ApplicationStatus} transitions enforced by admin PATCH flows. */
 public final class ApplicationStatusTransitions {
 
     private static final Map<ApplicationStatus, Set<ApplicationStatus>> ALLOWED =

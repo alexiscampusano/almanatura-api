@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Persists outbound notification stubs for auditing or future dispatch. */
 @RestController
 @RequestMapping("/admin/notifications")
 @RequiredArgsConstructor
