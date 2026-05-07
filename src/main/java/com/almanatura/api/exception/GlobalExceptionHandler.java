@@ -71,6 +71,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return entity(ErrorCode.APPLICATION_ALREADY_EXISTS, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(ParticipationAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handleParticipationAlreadyExists(
+            ParticipationAlreadyExistsException ex, HttpServletRequest request) {
+        return entity(ErrorCode.PARTICIPATION_ALREADY_EXISTS, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(InvalidApplicationTransitionException.class)
     public ResponseEntity<ProblemDetail> handleInvalidTransition(
             InvalidApplicationTransitionException ex, HttpServletRequest request) {
@@ -94,6 +100,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             return entity(
                     ErrorCode.APPLICATION_ALREADY_EXISTS,
                     "An application with this email already exists for this project.",
+                    request);
+        }
+        if (msg != null
+                && (msg.contains("uq_activity_actor") || msg.contains("activity_participations"))) {
+            return entity(
+                    ErrorCode.PARTICIPATION_ALREADY_EXISTS,
+                    "A participation already exists for this activity and actor.",
                     request);
         }
         log.warn(

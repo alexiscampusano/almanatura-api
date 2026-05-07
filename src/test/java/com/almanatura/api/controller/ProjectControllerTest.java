@@ -17,10 +17,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.almanatura.api.entity.Project;
+import com.almanatura.api.entity.ProjectActivity;
+import com.almanatura.api.enums.ProjectActivityStatus;
 import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.enums.ProjectStatus;
 import com.almanatura.api.exception.ErrorCode;
+import com.almanatura.api.repository.ActivityParticipationRepository;
+import com.almanatura.api.repository.OutboundNotificationRepository;
+import com.almanatura.api.repository.ProjectActivityRepository;
 import com.almanatura.api.repository.ProjectApplicationRepository;
+import com.almanatura.api.repository.ProjectImpactEntryRepository;
 import com.almanatura.api.repository.ProjectRepository;
 
 @SpringBootTest
@@ -34,10 +40,18 @@ class ProjectControllerTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectApplicationRepository projectApplicationRepository;
+    @Autowired private ActivityParticipationRepository activityParticipationRepository;
+    @Autowired private ProjectActivityRepository projectActivityRepository;
+    @Autowired private ProjectImpactEntryRepository projectImpactEntryRepository;
+    @Autowired private OutboundNotificationRepository outboundNotificationRepository;
 
     @BeforeEach
     void setUp() {
+        activityParticipationRepository.deleteAll();
+        projectImpactEntryRepository.deleteAll();
+        outboundNotificationRepository.deleteAll();
         projectApplicationRepository.deleteAll();
+        projectActivityRepository.deleteAll();
         projectRepository.deleteAll();
     }
 
@@ -125,6 +139,52 @@ class ProjectControllerTest {
                 .andExpect(jsonPath("$.location").value("Hub"))
                 .andExpect(jsonPath("$.pillar").value("ENTREPRENEURSHIP"))
                 .andExpect(jsonPath("$.status").doesNotExist());
+    }
+
+    @Test
+    void listActivities_published_returnsOk() throws Exception {
+        Project published =
+                projectRepository.save(
+                        Project.builder()
+                                .title("With schedule")
+                                .pillar(ProjectPillar.CULTURE)
+                                .startsAt(Instant.parse("2030-03-01T10:00:00Z"))
+                                .status(ProjectStatus.PUBLISHED)
+                                .build());
+
+        mockMvc.perform(MockMvcRequestBuilders.get(PATH + "/" + published.getId() + "/activities"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        projectActivityRepository.save(
+                ProjectActivity.builder()
+                        .project(published)
+                        .title("Open day")
+                        .startsAt(Instant.parse("2030-06-15T09:00:00Z"))
+                        .status(ProjectActivityStatus.SCHEDULED)
+                        .build());
+
+        mockMvc.perform(MockMvcRequestBuilders.get(PATH + "/" + published.getId() + "/activities"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("Open day"))
+                .andExpect(jsonPath("$[0].id").exists());
+    }
+
+    @Test
+    void listActivities_draft_returnsNotFound() throws Exception {
+        Project draft =
+                projectRepository.save(
+                        Project.builder()
+                                .title("Draft")
+                                .pillar(ProjectPillar.HEALTH)
+                                .startsAt(Instant.parse("2030-04-01T10:00:00Z"))
+                                .status(ProjectStatus.DRAFT)
+                                .build());
+
+        mockMvc.perform(MockMvcRequestBuilders.get(PATH + "/" + draft.getId() + "/activities"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.code()));
     }
 
     @Test

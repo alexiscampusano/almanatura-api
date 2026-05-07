@@ -23,9 +23,7 @@ public class PublicActorService {
     public List<PublicActorResponse> listDirectory(ProjectPillar pillar) {
         return actorRepository
                 .findDirectoryActors(
-                        ApplicationStatus.REGISTERED_AS_ACTOR,
-                        ProjectStatus.PUBLISHED,
-                        pillar)
+                        ApplicationStatus.REGISTERED_AS_ACTOR, ProjectStatus.PUBLISHED, pillar)
                 .stream()
                 .map(a -> new PublicActorResponse(a.getId(), a.getFullName(), a.getRegion()))
                 .toList();

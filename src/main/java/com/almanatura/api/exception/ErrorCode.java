@@ -17,6 +17,8 @@ public enum ErrorCode {
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "Validation failed"),
     EMAIL_ALREADY_IN_USE(HttpStatus.CONFLICT, "Email already in use"),
     APPLICATION_ALREADY_EXISTS(HttpStatus.CONFLICT, "Application already exists for this project"),
+    PARTICIPATION_ALREADY_EXISTS(
+            HttpStatus.CONFLICT, "Participation already exists for this activity and actor"),
     INVALID_APPLICATION_TRANSITION(HttpStatus.BAD_REQUEST, "Invalid application status transition"),
     PROJECT_HAS_APPLICATIONS(HttpStatus.CONFLICT, "Project has applications and cannot be deleted"),
     MALFORMED_REQUEST(HttpStatus.BAD_REQUEST, "Malformed request body"),

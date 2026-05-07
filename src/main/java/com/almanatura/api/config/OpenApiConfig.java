@@ -37,7 +37,9 @@ public class OpenApiConfig {
                 .info(
                         new Info()
                                 .title("AlmaNatura API")
-                                .description("REST API for the AlmaNatura rural actors and projects platform")
+                                .description(
+                                        "REST API for the AlmaNatura rural actors and projects"
+                                                + " platform")
                                 .version("v1")
                                 .license(
                                         new License()

@@ -18,7 +18,10 @@ The collection is organised by epic so each upcoming task has an obvious home:
 | `Auth`              | `POST /auth/login` (JWT) and `GET /auth/me` (profile, Bearer).          | Ready.        |
 | `Users (admin)`     | `POST /admin/users`, `GET /admin/users` (Bearer, super_user).           | Ready.        |
 | `Projects (admin)`  | CRUD under `/admin/projects` (Bearer).                                  | Ready.        |
-| `Projects (public)` | `GET /projects`, `GET /projects/{id}` — PUBLISHED only (no Bearer).    | Ready.        |
+| `Project activities (admin)` | `/admin/projects/{id}/activities` CRUD (Bearer).                   | Ready.        |
+| `Activity participation (admin)` | Invite + PATCH status under nested paths (Bearer).            | Ready.        |
+| `Impact & notifications (admin)` | `/admin/notifications` stub + `/admin/projects/{id}/impact-entries` | Ready.    |
+| `Projects (public)` | `GET /projects`, `GET /projects/{id}`, `GET /projects/{id}/activities` — PUBLISHED only (no Bearer). | Ready. |
 | `Actors (public)`   | `GET /actors` — directory, optional `?pillar=` (no Bearer).            | Ready.        |
 | `Applications`      | `POST /applications` (public); `GET` / `PATCH` `/admin/applications` (Bearer). | Ready. |
 | `Reports`           | `GET /admin/reports/summary`, `GET /admin/reports/projects/applications` (Bearer). | Ready. |
@@ -54,7 +57,7 @@ When the token expires (default 24h, see `APP_JWT_EXPIRATION_MS`) just run **POS
 
 The collection derives `baseUrl = {{host}}{{contextPath}}`, so requests reference `{{baseUrl}}/...` and you only ever change `host` when pointing to a different environment.
 
-Collection variables (set automatically or manually): `lastProjectId`, `publicProjectId`, `lastApplicationId` — see folder descriptions.
+Collection variables (set automatically or manually): `lastProjectId`, `publicProjectId`, `lastApplicationId`, `lastActivityId`, `lastParticipationId`, `lastActorId` — see folder descriptions.
 
 ## Running against another environment
 

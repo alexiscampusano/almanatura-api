@@ -13,8 +13,7 @@ public final class ApplicationStatusTransitions {
             Map.ofEntries(
                     Map.entry(
                             ApplicationStatus.SUBMITTED,
-                            EnumSet.of(
-                                    ApplicationStatus.UNDER_REVIEW, ApplicationStatus.REJECTED)),
+                            EnumSet.of(ApplicationStatus.UNDER_REVIEW, ApplicationStatus.REJECTED)),
                     Map.entry(
                             ApplicationStatus.UNDER_REVIEW,
                             EnumSet.of(
@@ -23,8 +22,7 @@ public final class ApplicationStatusTransitions {
                                     ApplicationStatus.APPROVED)),
                     Map.entry(
                             ApplicationStatus.NEEDS_INFO,
-                            EnumSet.of(
-                                    ApplicationStatus.UNDER_REVIEW, ApplicationStatus.REJECTED)),
+                            EnumSet.of(ApplicationStatus.UNDER_REVIEW, ApplicationStatus.REJECTED)),
                     Map.entry(
                             ApplicationStatus.APPROVED,
                             EnumSet.of(ApplicationStatus.REGISTERED_AS_ACTOR)));
