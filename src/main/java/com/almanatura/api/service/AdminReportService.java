@@ -11,7 +11,11 @@ import com.almanatura.api.dto.ProjectApplicationReportRow;
 import com.almanatura.api.dto.ProjectStatusCount;
 import com.almanatura.api.dto.ReportsSummaryResponse;
 import com.almanatura.api.enums.ProjectStatus;
+import com.almanatura.api.repository.ActivityParticipationRepository;
+import com.almanatura.api.repository.OutboundNotificationRepository;
+import com.almanatura.api.repository.ProjectActivityRepository;
 import com.almanatura.api.repository.ProjectApplicationRepository;
+import com.almanatura.api.repository.ProjectImpactEntryRepository;
 import com.almanatura.api.repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +26,10 @@ public class AdminReportService {
 
     private final ProjectRepository projectRepository;
     private final ProjectApplicationRepository projectApplicationRepository;
+    private final ProjectActivityRepository projectActivityRepository;
+    private final ActivityParticipationRepository activityParticipationRepository;
+    private final ProjectImpactEntryRepository projectImpactEntryRepository;
+    private final OutboundNotificationRepository outboundNotificationRepository;
 
     @Transactional(readOnly = true)
     public ReportsSummaryResponse summary() {
@@ -35,7 +43,18 @@ public class AdminReportService {
                         .toList();
         long totalProjects = projectRepository.count();
         long totalApplications = projectApplicationRepository.count();
-        return new ReportsSummaryResponse(byStatus, totalProjects, totalApplications);
+        long totalProjectActivities = projectActivityRepository.count();
+        long totalActivityParticipations = activityParticipationRepository.count();
+        long totalImpactEntries = projectImpactEntryRepository.count();
+        long totalOutboundNotifications = outboundNotificationRepository.count();
+        return new ReportsSummaryResponse(
+                byStatus,
+                totalProjects,
+                totalApplications,
+                totalProjectActivities,
+                totalActivityParticipations,
+                totalImpactEntries,
+                totalOutboundNotifications);
     }
 
     @Transactional(readOnly = true)
