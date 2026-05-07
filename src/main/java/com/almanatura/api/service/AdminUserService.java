@@ -14,6 +14,7 @@ import com.almanatura.api.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Creates internal {@link com.almanatura.api.entity.User} rows with encoded passwords. */
 @Service
 @RequiredArgsConstructor
 public class AdminUserService {

@@ -34,7 +34,12 @@ public record AppProperties(
 
     public record Admin(String email, String password) {}
 
-    public record RateLimit(Bucket login, Bucket register) {
+    public record RateLimit(
+            /**
+             * When false (default), rate limits use {@code RemoteAddr} only (safe when exposed
+             * without a trusted proxy).
+             */
+            boolean trustForwardedHeaders, Bucket login, Bucket register) {
 
         public record Bucket(@Positive int requests, @Positive int windowMinutes) {}
     }

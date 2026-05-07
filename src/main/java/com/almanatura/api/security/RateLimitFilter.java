@@ -63,7 +63,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             log.warn(
                     "Rate limit exceeded for {} from {}",
                     request.getRequestURI(),
-                    clientIp(request));
+                    rateLimitClientKey(request));
             response.setHeader(HttpHeaders.RETRY_AFTER, RETRY_AFTER_SECONDS);
             errorWriter.write(
                     request,
@@ -84,7 +84,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             path = path.substring(contextPath.length());
         }
 
-        String ip = clientIp(request);
+        String ip = rateLimitClientKey(request);
 
         if (LOGIN_PATH.equals(path)) {
             AppProperties.RateLimit.Bucket cfg = properties.rateLimit().login();
@@ -99,6 +99,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return null;
     }
 
+    private String rateLimitClientKey(HttpServletRequest request) {
+        return properties.rateLimit().trustForwardedHeaders()
+                ? clientIpTrustedProxy(request)
+                : request.getRemoteAddr();
+    }
+
     private static Bucket newBucket(AppProperties.RateLimit.Bucket cfg) {
         Bandwidth limit =
                 Bandwidth.builder()
@@ -108,7 +114,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return Bucket.builder().addLimit(limit).build();
     }
 
-    private static String clientIp(HttpServletRequest request) {
+    /**
+     * Uses the left-most {@code X-Forwarded-For} hop — safe only when a trusted reverse proxy
+     * strips/forges-proof earlier hops before the application.
+     */
+    private static String clientIpTrustedProxy(HttpServletRequest request) {
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isBlank()) {
             return xff.split(",")[0].trim();

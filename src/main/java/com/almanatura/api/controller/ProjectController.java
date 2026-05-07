@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Catalogue published rural projects and their public activity schedule. */
 @RestController
 @RequestMapping("/projects")
 @RequiredArgsConstructor

@@ -15,6 +15,7 @@ import com.almanatura.api.repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Maintains {@link com.almanatura.api.entity.ProjectImpactEntry} timelines per project. */
 @Service
 @RequiredArgsConstructor
 public class AdminProjectImpactService {

@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Public directory of actors surfaced from accepted applications (minimal fields only). */
 @RestController
 @RequestMapping("/actors")
 @RequiredArgsConstructor

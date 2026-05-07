@@ -13,6 +13,7 @@ import com.almanatura.api.repository.ActorRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Builds the public actor directory filtered by pillar and publication rules. */
 @Service
 @RequiredArgsConstructor
 public class PublicActorService {

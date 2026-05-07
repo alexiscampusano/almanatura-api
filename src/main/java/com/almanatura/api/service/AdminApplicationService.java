@@ -17,6 +17,7 @@ import com.almanatura.api.util.DniCipherService;
 
 import lombok.RequiredArgsConstructor;
 
+/** Staff workflows over applications including decryption of national IDs for authorized reads. */
 @Service
 @RequiredArgsConstructor
 public class AdminApplicationService {

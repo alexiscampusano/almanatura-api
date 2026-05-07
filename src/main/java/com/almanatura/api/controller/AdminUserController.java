@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Admin REST API for internal user provisioning (super user only). */
 @RestController
 @RequestMapping("/admin/users")
 @RequiredArgsConstructor

@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+/** Read-only reporting endpoints for dashboards (no applicant PII). */
 @RestController
 @RequestMapping("/admin/reports")
 @RequiredArgsConstructor

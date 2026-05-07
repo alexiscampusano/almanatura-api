@@ -10,6 +10,7 @@ import com.almanatura.api.repository.OutboundNotificationRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Persists outbound notification rows (audit trail only until a mailer exists). */
 @Service
 @RequiredArgsConstructor
 public class AdminOutboundNotificationService {

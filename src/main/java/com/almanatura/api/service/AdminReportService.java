@@ -18,6 +18,7 @@ import com.almanatura.api.repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/** Aggregates anonymized counts for dashboards (projects, applications, planning artifacts). */
 @Service
 @RequiredArgsConstructor
 public class AdminReportService {
