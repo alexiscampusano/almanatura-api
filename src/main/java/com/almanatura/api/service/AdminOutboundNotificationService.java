@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.almanatura.api.dto.CreateOutboundNotificationRequest;
 import com.almanatura.api.dto.OutboundNotificationResponse;
 import com.almanatura.api.entity.OutboundNotification;
-import com.almanatura.api.mapper.ProjectActivityMapper;
 import com.almanatura.api.repository.OutboundNotificationRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 public class AdminOutboundNotificationService {
 
     private final OutboundNotificationRepository outboundNotificationRepository;
-    private final ProjectActivityMapper projectActivityMapper;
 
     @Transactional
     public OutboundNotificationResponse create(CreateOutboundNotificationRequest request) {
@@ -27,7 +25,13 @@ public class AdminOutboundNotificationService {
                         .subject(request.subject())
                         .body(request.body())
                         .build();
-        return projectActivityMapper.toNotificationResponse(
-                outboundNotificationRepository.save(entity));
+        OutboundNotification saved = outboundNotificationRepository.save(entity);
+        return new OutboundNotificationResponse(
+                saved.getId(),
+                saved.getChannel(),
+                saved.getRecipientHint(),
+                saved.getSubject(),
+                saved.getBody(),
+                saved.getStatus());
     }
 }

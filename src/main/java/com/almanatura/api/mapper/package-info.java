@@ -9,10 +9,8 @@
  *
  * <ul>
  *   <li>One mapper interface per aggregate where practical: {@link
- *       com.almanatura.api.mapper.ProjectMapper} for {@code Project}; {@link
- *       com.almanatura.api.mapper.ProjectActivityMapper} also covers planning/follow-up DTOs
- *       (activities, activity participation responses, outbound notification rows, impact entries)
- *       to avoid a large set of tiny interfaces.
+ *       com.almanatura.api.mapper.ProjectMapper} for {@code Project}. Smaller response DTOs without
+ *       nested relationships can be mapped directly in services when that keeps the code simpler.
  *   <li>Mappers must not depend on services or repositories — only DTO ↔ Entity translation.
  *   <li>Sensitive fields (e.g. password hashes, encrypted DNI) must be {@code @Mapping(ignore =
  *       true)} in the entity → DTO direction.

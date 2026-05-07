@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.almanatura.api.dto.PublicProjectActivityResponse;
 import com.almanatura.api.dto.PublicProjectResponse;
 import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.service.PublicProjectService;
@@ -35,16 +34,6 @@ public class ProjectController {
     public List<PublicProjectResponse> list(
             @RequestParam(name = "pillar", required = false) ProjectPillar pillar) {
         return publicProjectService.listPublished(pillar);
-    }
-
-    @GetMapping("/{id}/activities")
-    @SecurityRequirements
-    @Operation(
-            summary = "List activities for a published project",
-            description =
-                    "404 if project is missing or not PUBLISHED. No actor or application PII.")
-    public List<PublicProjectActivityResponse> listActivities(@PathVariable long id) {
-        return publicProjectService.listPublishedActivities(id);
     }
 
     @GetMapping("/{id}")
