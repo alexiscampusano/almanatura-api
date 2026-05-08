@@ -21,7 +21,6 @@ The collection is organised by epic so each upcoming task has an obvious home:
 | `Impact & notifications (admin)` | `/admin/notifications` stub + `/admin/projects/{id}/impact-entries` | Ready.    |
 | `Projects (public)` | `GET /projects`, `GET /projects/{id}` — PUBLISHED only (no Bearer). | Ready. |
 | `Actors (admin)`    | `GET /admin/actors`, `GET /admin/actors/{id}` (Bearer).                | Ready.        |
-| `Actors (public)`   | `GET /actors` — directory, optional `?pillar=` (no Bearer).            | Ready.        |
 | `Applications`      | `POST /applications` (public); `GET` / `GET/{id}` / `PATCH` `/admin/applications` (Bearer). | Ready. |
 | `Reports`           | `GET /admin/reports/summary` (impact + notifications rollups), `GET /admin/reports/projects/applications` (Bearer). | Ready. |
 

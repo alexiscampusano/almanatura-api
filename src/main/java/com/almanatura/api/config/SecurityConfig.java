@@ -88,8 +88,6 @@ public class SecurityConfig {
                                         .requestMatchers(
                                                 HttpMethod.GET, "/projects", "/projects/**")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/actors", "/actors/**")
-                                        .permitAll()
                                         .requestMatchers(HttpMethod.POST, "/applications")
                                         .permitAll()
                                         .requestMatchers("/ping")

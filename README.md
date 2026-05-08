@@ -259,7 +259,6 @@ src/
 │   │   │   ├── AdminProjectImpactController.java          # GET/POST …/projects/{id}/impact-entries
 │   │   │   ├── AdminReportController.java     # GET …/reports/summary, …/projects/applications
 │   │   │   ├── AdminUserController.java       # POST/GET /admin/users (SUPER_USER)
-│   │   │   ├── ActorController.java           # Public GET /actors (?pillar=)
 │   │   │   ├── ApplicationController.java     # Public POST /applications
 │   │   │   ├── AuthController.java            # POST /auth/login, GET /auth/me
 │   │   │   ├── HealthController.java          # GET /ping
@@ -347,7 +346,6 @@ src/
 │   │   │   ├── ApplicationStatusTransitions.java # Allowed PATCH transitions (domain guard)
 │   │   │   ├── ApplicationSubmissionService.java
 │   │   │   ├── AuthService.java
-│   │   │   ├── PublicActorService.java
 │   │   │   └── PublicProjectService.java
 │   │   │
 │   │   ├── validation/
@@ -412,7 +410,6 @@ Public endpoints (no JWT required):
 
 - `GET  /api/v1/ping`
 - `GET  /api/v1/projects`, `GET /api/v1/projects/{id}` — **PUBLISHED** projects only; optional `?pillar=` (`ProjectPillar`). List sorted by `startsAt` ascending. **`404`** `RESOURCE_NOT_FOUND` on detail if missing or not published.
-- `GET  /api/v1/actors` — public directory (`fullName`, `region` only); optional `?pillar=`; includes actors with `REGISTERED_AS_ACTOR` applications on **PUBLISHED** projects for that pillar.
 - `POST /api/v1/applications` — anonymous application to a **PUBLISHED** project; body: `projectId`, `fullName`, `email`, `dni`, optional `phone`; DNI encrypted at rest. **`201`** + `{ id, projectId, submittedAt }`. **`404`** if project missing/not published; **`409`** `APPLICATION_ALREADY_EXISTS` if the same email already applied to that project; **`429`** rate limit (same bucket family as documented for this path).
 - `POST /api/v1/auth/login` — internal login
 - `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`

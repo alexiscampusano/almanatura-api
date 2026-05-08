@@ -611,40 +611,6 @@
 			]
 		},
 		{
-			"name": "Actors (public)",
-			"description": "Directory entries (no PII).",
-			"item": [
-				{
-					"name": "GET list actors",
-					"id": "f3a4b5c6-d7e8-9900-aabb-ccddeeff0011",
-					"request": {
-						"auth": {"type": "noauth"},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/actors",
-							"host": ["{{baseUrl}}"],
-							"path": ["actors"]
-						},
-						"description": "Optional query: ?pillar=EDUCATION"
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								]
-							}
-						}
-					]
-				}
-			]
-		},
-		{
 			"name": "Applications",
 			"description": "Public POST /applications; admin search and PATCH.",
 			"item": [
