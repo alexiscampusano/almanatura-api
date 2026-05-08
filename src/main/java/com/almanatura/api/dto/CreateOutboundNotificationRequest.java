@@ -10,13 +10,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 public record CreateOutboundNotificationRequest(
         @NotNull @Schema(example = "EMAIL") NotificationChannel channel,
-        @NotBlank
-                @Size(max = 255)
-                @Schema(example = "actor@ejemplo.org")
-                String recipientHint,
-        @Size(max = 500)
-                @Schema(example = "Invitación a taller de emprendimiento")
-                String subject,
+        @NotBlank @Size(max = 255) @Schema(example = "actor@ejemplo.org") String recipientHint,
+        @Size(max = 500) @Schema(example = "Invitación a taller de emprendimiento") String subject,
         @Size(max = 10_000)
                 @Schema(
                         example =

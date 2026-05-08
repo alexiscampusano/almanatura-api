@@ -11,10 +11,7 @@ import com.almanatura.api.enums.ProjectPillar;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record CreateProjectRequest(
-        @NotBlank
-                @Size(max = 255)
-                @Schema(example = "Taller de apicultura rural")
-                String title,
+        @NotBlank @Size(max = 255) @Schema(example = "Taller de apicultura rural") String title,
         @Size(max = 10_000)
                 @Schema(
                         example =
@@ -24,6 +21,5 @@ public record CreateProjectRequest(
         @NotNull @Schema(example = "TECHNOLOGY") ProjectPillar pillar,
         @Schema(example = "2030-08-20T16:00:00Z") Instant startsAt,
         @Schema(example = "2030-08-20T17:30:00Z") Instant endsAt,
-        @Size(max = 255)
-                @Schema(example = "Casa de cultura, Villanueva de los Castillejos")
+        @Size(max = 255) @Schema(example = "Casa de cultura, Villanueva de los Castillejos")
                 String location) {}
