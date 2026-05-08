@@ -22,4 +22,5 @@ public record CreateProjectRequest(
         @Schema(example = "2030-08-20T16:00:00Z") Instant startsAt,
         @Schema(example = "2030-08-20T17:30:00Z") Instant endsAt,
         @Size(max = 255) @Schema(example = "Casa de cultura, Villanueva de los Castillejos")
-                String location) {}
+                String location,
+        @Size(max = 512) @Schema(example = "https://example.com/project-image.jpg") String imageUrl) {}

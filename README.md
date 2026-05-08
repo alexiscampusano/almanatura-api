@@ -409,7 +409,7 @@ that recommend feature packages; migrating would be a large refactor.
 Public endpoints (no JWT required):
 
 - `GET  /api/v1/ping`
-- `GET  /api/v1/projects`, `GET /api/v1/projects/{id}` — **PUBLISHED** projects only; optional `?pillar=` (`ProjectPillar`). List sorted by `startsAt` ascending. **`404`** `RESOURCE_NOT_FOUND` on detail if missing or not published.
+- `GET  /api/v1/projects`, `GET /api/v1/projects/{id}` — **PUBLISHED** projects only; optional `?pillar=` (`ProjectPillar`). List sorted by `startsAt` ascending. Response includes `imageUrl` (nullable). **`404`** `RESOURCE_NOT_FOUND` on detail if missing or not published.
 - `POST /api/v1/applications` — anonymous application to a **PUBLISHED** project; body: `projectId`, `fullName`, `email`, `dni`, optional `phone`; DNI encrypted at rest. **`201`** + `{ id, projectId, submittedAt }`. **`404`** if project missing/not published; **`409`** `APPLICATION_ALREADY_EXISTS` if the same email already applied to that project; **`429`** rate limit (same bucket family as documented for this path).
 - `POST /api/v1/auth/login` — internal login
 - `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`
@@ -418,9 +418,9 @@ Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 
 - `GET  /api/v1/auth/me` — current internal user (`SUPER_USER` or `EVENT_MANAGER`)
 - `POST /api/v1/admin/users`, `GET /api/v1/admin/users` — `SUPER_USER` only
-- `POST /api/v1/admin/projects` — create project (`DRAFT`); `SUPER_USER` or `EVENT_MANAGER`
+- `POST /api/v1/admin/projects` — create project (`DRAFT`); `SUPER_USER` or `EVENT_MANAGER`. Body includes optional `imageUrl` (max 512 chars).
 - `GET  /api/v1/admin/projects` — list all projects (sorted by `startsAt`)
-- `GET /api/v1/admin/projects/{id}`, `PUT /api/v1/admin/projects/{id}`, `DELETE /api/v1/admin/projects/{id}` — **`409`** `PROJECT_HAS_APPLICATIONS` on delete when rows still exist
+- `GET /api/v1/admin/projects/{id}`, `PUT /api/v1/admin/projects/{id}`, `DELETE /api/v1/admin/projects/{id}` — PUT accepts optional `imageUrl`. **`409`** `PROJECT_HAS_APPLICATIONS` on delete when rows still exist
 - `POST /api/v1/admin/notifications` — records a **`PENDING`** outbound notification row (stub; no SMTP/provider in this build)
 - `GET|POST /api/v1/admin/projects/{projectId}/impact-entries` — lightweight impact metrics for follow-up / reporting
 - `GET /api/v1/admin/applications` — optional `?projectId=&status=`

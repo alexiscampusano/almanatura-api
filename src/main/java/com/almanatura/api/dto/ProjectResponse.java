@@ -13,4 +13,5 @@ public record ProjectResponse(
         ProjectStatus status,
         Instant startsAt,
         Instant endsAt,
-        String location) {}
+        String location,
+        String imageUrl) {}

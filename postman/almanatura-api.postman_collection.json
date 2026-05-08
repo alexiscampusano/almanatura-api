@@ -273,7 +273,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Taller de apicultura rural\",\n  \"description\": \"Curso de habilidades rurales orientado a jóvenes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\"\n}"
+							"raw": "{\n  \"title\": \"Taller de apicultura rural\",\n  \"description\": \"Curso de habilidades rurales orientado a jóvenes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/admin/projects",
@@ -373,7 +373,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Taller de apicultura rural (actualizado)\",\n  \"description\": \"Curso de habilidades rurales orientado a jóvenes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\",\n  \"status\": \"PUBLISHED\"\n}"
+							"raw": "{\n  \"title\": \"Taller de apicultura rural (actualizado)\",\n  \"description\": \"Curso de habilidades rurales orientado a jóvenes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800\",\n  \"status\": \"PUBLISHED\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
