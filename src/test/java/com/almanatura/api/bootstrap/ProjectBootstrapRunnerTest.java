@@ -31,17 +31,22 @@ class ProjectBootstrapRunnerTest {
     void run_createsCuratedProjects_once() throws Exception {
         Set<String> seededTitles = new HashSet<>();
 
-        when(projectRepository.existsByTitleIgnoreCase(any())).thenAnswer(invocation -> {
-            String title = invocation.getArgument(0, String.class);
-            return seededTitles.contains(title.toLowerCase());
-        });
-        when(projectRepository.save(any(Project.class))).thenAnswer(invocation -> {
-            Project project = invocation.getArgument(0, Project.class);
-            seededTitles.add(project.getTitle().toLowerCase());
-            return project;
-        });
+        when(projectRepository.existsByTitleIgnoreCase(any()))
+                .thenAnswer(
+                        invocation -> {
+                            String title = invocation.getArgument(0, String.class);
+                            return seededTitles.contains(title.toLowerCase());
+                        });
+        when(projectRepository.save(any(Project.class)))
+                .thenAnswer(
+                        invocation -> {
+                            Project project = invocation.getArgument(0, Project.class);
+                            seededTitles.add(project.getTitle().toLowerCase());
+                            return project;
+                        });
 
-        ProjectBootstrapRunner projectBootstrapRunner = new ProjectBootstrapRunner(projectRepository);
+        ProjectBootstrapRunner projectBootstrapRunner =
+                new ProjectBootstrapRunner(projectRepository);
 
         projectBootstrapRunner.run(new DefaultApplicationArguments(new String[0]));
         verify(projectRepository, times(14)).save(projectCaptor.capture());
@@ -49,8 +54,7 @@ class ProjectBootstrapRunnerTest {
         assertThat(seededTitles).hasSize(14);
         assertThat(projectCaptor.getAllValues())
                 .allSatisfy(
-                        project ->
-                                assertThat(project.getStatus().name()).isEqualTo("PUBLISHED"));
+                        project -> assertThat(project.getStatus().name()).isEqualTo("PUBLISHED"));
 
         projectBootstrapRunner.run(new DefaultApplicationArguments(new String[0]));
 

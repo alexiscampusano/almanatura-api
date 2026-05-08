@@ -2,6 +2,7 @@ package com.almanatura.api.bootstrap;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * admin credentials are not configured to avoid creating predictable accounts.
  */
 @Slf4j
+@Profile({"dev", "test", "docker"})
 @Component
 @RequiredArgsConstructor
 public class AdminBootstrapRunner implements ApplicationRunner {

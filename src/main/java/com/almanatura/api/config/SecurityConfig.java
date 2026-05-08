@@ -52,16 +52,16 @@ public class SecurityConfig {
                                                                         .ReferrerPolicy
                                                                         .STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                                         .contentSecurityPolicy(
-                                                        csp ->
-                                                                csp.policyDirectives(
-                                                                        "default-src 'self';"
-                                                                                + " script-src 'self' 'unsafe-inline';"
-                                                                                + " style-src 'self' 'unsafe-inline';"
-                                                                                + " img-src 'self' data:;"
-                                                                                + " font-src 'self' data:;"
-                                                                                + " connect-src 'self';"
-                                                                                + " frame-ancestors 'none';"
-                                                                                + " base-uri 'none'"))
+                                                csp ->
+                                                        csp.policyDirectives(
+                                                                "default-src 'self'; script-src"
+                                                                    + " 'self' 'unsafe-inline';"
+                                                                    + " style-src 'self'"
+                                                                    + " 'unsafe-inline'; img-src"
+                                                                    + " 'self' data:; font-src"
+                                                                    + " 'self' data:; connect-src"
+                                                                    + " 'self'; frame-ancestors"
+                                                                    + " 'none'; base-uri 'none'"))
                                         .permissionsPolicy(
                                                 permissions ->
                                                         permissions.policy(

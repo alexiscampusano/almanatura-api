@@ -30,21 +30,24 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
             List.of(
                     new ProjectSeed(
                             "Proyecto MIES",
-                            "Proyecto desarrollado con Ashoka España y Google.org para impulsar oportunidades en el mundo rural.",
+                            "Proyecto desarrollado con Ashoka España y Google.org para impulsar"
+                                    + " oportunidades en el mundo rural.",
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2024, 5),
                             null,
                             null),
                     new ProjectSeed(
                             "The Break",
-                            "Proyecto desarrollado con la Escuela de Organización Industrial y The Break Alliance.",
+                            "Proyecto desarrollado con la Escuela de Organización Industrial y The"
+                                    + " Break Alliance.",
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2023, 7),
                             null,
                             null),
                     new ProjectSeed(
                             "Activa tu pueblo",
-                            "Proyecto desarrollado con la Mancomunidad Beturia y ADRAO Desarrollo Rural.",
+                            "Proyecto desarrollado con la Mancomunidad Beturia y ADRAO Desarrollo"
+                                    + " Rural.",
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2023, 6),
                             null,
@@ -58,14 +61,16 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             null),
                     new ProjectSeed(
                             "Colabora Almendralejo",
-                            "Proyecto desarrollado con ACCIONA Energía y el Ayuntamiento de Almendralejo (Badajoz).",
+                            "Proyecto desarrollado con ACCIONA Energía y el Ayuntamiento de"
+                                    + " Almendralejo (Badajoz).",
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2023, 5),
                             null,
                             "Almendralejo (Badajoz)"),
                     new ProjectSeed(
                             "GIRA Jóvenes",
-                            "Proyecto desarrollado con Coca-Cola España e institutos de formación profesional.",
+                            "Proyecto desarrollado con Coca-Cola España e institutos de formación"
+                                    + " profesional.",
                             ProjectPillar.EDUCATION,
                             startOfMonth(2023, 5),
                             null,
@@ -93,35 +98,40 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             null),
                     new ProjectSeed(
                             "Relevo Generacional",
-                            "Proyecto desarrollado con Danone España y granjas lecheras del territorio español.",
+                            "Proyecto desarrollado con Danone España y granjas lecheras del"
+                                    + " territorio español.",
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2021, 7),
                             null,
                             null),
                     new ProjectSeed(
                             "Comisionado Reto Demográfico",
-                            "Proyecto desarrollado con la Diputación de Huelva y ayuntamientos de la provincia.",
+                            "Proyecto desarrollado con la Diputación de Huelva y ayuntamientos de"
+                                    + " la provincia.",
                             ProjectPillar.EDUCATION,
                             startOfMonth(2021, 6),
                             null,
                             "Provincia de Huelva"),
                     new ProjectSeed(
                             "Rural Emprende",
-                            "Proyecto desarrollado con Fundación Andalucía Emprende y la Diputación de Jaén.",
+                            "Proyecto desarrollado con Fundación Andalucía Emprende y la Diputación"
+                                    + " de Jaén.",
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2019, 9),
                             null,
                             "Jaén"),
                     new ProjectSeed(
                             "Lab de Innovación Rural",
-                            "Proyecto desarrollado con Impact Hub Madrid y la Red Española de Desarrollo Rural.",
+                            "Proyecto desarrollado con Impact Hub Madrid y la Red Española de"
+                                    + " Desarrollo Rural.",
                             ProjectPillar.TECHNOLOGY,
                             startOfMonth(2019, 9),
                             null,
                             "Madrid"),
                     new ProjectSeed(
                             "Tu Caja Online",
-                            "Proyecto desarrollado con Fundación Caja Rural del Sur y ayuntamientos.",
+                            "Proyecto desarrollado con Fundación Caja Rural del Sur y"
+                                    + " ayuntamientos.",
                             ProjectPillar.TECHNOLOGY,
                             startOfMonth(2018, 9),
                             null,
