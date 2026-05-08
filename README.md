@@ -39,7 +39,9 @@ those tables and introduces the rural core (`projects`, `applications`, `actors`
 stay in the repository so existing environments keep a **stable Flyway history and checksums**;
 removing or rewriting V2–V3 would break `flyway validate` on databases that already applied them.
 Greenfield runs still execute V2 → V3 → V4 → … so the drop leaves only the current schema.
+### Database Schema Notes
 
+**Legacy tables** (`cultural_events`, `event_attendees`) were created in V2–V3 but are not mapped to any JPA entity or accessed by controllers/services. They remain in the database for backward compatibility and stable Flyway checksums but are effectively unused. The `project_activities` and `activity_participations` tables were similarly created (V5–V6) and dropped (V9) during domain evolution. When in doubt about table usage, check `src/main/java/com/almanatura/api/entity/` for mapped JPA entities.
 ## Branching model
 
 This repository uses a two-branch flow tailored to a single backend

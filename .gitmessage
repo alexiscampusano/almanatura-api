@@ -1,0 +1,19 @@
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+#
+# --- COMMIT MESSAGE TEMPLATE ---
+# Type: feat (feature), fix, docs, style, refactor, test, chore, perf, ci
+# Scope: Optional. Component affected (api, auth, admin, db, docker, etc.)
+# Subject: Imperative mood, lowercase, no period. Max 50 chars.
+#
+# Body: Explain what and why, not how. Wrapped at 72 chars.
+# Footer: References to issues (e.g., Fixes #123, Closes #456)
+#
+# --- EXAMPLES ---
+# feat(auth): add JWT refresh token rotation
+# fix(api): correct null pointer in rate limit filter
+# docs: update database schema notes
+# chore: upgrade Spring Boot to 4.0.5

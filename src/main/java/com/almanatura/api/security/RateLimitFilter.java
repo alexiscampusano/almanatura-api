@@ -2,8 +2,7 @@ package com.almanatura.api.security;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.almanatura.api.config.AppProperties;
 import com.almanatura.api.exception.ApiErrorWriter;
 import com.almanatura.api.exception.ErrorCode;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
@@ -43,8 +44,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final AppProperties properties;
     private final ApiErrorWriter errorWriter;
 
-    private final Map<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> applicationSubmitBuckets = new ConcurrentHashMap<>();
+    private final Cache<String, Bucket> loginBuckets =
+            Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).maximumSize(1000).build();
+    private final Cache<String, Bucket> applicationSubmitBuckets =
+            Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).maximumSize(1000).build();
 
     @Override
     protected void doFilterInternal(
@@ -88,12 +91,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         if (LOGIN_PATH.equals(path)) {
             AppProperties.RateLimit.Bucket cfg = properties.rateLimit().login();
-            return loginBuckets.computeIfAbsent(ip, k -> newBucket(cfg));
+            return loginBuckets.get(ip, k -> newBucket(cfg));
         }
 
         if (APPLICATION_SUBMIT_PATH.equals(path)) {
             AppProperties.RateLimit.Bucket cfg = properties.rateLimit().register();
-            return applicationSubmitBuckets.computeIfAbsent(ip, k -> newBucket(cfg));
+            return applicationSubmitBuckets.get(ip, k -> newBucket(cfg));
         }
 
         return null;
