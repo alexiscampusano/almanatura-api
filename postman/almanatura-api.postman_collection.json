@@ -180,7 +180,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"New Event Manager\",\n  \"email\": \"new.manager@almanatura.org\",\n  \"password\": \"ChangeMeAfterLogin9!\",\n  \"role\": \"EVENT_MANAGER\",\n  \"enabled\": true\n}"
+							"raw": "{\n  \"name\": \"María García López\",\n  \"email\": \"maria.garcia@almanatura.org\",\n  \"password\": \"CambiarTras1erLogin!\",\n  \"role\": \"EVENT_MANAGER\",\n  \"enabled\": true\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/admin/users",
@@ -273,7 +273,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Beekeeping workshop\",\n  \"description\": \"Rural skills course\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Village hall\"\n}"
+							"raw": "{\n  \"title\": \"Taller de apicultura rural\",\n  \"description\": \"Curso de habilidades rurales orientado a jóvenes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/admin/projects",
@@ -373,7 +373,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Beekeeping workshop (updated)\",\n  \"description\": \"Rural skills\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Village hall\",\n  \"status\": \"PUBLISHED\"\n}"
+							"raw": "{\n  \"title\": \"Taller de apicultura rural (actualizado)\",\n  \"description\": \"Curso de habilidades rurales orientado a jóvenes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20T16:00:00Z\",\n  \"endsAt\": \"2030-08-20T17:30:00Z\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\",\n  \"status\": \"PUBLISHED\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
@@ -439,7 +439,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"channel\": \"EMAIL\",\n  \"recipientHint\": \"actor@example.org\",\n  \"subject\": \"Invitation\",\n  \"body\": \"MVP record only\"\n}"
+							"raw": "{\n  \"channel\": \"EMAIL\",\n  \"recipientHint\": \"actor@ejemplo.org\",\n  \"subject\": \"Invitación a taller de emprendimiento\",\n  \"body\": \"Estimado/a participante, le informamos que ha sido seleccionado/a para el próximo taller\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/admin/notifications",
@@ -458,7 +458,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"recordedAt\": \"2030-11-15T12:00:00Z\",\n  \"metricLabel\": \"Households reached\",\n  \"numericValue\": 120,\n  \"notes\": \"Quarter estimate\"\n}"
+							"raw": "{\n  \"recordedAt\": \"2030-11-15T12:00:00Z\",\n  \"metricLabel\": \"Hogares alcanzados\",\n  \"numericValue\": 120,\n  \"notes\": \"Estimación del trimestre\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/impact-entries",
@@ -625,7 +625,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"projectId\": {{publicProjectId}},\n  \"fullName\": \"Sample Applicant\",\n  \"email\": \"applicant@example.org\",\n  \"dni\": \"12345678Z\",\n  \"phone\": \"+34123456789\"\n}"
+							"raw": "{\n  \"projectId\": {{publicProjectId}},\n  \"fullName\": \"Carlos Ruiz Martínez\",\n  \"email\": \"carlos.ruiz@ejemplo.org\",\n  \"dni\": \"12345678Z\",\n  \"phone\": \"+34612345678\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/applications",
