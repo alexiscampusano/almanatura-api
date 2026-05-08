@@ -35,7 +35,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2024, 5),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800"),
                     new ProjectSeed(
                             "The Break",
                             "Proyecto desarrollado con la Escuela de Organización Industrial y The"
@@ -43,7 +44,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2023, 7),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800"),
                     new ProjectSeed(
                             "Activa tu pueblo",
                             "Proyecto desarrollado con la Mancomunidad Beturia y ADRAO Desarrollo"
@@ -51,14 +53,16 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2023, 6),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800"),
                     new ProjectSeed(
                             "RURAL 2030. La Universidad en el pueblo",
                             "Proyecto desarrollado con la UNIA y la Diputación de Huelva.",
                             ProjectPillar.EDUCATION,
                             startOfMonth(2023, 6),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800"),
                     new ProjectSeed(
                             "Colabora Almendralejo",
                             "Proyecto desarrollado con ACCIONA Energía y el Ayuntamiento de"
@@ -66,7 +70,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2023, 5),
                             null,
-                            "Almendralejo (Badajoz)"),
+                            "Almendralejo (Badajoz)",
+                            "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800"),
                     new ProjectSeed(
                             "GIRA Jóvenes",
                             "Proyecto desarrollado con Coca-Cola España e institutos de formación"
@@ -74,28 +79,32 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.EDUCATION,
                             startOfMonth(2023, 5),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1529390079861-591de354faf5?w=800"),
                     new ProjectSeed(
                             "Holapueblo",
                             "Proyecto desarrollado con Redeia, IKEA y ayuntamientos.",
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2023, 5),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800"),
                     new ProjectSeed(
                             "GIRA Mujeres",
                             "Proyecto desarrollado con Coca-Cola España y entidades públicas.",
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2023, 4),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800"),
                     new ProjectSeed(
                             "AlmaNatura LAB",
                             "Proyecto desarrollado con Fundación AlmaNatura.",
                             ProjectPillar.TECHNOLOGY,
                             startOfMonth(2023, 4),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800"),
                     new ProjectSeed(
                             "Relevo Generacional",
                             "Proyecto desarrollado con Danone España y granjas lecheras del"
@@ -103,7 +112,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2021, 7),
                             null,
-                            null),
+                            null,
+                            "https://images.unsplash.com/photo-1500076656116-558758c991c1?w=800"),
                     new ProjectSeed(
                             "Comisionado Reto Demográfico",
                             "Proyecto desarrollado con la Diputación de Huelva y ayuntamientos de"
@@ -111,7 +121,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.EDUCATION,
                             startOfMonth(2021, 6),
                             null,
-                            "Provincia de Huelva"),
+                            "Provincia de Huelva",
+                            "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=800"),
                     new ProjectSeed(
                             "Rural Emprende",
                             "Proyecto desarrollado con Fundación Andalucía Emprende y la Diputación"
@@ -119,7 +130,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.ENTREPRENEURSHIP,
                             startOfMonth(2019, 9),
                             null,
-                            "Jaén"),
+                            "Jaén",
+                            "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=800"),
                     new ProjectSeed(
                             "Lab de Innovación Rural",
                             "Proyecto desarrollado con Impact Hub Madrid y la Red Española de"
@@ -127,7 +139,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.TECHNOLOGY,
                             startOfMonth(2019, 9),
                             null,
-                            "Madrid"),
+                            "Madrid",
+                            "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800"),
                     new ProjectSeed(
                             "Tu Caja Online",
                             "Proyecto desarrollado con Fundación Caja Rural del Sur y"
@@ -135,7 +148,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                             ProjectPillar.TECHNOLOGY,
                             startOfMonth(2018, 9),
                             null,
-                            null));
+                            null,
+                            "https://images.unsplash.com/photo-1563986768609-322da13575f2?w=800"));
 
     private final ProjectRepository projectRepository;
 
@@ -172,7 +186,8 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
             ProjectPillar pillar,
             Instant startsAt,
             Instant endsAt,
-            String location) {
+            String location,
+            String imageUrl) {
 
         Project toEntity() {
             return Project.builder()
@@ -183,6 +198,7 @@ public class ProjectBootstrapRunner implements ApplicationRunner {
                     .startsAt(startsAt)
                     .endsAt(endsAt)
                     .location(location)
+                    .imageUrl(imageUrl)
                     .build();
         }
     }

@@ -58,4 +58,7 @@ public class Project extends BaseAuditableEntity {
 
     @Column(length = 255)
     private String location;
+
+    @Column(name = "image_url", length = 512)
+    private String imageUrl;
 }

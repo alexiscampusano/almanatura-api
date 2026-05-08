@@ -11,4 +11,5 @@ public record PublicProjectResponse(
         ProjectPillar pillar,
         Instant startsAt,
         Instant endsAt,
-        String location) {}
+        String location,
+        String imageUrl) {}
