@@ -73,12 +73,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return entity(ErrorCode.APPLICATION_ALREADY_EXISTS, ex.getMessage(), request);
     }
 
-    @ExceptionHandler(ParticipationAlreadyExistsException.class)
-    public ResponseEntity<ProblemDetail> handleParticipationAlreadyExists(
-            ParticipationAlreadyExistsException ex, HttpServletRequest request) {
-        return entity(ErrorCode.PARTICIPATION_ALREADY_EXISTS, ex.getMessage(), request);
-    }
-
     @ExceptionHandler(InvalidApplicationTransitionException.class)
     public ResponseEntity<ProblemDetail> handleInvalidTransition(
             InvalidApplicationTransitionException ex, HttpServletRequest request) {

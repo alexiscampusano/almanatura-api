@@ -252,11 +252,9 @@ src/
 │   │   │   └── SecurityConfig.java            # SecurityFilterChain — public routes vs JWT
 │   │   │
 │   │   ├── controller/
-│   │   │   ├── AdminActivityParticipationController.java  # Nested …/activities/…/participations (JWT)
-│   │   │   ├── AdminActorController.java      # GET /admin/actors
-│   │   │   ├── AdminApplicationController.java # GET/PATCH /admin/applications
+│   │   │   ├── AdminActorController.java      # GET /admin/actors, GET /admin/actors/{id}
+│   │   │   ├── AdminApplicationController.java # GET/GET/{id}/PATCH /admin/applications
 │   │   │   ├── AdminOutboundNotificationController.java   # POST /admin/notifications (stub)
-│   │   │   ├── AdminProjectActivityController.java        # CRUD /admin/projects/{id}/activities
 │   │   │   ├── AdminProjectController.java    # CRUD /admin/projects
 │   │   │   ├── AdminProjectImpactController.java          # GET/POST …/projects/{id}/impact-entries
 │   │   │   ├── AdminReportController.java     # GET …/reports/summary, …/projects/applications
@@ -265,36 +263,29 @@ src/
 │   │   │   ├── ApplicationController.java     # Public POST /applications
 │   │   │   ├── AuthController.java            # POST /auth/login, GET /auth/me
 │   │   │   ├── HealthController.java          # GET /ping
-│   │   │   └── ProjectController.java        # Public GET /projects, /{id}, /{id}/activities
+│   │   │   └── ProjectController.java         # Public GET /projects, /{id}
 │   │   │
 │   │   ├── dto/
-│   │   │   ├── ActivityParticipationResponse.java
 │   │   │   ├── AdminApplicationResponse.java  # Decrypted national ID — internal only
 │   │   │   ├── ApplicationSubmittedResponse.java
 │   │   │   ├── CreateOutboundNotificationRequest.java
-│   │   │   ├── CreateProjectActivityRequest.java
 │   │   │   ├── CreateProjectImpactEntryRequest.java
 │   │   │   ├── CreateProjectRequest.java
 │   │   │   ├── CreateUserRequest.java
-│   │   │   ├── InviteActivityParticipationRequest.java
 │   │   │   ├── LoginRequest.java
 │   │   │   ├── LoginResponse.java
-│   │   │   ├── CreateUserRequest.java
-│   │   │   ├── UserSummary.java
-│   │   │   ├── CreateProjectRequest.java
-│   │   │   ├── UpdateProjectRequest.java
-│   │   │   ├── ProjectResponse.java
-│   │   │   ├── PublicProjectResponse.java
-│   │   │   ├── PublicActorResponse.java
-│   │   │   ├── SubmitApplicationRequest.java
-│   │   │   ├── ApplicationSubmittedResponse.java
-│   │   │   ├── AdminApplicationResponse.java  # Decrypted national ID — internal only
-│   │   │   ├── PatchApplicationStatusRequest.java
-│   │   │   ├── ReportsSummaryResponse.java
-│   │   │   ├── ProjectStatusCount.java
-│   │   │   ├── ProjectApplicationReportRow.java
 │   │   │   ├── OutboundNotificationResponse.java
-│   │   │   └── ProjectImpactEntryResponse.java
+│   │   │   ├── PatchApplicationStatusRequest.java
+│   │   │   ├── ProjectApplicationReportRow.java
+│   │   │   ├── ProjectImpactEntryResponse.java
+│   │   │   ├── ProjectResponse.java
+│   │   │   ├── ProjectStatusCount.java
+│   │   │   ├── PublicActorResponse.java
+│   │   │   ├── PublicProjectResponse.java
+│   │   │   ├── ReportsSummaryResponse.java
+│   │   │   ├── SubmitApplicationRequest.java
+│   │   │   ├── UpdateProjectRequest.java
+│   │   │   └── UserSummary.java
 │   │   │
 │   │   ├── entity/
 │   │   │   ├── Actor.java
@@ -306,11 +297,9 @@ src/
 │   │   │   └── User.java
 │   │   │
 │   │   ├── enums/
-│   │   │   ├── ActivityParticipationStatus.java
 │   │   │   ├── ApplicationStatus.java
 │   │   │   ├── NotificationChannel.java
 │   │   │   ├── OutboundNotificationStatus.java
-│   │   │   ├── ProjectActivityStatus.java
 │   │   │   ├── ProjectPillar.java
 │   │   │   ├── ProjectStatus.java
 │   │   │   └── Role.java
@@ -324,20 +313,16 @@ src/
 │   │   │   ├── FieldViolation.java
 │   │   │   ├── GlobalExceptionHandler.java
 │   │   │   ├── InvalidApplicationTransitionException.java
-│   │   │   ├── ParticipationAlreadyExistsException.java   # Maps to PARTICIPATION_ALREADY_EXISTS
 │   │   │   ├── ProjectHasApplicationsException.java
 │   │   │   └── ResourceNotFoundException.java
 │   │   │
 │   │   ├── mapper/
 │   │   │   ├── package-info.java
-│   │   │   ├── ProjectActivityMapper.java    # Activities, participation, notification & impact DTOs
 │   │   │   └── ProjectMapper.java
 │   │   │
 │   │   ├── repository/
-│   │   │   ├── ActivityParticipationRepository.java
 │   │   │   ├── ActorRepository.java
 │   │   │   ├── OutboundNotificationRepository.java
-│   │   │   ├── ProjectActivityRepository.java
 │   │   │   ├── ProjectApplicationRepository.java
 │   │   │   ├── ProjectImpactEntryRepository.java
 │   │   │   ├── ProjectRepository.java
@@ -352,11 +337,9 @@ src/
 │   │   │   └── RateLimitFilter.java            # Bucket4j on /auth/login & POST /applications
 │   │   │
 │   │   ├── service/
-│   │   │   ├── AdminActivityParticipationService.java
 │   │   │   ├── AdminActorService.java
 │   │   │   ├── AdminApplicationService.java
 │   │   │   ├── AdminOutboundNotificationService.java
-│   │   │   ├── AdminProjectActivityService.java
 │   │   │   ├── AdminProjectImpactService.java
 │   │   │   ├── AdminProjectService.java
 │   │   │   ├── AdminReportService.java
@@ -389,10 +372,8 @@ src/
     │   ├── architecture/
     │   │   └── ArchitectureTest.java           # ArchUnit layered rules
     │   ├── controller/
-    │   │   ├── AdminActivityParticipationControllerTest.java
     │   │   ├── AdminApplicationControllerTest.java
     │   │   ├── AdminOutboundNotificationControllerTest.java
-    │   │   ├── AdminProjectActivityControllerTest.java
     │   │   ├── AdminProjectControllerTest.java
     │   │   ├── AdminProjectImpactControllerTest.java
     │   │   ├── AdminReportControllerTest.java
@@ -448,7 +429,7 @@ Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 - `GET /api/v1/admin/applications` — optional `?projectId=&status=`
 - `GET /api/v1/admin/applications/{id}`, `PATCH /api/v1/admin/applications/{id}` — status transitions; **`400`** `INVALID_APPLICATION_TRANSITION` when illegal; `REGISTERED_AS_ACTOR` creates `Actor`
 - `GET /api/v1/admin/actors`, `GET /api/v1/admin/actors/{id}`
-- `GET /api/v1/admin/reports/summary` — counts per `ProjectStatus`, total projects and applications, plus planning/follow-up rollups: total project activities, activity participations, impact entries, and outbound notification rows (counts only; no applicant PII)
+- `GET /api/v1/admin/reports/summary` — counts per `ProjectStatus`, total projects, applications, impact entries and outbound notification rows (counts only; no applicant PII)
 - `GET /api/v1/admin/reports/projects/applications` — each project with `applicationCount`, ordered by count desc then `startsAt`
 - `/api/v1/admin/**` — `SUPER_USER` or `EVENT_MANAGER` except `/admin/users/**` (super only)
 

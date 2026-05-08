@@ -29,9 +29,8 @@ public class AdminReportController {
     @Operation(
             summary = "Organization summary",
             description =
-                    "Project counts by lifecycle status, application and planning rollups "
-                            + "(activities, participations, impact entries, outbound notification "
-                            + "records). No personal applicant data.")
+                    "Project counts by lifecycle status, total applications, impact entries and"
+                            + " outbound notification records. No personal applicant data.")
     public ReportsSummaryResponse summary() {
         return adminReportService.summary();
     }

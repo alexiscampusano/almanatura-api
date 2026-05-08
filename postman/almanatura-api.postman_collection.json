@@ -37,7 +37,7 @@
 								"ping"
 							]
 						},
-						"description": "Liveness probe. Returns 200 with `{ \"status\": \"UP\" }` when the API process is up and the database connection is reachable."
+						"description": "Liveness probe. Returns 200 with `{ \"service\": \"almanatura-api\", \"status\": \"ok\", \"timestamp\": \"...\" }` when the API process is running."
 					},
 					"event": [
 						{
@@ -49,9 +49,11 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"reports status UP\", function () {",
+									"pm.test(\"reports status ok\", function () {",
 									"    const json = pm.response.json();",
-									"    pm.expect(json.status).to.eql(\"UP\");",
+									"    pm.expect(json.service).to.eql(\"almanatura-api\");",
+									"    pm.expect(json.status).to.eql(\"ok\");",
+									"    pm.expect(json.timestamp).to.be.a(\"string\").and.not.empty;",
 									"});"
 								]
 							}
@@ -542,7 +544,70 @@
 							}
 						}
 					]
+				}
+			]
+		},
+		{
+			"name": "Actors (admin)",
+			"description": "Internal actor directory. Requires JWT (super_user or event_manager).",
+			"item": [
+				{
+					"name": "GET list actors",
+					"id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/actors",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "actors"]
+						},
+						"description": "Lists all actors in the internal directory. Uses collection Bearer token."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"body is array\", function () {",
+									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
+									"});"
+								]
+							}
+						}
+					]
 				},
+				{
+					"name": "GET actor by id",
+					"id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/actors/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "actors", "1"]
+						},
+						"description": "Returns a single actor by numeric id. Replace `1` with a valid actor id."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200 or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});"
+								]
+							}
+						}
+					]
+				}
 			]
 		},
 		{
@@ -643,6 +708,40 @@
 									"pm.test(\"200 or 401\", function () {",
 									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
 									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "GET admin application by id",
+					"id": "a6b7c8d9-e0f1-3344-abcd-eeff00224455",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/admin/applications/{{lastApplicationId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "applications", "{{lastApplicationId}}"]
+						},
+						"description": "Returns a single application with decrypted DNI (staff only). Requires lastApplicationId from POST submit."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"status code is 200 or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"body is AdminApplicationResponse\", function () {",
+									"        const json = pm.response.json();",
+									"        pm.expect(json.id).to.be.a(\"number\");",
+									"        pm.expect(json.status).to.be.a(\"string\").and.not.empty;",
+									"    });",
+									"}"
 								]
 							}
 						}
