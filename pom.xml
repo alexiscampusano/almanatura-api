@@ -23,8 +23,8 @@
 		<archunit.version>1.4.2</archunit.version>
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 		<jacoco.version>0.8.14</jacoco.version>
-		<spotless.version>2.44.5</spotless.version>
-		<google-java-format.version>1.24.0</google-java-format.version>
+		<spotless.version>3.4.0</spotless.version>
+		<google-java-format.version>1.35.0</google-java-format.version>
 		<jacoco.coverage.minimum>0.30</jacoco.coverage.minimum>
 		<testcontainers.version>1.20.4</testcontainers.version>
 	</properties>
