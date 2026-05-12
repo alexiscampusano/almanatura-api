@@ -22,7 +22,7 @@ Stable enum values everywhere (JSON, query params, database):
 
 | Layer       | Tech                                      |
 | ----------- | ----------------------------------------- |
-| Language    | Java 21                                   |
+| Language    | Java 25                                   |
 | Framework   | Spring Boot 4.0.5 (Web MVC, Data JPA)     |
 | Security    | Spring Security 7 + JJWT 0.12.6 (HS256)   |
 | Database    | MySQL 8                                   |
@@ -74,7 +74,7 @@ The CI badge above intentionally reports the status of `main` only:
 ## Prerequisites
 
 - Docker + Docker Compose
-- (Optional, for local non-docker runs) Java 21 and the bundled `mvnw`
+- (Optional, for local non-docker runs) Java 25 and the bundled `mvnw`
 
 ## Quick start
 
