@@ -422,9 +422,16 @@ SELECT 'Tu Caja Online',
     '2018-09-01 10:00:00.000000',
     NULL,
     NULL,
-    'https://images.unsplash.com/photo-1563986768609-322da13575f2?w=800',
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
     0,
     UTC_TIMESTAMP(6),
     UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM projects WHERE LOWER(title) = LOWER('Tu Caja Online'));
+
+-- Cover for "Tu Caja Online" (first card when sorted by starts_at): fix NULL or legacy URLs on re-seed
+UPDATE projects
+SET
+    image_url = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
+    updated_at = UTC_TIMESTAMP(6)
+WHERE LOWER(title) = LOWER('Tu Caja Online');
