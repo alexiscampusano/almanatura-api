@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * admin credentials are not configured to avoid creating predictable accounts.
  */
 @Slf4j
-@Profile({"dev", "test", "docker"})
+@Profile({"dev", "docker"})
 @Component
 @RequiredArgsConstructor
 public class AdminBootstrapRunner implements ApplicationRunner {

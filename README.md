@@ -144,6 +144,16 @@ sets it to `dev`, which targets `jdbc:mysql://localhost:3306/almanatura`.
 > **Tests only:** `./mvnw test` (or `make test`). Uses H2 in memory, no
 > MySQL or Docker required.
 
+**Demo actors and projects** are optional: they do not run on startup. After
+Flyway has created the schema, load them explicitly with **`make seed-demo`**
+(with the stack from Mode A or B, so MySQL is reachable). The API still
+creates the initial **super user** from `APP_ADMIN_EMAIL` / `APP_ADMIN_PASSWORD`
+when it starts (see `AdminBootstrapRunner`). Without `make seed-demo`, the
+public project list starts empty.
+
+For Mode A without the full compose stack, you can pipe the same file with the
+`mysql` client (same host/port/credentials as in `.env`).
+
 ### Mode B — Full stack in Docker (no JDK on host)
 
 Builds the multi-stage image and runs the API + MySQL together. Ideal for
@@ -162,6 +172,11 @@ The container forces `SPRING_PROFILES_ACTIVE=docker` regardless of what your
 | ---- | ------- | --- |
 | phpMyAdmin (optional) | `make up-tools` | http://localhost:8081 |
 | Remote debugger (JDWP) | `make up-dev` | port `5005` (mounts `./src` ro, DevTools on) |
+
+After the API has applied migrations, run **`make seed-demo`** once if you want
+the same sample actors and published projects as in local dev (idempotent;
+safe to run again). **Do not use this against a real production database** with
+customer data unless you consciously want those demo rows.
 
 ### Mode C — Production deployment
 
@@ -222,6 +237,7 @@ make shell | db-shell
 make test | verify | coverage
 make format | format-check
 make db-backup | db-restore FILE=...
+make seed-demo
 make clean
 
 # Production (uses docker-compose.prod.yml override)
@@ -241,7 +257,7 @@ src/
 │   │   ├── AlmanaturaApiApplication.java       # Spring Boot entry point (@SpringBootApplication)
 │   │   │
 │   │   ├── bootstrap/
-│   │   │   └── AdminBootstrapRunner.java       # Seeds initial SUPER_USER from env when configured
+│   │   │   └── AdminBootstrapRunner.java       # SUPER_USER from env on startup (dev/docker)
 │   │   │
 │   │   ├── config/
 │   │   │   ├── AppProperties.java              # @ConfigurationProperties for app.* keys

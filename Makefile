@@ -1,6 +1,6 @@
 .PHONY: help build rebuild up up-logs up-dev up-tools down down-volumes restart \
         logs logs-api logs-db status shell db-shell clean test verify format format-check \
-        coverage db-backup db-restore \
+        coverage db-backup db-restore seed-demo \
         prod-up prod-up-logs prod-down prod-restart prod-logs prod-status prod-build
 
 DOCKER_COMPOSE      = docker compose
@@ -31,6 +31,7 @@ help:
 	@echo "  make format-check  - Verify formatting without modifying files"
 	@echo "  make db-backup     - Dump the database to ./backups"
 	@echo "  make db-restore    - Restore from FILE=./backups/your.sql"
+	@echo "  make seed-demo     - Load idempotent demo actors + projects (MySQL must be up)"
 	@echo "  make clean         - Remove containers, images and volumes"
 	@echo ""
 	@echo "Production (uses docker-compose.prod.yml override):"
@@ -112,6 +113,11 @@ db-backup:
 db-restore:
 	@test -n "$(FILE)" || (echo "Usage: make db-restore FILE=./backups/your.sql" && exit 1)
 	cat $(FILE) | $(DOCKER_COMPOSE) exec -T almanatura-db sh -c 'mysql -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
+
+seed-demo:
+	@test -f scripts/sql/seed_demo.sql || (echo "Missing scripts/sql/seed_demo.sql" && exit 1)
+	cat scripts/sql/seed_demo.sql | $(DOCKER_COMPOSE) exec -T almanatura-db sh -c 'mysql -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
+	@echo "Demo seed applied (safe to re-run)."
 
 clean:
 	$(DOCKER_COMPOSE) down --rmi local -v --remove-orphans
