@@ -139,7 +139,8 @@ set -a; source .env; set +a                 # load env vars (one shell session)
 ```
 
 That's it — no `SPRING_PROFILES_ACTIVE=...` override needed: `.env` already
-sets it to `dev`, which targets `jdbc:mysql://localhost:3306/almanatura`.
+sets it to `dev`, which targets `jdbc:mysql://localhost:3306/almanatura` with
+`useUnicode=true` and `characterEncoding=UTF-8` (see `application-dev.properties`).
 
 > **Tests only:** `./mvnw test` (or `make test`). Uses H2 in memory, no
 > MySQL or Docker required.
@@ -175,7 +176,9 @@ The container forces `SPRING_PROFILES_ACTIVE=docker` regardless of what your
 
 After the API has applied migrations, run **`make seed-demo`** once if you want
 the same sample actors and published projects as in local dev (idempotent;
-safe to run again). **Do not use this against a real production database** with
+safe to run again). `make seed-demo` and `make db-restore` invoke the MySQL
+client with **`--default-character-set=utf8mb4`** so UTF-8 text in SQL files is
+not mangled. **Do not use this against a real production database** with
 customer data unless you consciously want those demo rows.
 
 ### Mode C — Production deployment
@@ -557,7 +560,10 @@ profile system works:
 1. `./mvnw -DskipTests package` (locally or in CI) → `target/api-0.0.1-SNAPSHOT.jar`.
 2. Provision a MySQL database in cPanel; record host, database, user, password.
 3. On the server, export every `APP_*` and `SPRING_DATASOURCE_*` env var, plus
-   `SPRING_PROFILES_ACTIVE=prod`.
+   `SPRING_PROFILES_ACTIVE=prod`. Ensure `SPRING_DATASOURCE_URL` includes
+   `useUnicode=true` and `characterEncoding=UTF-8` (same idea as in
+   `application-dev.properties` / `docker-compose.yml`) so Spanish text is not
+   corrupted at the JDBC layer.
 4. Run with `java -jar api-0.0.1-SNAPSHOT.jar` (cPanel "Setup Java App" or a
    systemd unit).
 5. Same health check + CORS rule as above.
