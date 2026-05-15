@@ -112,11 +112,11 @@ db-backup:
 
 db-restore:
 	@test -n "$(FILE)" || (echo "Usage: make db-restore FILE=./backups/your.sql" && exit 1)
-	cat $(FILE) | $(DOCKER_COMPOSE) exec -T almanatura-db sh -c 'mysql -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
+	cat $(FILE) | $(DOCKER_COMPOSE) exec -T almanatura-db sh -c 'mysql --default-character-set=utf8mb4 -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
 
 seed-demo:
 	@test -f scripts/sql/seed_demo.sql || (echo "Missing scripts/sql/seed_demo.sql" && exit 1)
-	cat scripts/sql/seed_demo.sql | $(DOCKER_COMPOSE) exec -T almanatura-db sh -c 'mysql -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
+	cat scripts/sql/seed_demo.sql | $(DOCKER_COMPOSE) exec -T almanatura-db sh -c 'mysql --default-character-set=utf8mb4 -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
 	@echo "Demo seed applied (safe to re-run)."
 
 clean:
