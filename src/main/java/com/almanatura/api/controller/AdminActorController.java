@@ -5,9 +5,11 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.almanatura.api.dto.PublicActorResponse;
+import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.service.AdminActorService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,9 +26,10 @@ public class AdminActorController {
     private final AdminActorService adminActorService;
 
     @GetMapping
-    @Operation(summary = "List all actors")
-    public List<PublicActorResponse> list() {
-        return adminActorService.findAll();
+    @Operation(summary = "List all actors", description = "Optional pillar filter.")
+    public List<PublicActorResponse> list(
+            @RequestParam(name = "pillar", required = false) ProjectPillar pillar) {
+        return adminActorService.findAll(pillar);
     }
 
     @GetMapping("/{id}")
