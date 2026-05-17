@@ -1,6 +1,6 @@
 package com.almanatura.api.dto;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.enums.ProjectStatus;
@@ -9,7 +9,7 @@ import com.almanatura.api.enums.ProjectStatus;
 public record ProjectApplicationReportRow(
         Long id,
         String title,
-        Instant startsAt,
+        LocalDate startsAt,
         ProjectPillar pillar,
         ProjectStatus status,
         long applicationCount) {}

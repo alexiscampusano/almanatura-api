@@ -4,7 +4,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,7 +97,7 @@ class AdminProjectControllerTest {
                         Project.builder()
                                 .title("Has applicants")
                                 .pillar(ProjectPillar.HEALTH)
-                                .startsAt(Instant.parse("2030-06-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-06-01"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
         projectApplicationRepository.save(

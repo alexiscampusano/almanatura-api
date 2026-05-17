@@ -4,7 +4,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ class ApplicationControllerTest {
                         Project.builder()
                                 .title("Published")
                                 .pillar(ProjectPillar.EDUCATION)
-                                .startsAt(Instant.parse("2030-05-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-05-01"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
 
@@ -85,7 +85,7 @@ class ApplicationControllerTest {
                         Project.builder()
                                 .title("Draft")
                                 .pillar(ProjectPillar.HEALTH)
-                                .startsAt(Instant.parse("2030-05-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-05-01"))
                                 .status(ProjectStatus.DRAFT)
                                 .build());
 
@@ -114,7 +114,7 @@ class ApplicationControllerTest {
                         Project.builder()
                                 .title("Open")
                                 .pillar(ProjectPillar.CULTURE)
-                                .startsAt(Instant.parse("2030-05-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-05-01"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
 

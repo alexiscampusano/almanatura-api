@@ -4,7 +4,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,8 +51,8 @@ class ProjectControllerTest {
 
     @Test
     void list_returnsOnlyPublished_orderedByStartsAt() throws Exception {
-        Instant firstStart = Instant.parse("2030-03-01T10:00:00Z");
-        Instant secondStart = Instant.parse("2030-07-01T10:00:00Z");
+        LocalDate firstStart = LocalDate.parse("2030-03-01");
+        LocalDate secondStart = LocalDate.parse("2030-07-01");
 
         projectRepository.save(
                 Project.builder()
@@ -95,14 +95,14 @@ class ProjectControllerTest {
                 Project.builder()
                         .title("Tech outreach")
                         .pillar(ProjectPillar.TECHNOLOGY)
-                        .startsAt(Instant.parse("2030-01-01T10:00:00Z"))
+                        .startsAt(LocalDate.parse("2030-01-01"))
                         .status(ProjectStatus.PUBLISHED)
                         .build());
         projectRepository.save(
                 Project.builder()
                         .title("Health outreach")
                         .pillar(ProjectPillar.HEALTH)
-                        .startsAt(Instant.parse("2030-02-01T10:00:00Z"))
+                        .startsAt(LocalDate.parse("2030-02-01"))
                         .status(ProjectStatus.PUBLISHED)
                         .build());
 
@@ -120,8 +120,8 @@ class ProjectControllerTest {
                                 .title("Open call")
                                 .description("Join us")
                                 .pillar(ProjectPillar.ENTREPRENEURSHIP)
-                                .startsAt(Instant.parse("2030-09-10T15:00:00Z"))
-                                .endsAt(Instant.parse("2030-09-10T17:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-09-10"))
+                                .endsAt(LocalDate.parse("2030-09-10"))
                                 .location("Hub")
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
@@ -142,7 +142,7 @@ class ProjectControllerTest {
                         Project.builder()
                                 .title("Internal only")
                                 .pillar(ProjectPillar.CULTURE)
-                                .startsAt(Instant.parse("2030-04-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-04-01"))
                                 .status(ProjectStatus.DRAFT)
                                 .build());
 

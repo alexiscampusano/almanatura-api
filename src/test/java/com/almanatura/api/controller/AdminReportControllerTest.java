@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -130,13 +131,13 @@ class AdminReportControllerTest {
                         Project.builder()
                                 .title("With planning")
                                 .pillar(ProjectPillar.ENTREPRENEURSHIP)
-                                .startsAt(Instant.parse("2030-08-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-08-01"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
         projectImpactEntryRepository.save(
                 ProjectImpactEntry.builder()
                         .project(p)
-                        .recordedAt(Instant.parse("2030-09-01T12:00:00Z"))
+                        .recordedAt(Instant.parse("2030-09-01T00:00:00Z"))
                         .metricLabel("Reach")
                         .build());
         outboundNotificationRepository.save(
@@ -162,7 +163,7 @@ class AdminReportControllerTest {
                         Project.builder()
                                 .title("Popular")
                                 .pillar(ProjectPillar.EDUCATION)
-                                .startsAt(Instant.parse("2030-06-15T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-06-15"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
         Project second =
@@ -170,7 +171,7 @@ class AdminReportControllerTest {
                         Project.builder()
                                 .title("Medium")
                                 .pillar(ProjectPillar.HEALTH)
-                                .startsAt(Instant.parse("2030-07-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-07-01"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
         Project draftEarly =
@@ -178,7 +179,7 @@ class AdminReportControllerTest {
                         Project.builder()
                                 .title("Draft early")
                                 .pillar(ProjectPillar.CULTURE)
-                                .startsAt(Instant.parse("2030-01-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-01-01"))
                                 .status(ProjectStatus.DRAFT)
                                 .build());
         Project cancelledLate =
@@ -186,7 +187,7 @@ class AdminReportControllerTest {
                         Project.builder()
                                 .title("Cancelled late")
                                 .pillar(ProjectPillar.TECHNOLOGY)
-                                .startsAt(Instant.parse("2030-12-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-12-01"))
                                 .status(ProjectStatus.CANCELLED)
                                 .build());
 
@@ -216,7 +217,7 @@ class AdminReportControllerTest {
                         Project.builder()
                                 .title("Draft only")
                                 .pillar(ProjectPillar.CULTURE)
-                                .startsAt(Instant.parse("2030-03-01T12:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-03-01"))
                                 .status(ProjectStatus.DRAFT)
                                 .build());
         Project pubA =
@@ -224,7 +225,7 @@ class AdminReportControllerTest {
                         Project.builder()
                                 .title("Published A")
                                 .pillar(ProjectPillar.EDUCATION)
-                                .startsAt(Instant.parse("2030-04-01T12:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-04-01"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
         Project pubB =
@@ -232,14 +233,14 @@ class AdminReportControllerTest {
                         Project.builder()
                                 .title("Published B")
                                 .pillar(ProjectPillar.HEALTH)
-                                .startsAt(Instant.parse("2030-05-01T12:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-05-01"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
         projectRepository.save(
                 Project.builder()
                         .title("Cancelled")
                         .pillar(ProjectPillar.TECHNOLOGY)
-                        .startsAt(Instant.parse("2030-06-01T12:00:00Z"))
+                        .startsAt(LocalDate.parse("2030-06-01"))
                         .status(ProjectStatus.CANCELLED)
                         .build());
 

@@ -4,7 +4,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +68,7 @@ class AdminProjectImpactControllerTest {
                         Project.builder()
                                 .title("Impact project")
                                 .pillar(ProjectPillar.TECHNOLOGY)
-                                .startsAt(Instant.parse("2030-01-01T10:00:00Z"))
+                                .startsAt(LocalDate.parse("2030-01-01"))
                                 .status(ProjectStatus.PUBLISHED)
                                 .build());
 
