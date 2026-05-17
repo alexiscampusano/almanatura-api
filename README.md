@@ -489,7 +489,7 @@ Example payload (`POST /api/v1/admin/projects` with an invalid body):
   "timestamp": "2026-04-19T20:14:33.421Z",
   "violations": [
     { "field": "title", "message": "must not be blank" },
-    { "field": "date",  "message": "must be a future date" }
+    { "field": "startsAt",  "message": "must not be blank" }
   ]
 }
 ```

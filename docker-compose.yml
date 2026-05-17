@@ -1,7 +1,6 @@
 services:
   almanatura-db:
     image: mysql:8.0
-    container_name: almanatura-mysql
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -30,7 +29,6 @@ services:
       context: .
       dockerfile: Dockerfile
     image: almanatura-api:latest
-    container_name: almanatura-api
     restart: unless-stopped
     depends_on:
       almanatura-db:
@@ -61,7 +59,6 @@ services:
 
   phpmyadmin:
     image: phpmyadmin:5
-    container_name: almanatura-phpmyadmin
     restart: unless-stopped
     profiles:
       - tools
@@ -80,8 +77,6 @@ services:
 networks:
   almanatura-network:
     driver: bridge
-    name: almanatura-network
 
 volumes:
   almanatura_mysql_data:
-    name: almanatura-mysql-data

@@ -33,7 +33,7 @@ services:
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - almanatura_mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
       interval: 5s
@@ -42,4 +42,4 @@ services:
       start_period: 30s
 
 volumes:
-  mysql_data:
+  almanatura_mysql_data:
