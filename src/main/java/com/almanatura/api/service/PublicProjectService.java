@@ -1,7 +1,7 @@
 package com.almanatura.api.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +23,13 @@ public class PublicProjectService {
     private final ProjectMapper projectMapper;
 
     @Transactional(readOnly = true)
-    public List<PublicProjectResponse> listPublished(ProjectPillar pillar) {
+    public Page<PublicProjectResponse> listPublished(ProjectPillar pillar, Pageable pageable) {
         return (pillar == null
-                        ? projectRepository.findByStatusOrderByStartsAtAsc(ProjectStatus.PUBLISHED)
+                        ? projectRepository.findByStatusOrderByStartsAtAsc(
+                                ProjectStatus.PUBLISHED, pageable)
                         : projectRepository.findByStatusAndPillarOrderByStartsAtAsc(
-                                ProjectStatus.PUBLISHED, pillar))
-                .stream().map(projectMapper::toPublicResponse).toList();
+                                ProjectStatus.PUBLISHED, pillar, pageable))
+                .map(projectMapper::toPublicResponse);
     }
 
     @Transactional(readOnly = true)

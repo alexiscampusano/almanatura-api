@@ -1,7 +1,9 @@
 package com.almanatura.api.controller;
 
-import java.util.List;
-
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,10 +33,12 @@ public class ProjectController {
     @Operation(
             summary = "List published projects",
             description =
-                    "Returns PUBLISHED projects only, optionally filtered by strategic pillar.")
-    public List<PublicProjectResponse> list(
-            @RequestParam(name = "pillar", required = false) ProjectPillar pillar) {
-        return publicProjectService.listPublished(pillar);
+                    "Returns PUBLISHED projects only, optionally filtered by strategic pillar."
+                            + " Paginated.")
+    public Page<PublicProjectResponse> list(
+            @RequestParam(name = "pillar", required = false) ProjectPillar pillar,
+            @ParameterObject @PageableDefault(size = 6) Pageable pageable) {
+        return publicProjectService.listPublished(pillar, pageable);
     }
 
     @GetMapping("/{id}")
