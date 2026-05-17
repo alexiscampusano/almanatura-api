@@ -17,6 +17,5 @@ public interface ActorRepository extends JpaRepository<Actor, Long> {
                     + "JOIN ProjectApplication pa ON pa.actor.id = a.id "
                     + "JOIN Project p ON pa.project.id = p.id "
                     + "WHERE p.pillar = :pillar")
-    List<Actor> findByProjectPillar(
-            @Param("pillar") com.almanatura.api.enums.ProjectPillar pillar);
+    List<Actor> findByProjectPillar(@Param("pillar") com.almanatura.api.enums.ProjectPillar pillar);
 }
