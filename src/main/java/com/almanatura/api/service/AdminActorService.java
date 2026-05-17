@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.almanatura.api.dto.PublicActorResponse;
+import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.exception.ResourceNotFoundException;
 import com.almanatura.api.repository.ActorRepository;
 
@@ -19,8 +20,14 @@ public class AdminActorService {
     private final ActorRepository actorRepository;
 
     @Transactional(readOnly = true)
-    public List<PublicActorResponse> findAll() {
-        return actorRepository.findAll().stream()
+    public List<PublicActorResponse> findAll(ProjectPillar pillar) {
+        List<com.almanatura.api.entity.Actor> actors;
+        if (pillar != null) {
+            actors = actorRepository.findByProjectPillar(pillar);
+        } else {
+            actors = actorRepository.findAll();
+        }
+        return actors.stream()
                 .sorted((a, b) -> a.getFullName().compareToIgnoreCase(b.getFullName()))
                 .map(a -> new PublicActorResponse(a.getId(), a.getFullName(), a.getRegion()))
                 .toList();
