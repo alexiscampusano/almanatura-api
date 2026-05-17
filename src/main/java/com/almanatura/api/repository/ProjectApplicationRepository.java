@@ -30,4 +30,6 @@ public interface ProjectApplicationRepository extends JpaRepository<ProjectAppli
     List<ProjectApplication> findByProject_IdOrderByCreatedAtAsc(long projectId);
 
     List<ProjectApplication> findByStatusOrderByCreatedAtAsc(ApplicationStatus status);
+
+    List<ProjectApplication> findByActorIdOrderByCreatedAtDesc(Long actorId);
 }

@@ -18,4 +18,11 @@ public interface ActorRepository extends JpaRepository<Actor, Long> {
                     + "JOIN Project p ON pa.project.id = p.id "
                     + "WHERE p.pillar = :pillar")
     List<Actor> findByProjectPillar(@Param("pillar") com.almanatura.api.enums.ProjectPillar pillar);
+
+    @Query(
+            "SELECT a FROM Actor a LEFT JOIN FETCH ProjectApplication pa ON pa.actor.id = a.id "
+                    + "LEFT JOIN FETCH Project p ON pa.project.id = p.id "
+                    + "WHERE a.id = :id")
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {})
+    Actor findByIdWithApplications(@Param("id") Long id);
 }

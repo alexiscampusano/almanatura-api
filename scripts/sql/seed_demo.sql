@@ -633,3 +633,121 @@ SELECT
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'joseluis.moreno.relevo@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Relevo Generacional'));
+
+-- ---------- Impact Entries (for reports testing) ----------
+-- Proyecto MIES (Entrepreneurship)
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Proyecto MIES'),
+    '2024-06-15 10:00:00.000000',
+    'Empleos generados',
+    12,
+    'Empleos directos en zonas rurales',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'Proyecto MIES') AND metric_label = 'Empleos generados');
+
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Proyecto MIES'),
+    '2024-07-20 10:00:00.000000',
+    'Formaciones impartidas',
+    5,
+    'Talleres de emprendimiento rural',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'Proyecto MIES') AND metric_label = 'Formaciones impartidas');
+
+-- RURAL 2030 (Education)
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'RURAL 2030. La Universidad en el pueblo'),
+    '2023-09-01 10:00:00.000000',
+    'Estudiantes participantes',
+    45,
+    'Alumnos de zonas rurales en programas universitarios',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'RURAL 2030. La Universidad en el pueblo') AND metric_label = 'Estudiantes participantes');
+
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'RURAL 2030. La Universidad en el pueblo'),
+    '2023-12-01 10:00:00.000000',
+    'Becas concedidas',
+    20,
+    'Becas para estudiantes rurales',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'RURAL 2030. La Universidad en el pueblo') AND metric_label = 'Becas concedidas');
+
+-- AlmaNatura LAB (Technology)
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'AlmaNatura LAB'),
+    '2023-06-01 10:00:00.000000',
+    'Herramientas digitales creadas',
+    3,
+    'Plataformas tecnológicas para desarrollo rural',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'AlmaNatura LAB') AND metric_label = 'Herramientas digitales creadas');
+
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'AlmaNatura LAB'),
+    '2023-08-15 10:00:00.000000',
+    'Usuarios activos',
+    150,
+    'Usuarios mensuales activos en plataformas',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'AlmaNatura LAB') AND metric_label = 'Usuarios activos');
+
+-- GIRA Jóvenes (Education)
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'GIRA Jóvenes'),
+    '2023-07-01 10:00:00.000000',
+    'Jóvenes formados',
+    80,
+    'Jóvenes en programas de formación profesional',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'GIRA Jóvenes') AND metric_label = 'Jóvenes formados');
+
+-- Tu Caja Online (Technology)
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Tu Caja Online'),
+    '2018-12-01 10:00:00.000000',
+    'Personas digitalizadas',
+    200,
+    'Personas mayores que aprendieron a usar servicios digitales',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'Tu Caja Online') AND metric_label = 'Personas digitalizadas');
+
+-- GIRA Mujeres (Entrepreneurship)
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'GIRA Mujeres'),
+    '2023-06-01 10:00:00.000000',
+    'Mujeres emprendedoras',
+    35,
+    'Mujeres que iniciaron negocios rurales',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'GIRA Mujeres') AND metric_label = 'Mujeres emprendedoras');
+
+-- Lab de Innovación Rural (Technology)
+INSERT INTO project_impact_entries (project_id, recorded_at, metric_label, numeric_value, notes, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Lab de Innovación Rural'),
+    '2019-12-01 10:00:00.000000',
+    'Proyectos innovadores',
+    8,
+    'Proyectos de innovación rural desarrollados',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'Lab de Innovación Rural') AND metric_label = 'Proyectos innovadores');
