@@ -1,6 +1,6 @@
 package com.almanatura.api.dto;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,8 +22,8 @@ public record UpdateProjectRequest(
                 String description,
         @NotNull @Schema(example = "TECHNOLOGY") ProjectPillar pillar,
         @NotNull @Schema(example = "PUBLISHED") ProjectStatus status,
-        @Schema(example = "2030-08-20T16:00:00Z") Instant startsAt,
-        @Schema(example = "2030-08-20T17:30:00Z") Instant endsAt,
+        @Schema(example = "2030-08-20") LocalDate startsAt,
+        @Schema(example = "2030-12-31") LocalDate endsAt,
         @Size(max = 255) @Schema(example = "Casa de cultura, Villanueva de los Castillejos")
                 String location,
         @Size(max = 512) @Schema(example = "https://example.com/project-image.jpg")

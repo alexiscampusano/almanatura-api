@@ -1,6 +1,6 @@
 package com.almanatura.api.dto;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 import com.almanatura.api.enums.ProjectPillar;
 
@@ -9,7 +9,7 @@ public record PublicProjectResponse(
         String title,
         String description,
         ProjectPillar pillar,
-        Instant startsAt,
-        Instant endsAt,
+        LocalDate startsAt,
+        LocalDate endsAt,
         String location,
         String imageUrl) {}

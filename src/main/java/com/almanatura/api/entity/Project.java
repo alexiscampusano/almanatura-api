@@ -1,6 +1,6 @@
 package com.almanatura.api.entity;
 
-import java.time.Instant;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -51,10 +51,10 @@ public class Project extends BaseAuditableEntity {
     private ProjectStatus status = ProjectStatus.DRAFT;
 
     @Column(name = "starts_at")
-    private Instant startsAt;
+    private LocalDate startsAt;
 
     @Column(name = "ends_at")
-    private Instant endsAt;
+    private LocalDate endsAt;
 
     @Column(length = 255)
     private String location;
