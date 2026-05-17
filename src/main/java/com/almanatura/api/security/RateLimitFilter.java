@@ -2,8 +2,7 @@ package com.almanatura.api.security;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,12 +12,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.almanatura.api.config.AppProperties;
 import com.almanatura.api.exception.ApiErrorWriter;
 import com.almanatura.api.exception.ErrorCode;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
@@ -37,16 +37,17 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
     private static final String LOGIN_PATH = "/auth/login";
-    private static final String REGISTER_PATH_PATTERN = "/events/*/register";
+    private static final String APPLICATION_SUBMIT_PATH = "/applications";
     private static final String RETRY_AFTER_SECONDS = "60";
 
     private final AppProperties properties;
     private final ApiErrorWriter errorWriter;
 
-    private final Map<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> registerBuckets = new ConcurrentHashMap<>();
+    private final Cache<String, Bucket> loginBuckets =
+            Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).maximumSize(1000).build();
+    private final Cache<String, Bucket> applicationSubmitBuckets =
+            Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).maximumSize(1000).build();
 
     @Override
     protected void doFilterInternal(
@@ -65,7 +66,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             log.warn(
                     "Rate limit exceeded for {} from {}",
                     request.getRequestURI(),
-                    clientIp(request));
+                    rateLimitClientKey(request));
             response.setHeader(HttpHeaders.RETRY_AFTER, RETRY_AFTER_SECONDS);
             errorWriter.write(
                     request,
@@ -86,19 +87,25 @@ public class RateLimitFilter extends OncePerRequestFilter {
             path = path.substring(contextPath.length());
         }
 
-        String ip = clientIp(request);
+        String ip = rateLimitClientKey(request);
 
         if (LOGIN_PATH.equals(path)) {
             AppProperties.RateLimit.Bucket cfg = properties.rateLimit().login();
-            return loginBuckets.computeIfAbsent(ip, k -> newBucket(cfg));
+            return loginBuckets.get(ip, k -> newBucket(cfg));
         }
 
-        if (PATH_MATCHER.match(REGISTER_PATH_PATTERN, path)) {
+        if (APPLICATION_SUBMIT_PATH.equals(path)) {
             AppProperties.RateLimit.Bucket cfg = properties.rateLimit().register();
-            return registerBuckets.computeIfAbsent(ip, k -> newBucket(cfg));
+            return applicationSubmitBuckets.get(ip, k -> newBucket(cfg));
         }
 
         return null;
+    }
+
+    private String rateLimitClientKey(HttpServletRequest request) {
+        return properties.rateLimit().trustForwardedHeaders()
+                ? clientIpTrustedProxy(request)
+                : request.getRemoteAddr();
     }
 
     private static Bucket newBucket(AppProperties.RateLimit.Bucket cfg) {
@@ -110,7 +117,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return Bucket.builder().addLimit(limit).build();
     }
 
-    private static String clientIp(HttpServletRequest request) {
+    /**
+     * Uses the left-most {@code X-Forwarded-For} hop — safe only when a trusted reverse proxy
+     * strips/forges-proof earlier hops before the application.
+     */
+    private static String clientIpTrustedProxy(HttpServletRequest request) {
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isBlank()) {
             return xff.split(",")[0].trim();

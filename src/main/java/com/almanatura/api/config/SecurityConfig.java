@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.almanatura.api.security.CustomUserDetailsService;
@@ -39,6 +41,32 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .headers(
+                        headers ->
+                                headers.contentTypeOptions(Customizer.withDefaults())
+                                        .frameOptions(frame -> frame.deny())
+                                        .referrerPolicy(
+                                                referrer ->
+                                                        referrer.policy(
+                                                                ReferrerPolicyHeaderWriter
+                                                                        .ReferrerPolicy
+                                                                        .STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                                        .contentSecurityPolicy(
+                                                csp ->
+                                                        csp.policyDirectives(
+                                                                "default-src 'self'; script-src"
+                                                                    + " 'self' 'unsafe-inline';"
+                                                                    + " style-src 'self'"
+                                                                    + " 'unsafe-inline'; img-src"
+                                                                    + " 'self' data:; font-src"
+                                                                    + " 'self' data:; connect-src"
+                                                                    + " 'self'; frame-ancestors"
+                                                                    + " 'none'; base-uri 'none'"))
+                                        .permissionsPolicy(
+                                                permissions ->
+                                                        permissions.policy(
+                                                                "geolocation=(), microphone=(),"
+                                                                        + " camera=()")))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -48,11 +76,19 @@ public class SecurityConfig {
                                         .accessDeniedHandler(jwtAccessDeniedHandler))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/auth/**")
+                                auth.requestMatchers(HttpMethod.POST, "/auth/login")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/events", "/events/**")
+                                        // Harness path for ErrorResponseTest (controller lives in
+                                        // test sources only;
+                                        // production has no mapping here → 404).
+                                        .requestMatchers("/auth/test/**")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.POST, "/events/*/register")
+                                        .requestMatchers("/auth/**")
+                                        .authenticated()
+                                        .requestMatchers(
+                                                HttpMethod.GET, "/projects", "/projects/**")
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/applications")
                                         .permitAll()
                                         .requestMatchers("/ping")
                                         .permitAll()
@@ -81,6 +117,10 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
+        // Map unknown emails to BadCredentials so login always returns INVALID_CREDENTIALS (401)
+        // and
+        // never leaks existence via AUTHENTICATION_REQUIRED (see UsernameNotFoundException).
+        provider.setHideUserNotFoundExceptions(true);
         return provider;
     }
 

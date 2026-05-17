@@ -13,11 +13,14 @@ import org.springframework.stereotype.Service;
 
 import com.almanatura.api.config.AppProperties;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * AES-256-GCM cipher for storing PII such as the DNI of attendees. The 12-byte IV is generated
  * per-encryption and prepended to the ciphertext, so the resulting blob is self-contained and safe
  * to persist as a single column.
  */
+@Slf4j
 @Service
 public class DniCipherService {
 
@@ -89,6 +92,9 @@ public class DniCipherService {
         try {
             return Base64.getDecoder().decode(key);
         } catch (IllegalArgumentException ex) {
+            log.warn(
+                    "APP_ENCRYPTION_DNI_KEY is not valid Base64; falling back to UTF-8 bytes. "
+                            + "This is likely a configuration error.");
             return key.getBytes(java.nio.charset.StandardCharsets.UTF_8);
         }
     }

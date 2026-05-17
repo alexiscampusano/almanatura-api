@@ -8,7 +8,9 @@
  * <p>Conventions:
  *
  * <ul>
- *   <li>One mapper per aggregate (e.g. {@code UserMapper}, {@code EventMapper}).
+ *   <li>One mapper interface per aggregate where practical: {@link
+ *       com.almanatura.api.mapper.ProjectMapper} for {@code Project}. Smaller response DTOs without
+ *       nested relationships can be mapped directly in services when that keeps the code simpler.
  *   <li>Mappers must not depend on services or repositories — only DTO ↔ Entity translation.
  *   <li>Sensitive fields (e.g. password hashes, encrypted DNI) must be {@code @Mapping(ignore =
  *       true)} in the entity → DTO direction.

@@ -1,14 +1,28 @@
 # AlmaNatura API
 
-REST API powering the cultural events platform of Fundación AlmaNatura.
-Built with Spring Boot 4 and designed mobile-first: a public agenda for elderly users
-and a private admin panel for the foundation's staff.
+[![CI](https://github.com/alexiscampusano/almanatura-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/alexiscampusano/almanatura-api/actions/workflows/ci.yml?query=branch%3Amain)
+
+REST API powering Fundación AlmaNatura’s rural-actors platform: **projects** with a
+mandatory **strategic pillar**, anonymous **applications**, an **actor directory** after
+staff approval, and a JWT-protected back office. All API literals are **English**
+(`ProjectPillar`, statuses, messages); the frontend owns localization.
+
+## Strategic pillars (`ProjectPillar`)
+
+Stable enum values everywhere (JSON, query params, database):
+
+`TECHNOLOGY`, `EDUCATION`, `ENTREPRENEURSHIP`, `HEALTH`, `CULTURE`
+
+## Application workflow (`ApplicationStatus`)
+
+`SUBMITTED` → `UNDER_REVIEW` → (`NEEDS_INFO` | `REJECTED` | `APPROVED`) →
+`REGISTERED_AS_ACTOR` (creates `Actor`). Terminal: `REJECTED`, `REGISTERED_AS_ACTOR`.
 
 ## Tech stack
 
 | Layer       | Tech                                      |
 | ----------- | ----------------------------------------- |
-| Language    | Java 21                                   |
+| Language    | Java 25                                   |
 | Framework   | Spring Boot 4.0.5 (Web MVC, Data JPA)     |
 | Security    | Spring Security 7 + JJWT 0.12.6 (HS256)   |
 | Database    | MySQL 8                                   |
@@ -16,10 +30,51 @@ and a private admin panel for the foundation's staff.
 | Container   | Docker (multi-stage), docker compose      |
 | Runtime user| Non-root `spring:spring`                  |
 
+## Database migrations (Flyway)
+
+Versioned SQL lives under [`src/main/resources/db/migration/`](src/main/resources/db/migration/).
+
+**Legacy steps V2–V3** create tables from an older “cultural events” model. **V4** immediately drops
+those tables and introduces the rural core (`projects`, `applications`, `actors`). The early scripts
+stay in the repository so existing environments keep a **stable Flyway history and checksums**;
+removing or rewriting V2–V3 would break `flyway validate` on databases that already applied them.
+Greenfield runs still execute V2 → V3 → V4 → … so the drop leaves only the current schema.
+### Database Schema Notes
+
+**Legacy tables** (`cultural_events`, `event_attendees`) were created in V2–V3 but are not mapped to any JPA entity or accessed by controllers/services. They remain in the database for backward compatibility and stable Flyway checksums but are effectively unused. The `project_activities` and `activity_participations` tables were similarly created (V5–V6) and dropped (V9) during domain evolution. When in doubt about table usage, check `src/main/java/com/almanatura/api/entity/` for mapped JPA entities.
+## Branching model
+
+This repository uses a two-branch flow tailored to a single backend
+maintainer integrating against an external frontend team:
+
+| Branch                 | Purpose                                                              | Stability                                                |
+| ---------------------- | -------------------------------------------------------------------- | -------------------------------------------------------- |
+| `main`                 | Stable surface consumed by the frontend. Tagged on every release.    | Production-grade. Only receives PRs from `develop`.      |
+| `develop`              | Integration branch where features land first.                        | Should build & test green, but may carry partial work.   |
+| `feat/*`, `chore/*`, `fix/*` | Short-lived branches for a single task or change.              | Volatile. Squash-merged into `develop` via PR.           |
+
+**Day-to-day flow:** branch off `develop`, open a PR back into `develop`,
+squash-merge once CI is green and the PR is reviewed.
+
+**Releases:** when a coherent set of features is ready (for example,
+auth + user management for v0.1.0), open a PR `develop → main`, merge it
+with a real merge commit, and tag the resulting commit:
+
+```bash
+git checkout main && git pull
+git tag -a v0.1.0 -m "Release v0.1.0 - auth and user management"
+git push origin v0.1.0
+```
+
+The frontend should pin against tags or `main`, never against `develop`.
+
+The CI badge above intentionally reports the status of `main` only:
+`develop` is allowed to be momentarily red while a refactor is in flight.
+
 ## Prerequisites
 
 - Docker + Docker Compose
-- (Optional, for local non-docker runs) Java 21 and the bundled `mvnw`
+- (Optional, for local non-docker runs) Java 25 and the bundled `mvnw`
 
 ## Quick start
 
@@ -30,6 +85,10 @@ cp .env.example .env
 # generate strong secrets and put them in .env:
 #   openssl rand -base64 96      -> APP_JWT_SECRET    (HS512 needs >= 64 bytes)
 #   openssl rand -base64 32      -> APP_ENCRYPTION_DNI_KEY
+#
+# APP_ADMIN_PASSWORD (initial super_user bootstrap + /auth/login) must be 12-100
+# ASCII characters with at least one lowercase, one uppercase, one digit, and one
+# special character from: !@#$%^&*()_+-=[]{}|;:,.? — see InternalPasswordPolicy in code.
 ```
 
 Then pick the runtime that matches what you are doing — see
@@ -46,6 +105,13 @@ Then:
 | OpenAPI JSON   | http://localhost:8080/api/v1/api-docs              |
 | Health (actuator) | http://localhost:8080/api/v1/actuator/health    |
 | phpMyAdmin (`make up-tools`) | http://localhost:8081                |
+
+## API requests collection
+
+A versioned Postman collection lives under [`postman/`](postman/) with the
+`Almanatura — Local` environment, Bearer auth wired at the collection level
+and a login Tests script that auto-stores the JWT for the rest of the
+requests. See [`postman/README.md`](postman/README.md) for import and usage.
 
 ## Run modes (local / docker / production)
 
@@ -73,10 +139,21 @@ set -a; source .env; set +a                 # load env vars (one shell session)
 ```
 
 That's it — no `SPRING_PROFILES_ACTIVE=...` override needed: `.env` already
-sets it to `dev`, which targets `jdbc:mysql://localhost:3306/almanatura`.
+sets it to `dev`, which targets `jdbc:mysql://localhost:3306/almanatura` with
+`useUnicode=true` and `characterEncoding=UTF-8` (see `application-dev.properties`).
 
 > **Tests only:** `./mvnw test` (or `make test`). Uses H2 in memory, no
 > MySQL or Docker required.
+
+**Demo actors and projects** are optional: they do not run on startup. After
+Flyway has created the schema, load them explicitly with **`make seed-demo`**
+(with the stack from Mode A or B, so MySQL is reachable). The API still
+creates the initial **super user** from `APP_ADMIN_EMAIL` / `APP_ADMIN_PASSWORD`
+when it starts (see `AdminBootstrapRunner`). Without `make seed-demo`, the
+public project list starts empty.
+
+For Mode A without the full compose stack, you can pipe the same file with the
+`mysql` client (same host/port/credentials as in `.env`).
 
 ### Mode B — Full stack in Docker (no JDK on host)
 
@@ -97,35 +174,23 @@ The container forces `SPRING_PROFILES_ACTIVE=docker` regardless of what your
 | phpMyAdmin (optional) | `make up-tools` | http://localhost:8081 |
 | Remote debugger (JDWP) | `make up-dev` | port `5005` (mounts `./src` ro, DevTools on) |
 
+After the API has applied migrations, run **`make seed-demo`** once if you want
+the same sample actors and published projects as in local dev (idempotent;
+safe to run again). `make seed-demo` and `make db-restore` invoke the MySQL
+client with **`--default-character-set=utf8mb4`** so UTF-8 text in SQL files is
+not mangled. **Do not use this against a real production database** with
+customer data unless you consciously want those demo rows.
+
 ### Mode C — Production deployment
 
 Production uses an **override file** (`docker-compose.prod.yml`) on top of the
-base `docker-compose.yml`. This override:
-
-- forces `SPRING_PROFILES_ACTIVE=docker,prod` (Swagger off, Actuator hardened,
-  no DevTools, no SQL echo);
-- binds the API to `127.0.0.1:8080` only — your reverse proxy (nginx / Apache
-  / Cloudflare Tunnel) is the single ingress and terminates TLS;
 - removes the host port mapping for MySQL — only the API container can reach
   it, on the internal `almanatura-network`;
 - sets `restart: always`, JSON-file log rotation and memory limits;
-- excludes phpMyAdmin (the `tools` profile is never enabled).
-
-#### One-time setup on the server
-
-```bash
-git clone <repo-url> && cd almanatura-api
-
-# Production env file — never committed.
-cp .env.production.example .env
-chmod 600 .env
-
-# Generate REAL secrets and paste them into .env:
-openssl rand -base64 96      # -> APP_JWT_SECRET
-openssl rand -base64 32      # -> APP_ENCRYPTION_DNI_KEY
-openssl rand -base64 24      # -> MYSQL_PASSWORD and MYSQL_ROOT_PASSWORD
 
 # Edit APP_CORS_ALLOWED_ORIGINS, APP_ADMIN_EMAIL, APP_ADMIN_PASSWORD too.
+# APP_ADMIN_PASSWORD must satisfy the internal password policy (same as login);
+# otherwise the API container will exit on bootstrap.
 nano .env
 ```
 
@@ -175,6 +240,7 @@ make shell | db-shell
 make test | verify | coverage
 make format | format-check
 make db-backup | db-restore FILE=...
+make seed-demo
 make clean
 
 # Production (uses docker-compose.prod.yml override)
@@ -184,69 +250,130 @@ make prod-down | prod-restart
 make prod-logs | prod-status
 ```
 
-## Project structure
 
-The codebase follows a **layered / clean architecture**: HTTP layer (`controller`)
 → business logic (`service`) → persistence (`repository` + `entity`). Cross-cutting
-concerns live in dedicated packages (`security`, `config`, `exception`, `util`).
-Each package has a single, well-defined responsibility — if a class does not fit
+concerns live in dedicated packages (`security`, `config`, `exception`, `util`,
 in any of them, it is probably doing too much.
-
 ```
 src/
-├── main/
 │   ├── java/com/almanatura/api/
-│   │   ├── AlmanaturaApiApplication.java   # Spring Boot entry point (@SpringBootApplication)
+│   │   ├── AlmanaturaApiApplication.java       # Spring Boot entry point (@SpringBootApplication)
 │   │   │
-│   │   ├── bootstrap/                      # One-off startup tasks (ApplicationRunner)
-│   │   │   └── AdminBootstrapRunner.java       # Provisions the initial SUPER_USER from env
+│   │   ├── bootstrap/
+│   │   │   └── AdminBootstrapRunner.java       # SUPER_USER from env on startup (dev/docker)
 │   │   │
-│   │   ├── config/                         # @Configuration beans (no business logic here)
+│   │   ├── config/
 │   │   │   ├── AppProperties.java              # @ConfigurationProperties for app.* keys
-│   │   │   ├── AuditorAwareConfig.java         # AuditorAware<String> for JPA auditing
-│   │   │   ├── CorsConfig.java                 # CORS rules from APP_CORS_ALLOWED_ORIGINS
-│   │   │   ├── OpenApiConfig.java              # Springdoc/Swagger + RFC 7807 schema
-│   │   │   ├── PasswordEncoderConfig.java      # BCryptPasswordEncoder bean
-│   │   │   └── SecurityConfig.java             # SecurityFilterChain, public vs JWT routes
+│   │   │   ├── AuditorAwareConfig.java        # AuditorAware<String> for JPA auditing metadata
+│   │   │   ├── CorsConfig.java                # CORS from APP_CORS_ALLOWED_ORIGINS
+│   │   │   ├── OpenApiConfig.java             # Springdoc/OpenAPI + shared RFC 7807 schema bits
+│   │   │   ├── PasswordEncoderConfig.java     # BCryptPasswordEncoder bean
+│   │   │   └── SecurityConfig.java            # SecurityFilterChain — public routes vs JWT
 │   │   │
-│   │   ├── controller/                     # Thin REST adapters (no business logic)
-│   │   │   └── HealthController.java           # GET /ping (typed HealthResponse record)
+│   │   ├── controller/
+│   │   │   ├── AdminActorController.java      # GET /admin/actors, GET /admin/actors/{id}
+│   │   │   ├── AdminApplicationController.java # GET/GET/{id}/PATCH /admin/applications
+│   │   │   ├── AdminOutboundNotificationController.java   # POST /admin/notifications (stub)
+│   │   │   ├── AdminProjectController.java    # CRUD /admin/projects
+│   │   │   ├── AdminProjectImpactController.java          # GET/POST …/projects/{id}/impact-entries
+│   │   │   ├── AdminReportController.java     # GET …/reports/summary, …/projects/applications
+│   │   │   ├── AdminUserController.java       # POST/GET /admin/users (SUPER_USER)
+│   │   │   ├── ApplicationController.java     # Public POST /applications
+│   │   │   ├── AuthController.java            # POST /auth/login, GET /auth/me
+│   │   │   ├── HealthController.java          # GET /ping
+│   │   │   └── ProjectController.java         # Public GET /projects, /{id}
 │   │   │
-│   │   ├── dto/                            # Request/response DTOs (records). Filled per Epic.
+│   │   ├── dto/
+│   │   │   ├── AdminApplicationResponse.java  # Decrypted national ID — internal only
+│   │   │   ├── ApplicationSubmittedResponse.java
+│   │   │   ├── CreateOutboundNotificationRequest.java
+│   │   │   ├── CreateProjectImpactEntryRequest.java
+│   │   │   ├── CreateProjectRequest.java
+│   │   │   ├── CreateUserRequest.java
+│   │   │   ├── LoginRequest.java
+│   │   │   ├── LoginResponse.java
+│   │   │   ├── OutboundNotificationResponse.java
+│   │   │   ├── PatchApplicationStatusRequest.java
+│   │   │   ├── ProjectApplicationReportRow.java
+│   │   │   ├── ProjectImpactEntryResponse.java
+│   │   │   ├── ProjectResponse.java
+│   │   │   ├── ProjectStatusCount.java
+│   │   │   ├── PublicActorResponse.java
+│   │   │   ├── PublicProjectResponse.java
+│   │   │   ├── ReportsSummaryResponse.java
+│   │   │   ├── SubmitApplicationRequest.java
+│   │   │   ├── UpdateProjectRequest.java
+│   │   │   └── UserSummary.java
 │   │   │
-│   │   ├── entity/                         # JPA @Entity classes — DB representation only
-│   │   │   ├── BaseAuditableEntity.java        # createdAt/updatedAt/createdBy + @Version
-│   │   │   └── User.java                       # Internal users (SUPER_USER / EVENT_MANAGER)
+│   │   ├── entity/
+│   │   │   ├── Actor.java
+│   │   │   ├── BaseAuditableEntity.java
+│   │   │   ├── OutboundNotification.java
+│   │   │   ├── Project.java
+│   │   │   ├── ProjectApplication.java
+│   │   │   ├── ProjectImpactEntry.java
+│   │   │   └── User.java
 │   │   │
-│   │   ├── enums/                          # Domain enums shared across layers
+│   │   ├── enums/
+│   │   │   ├── ApplicationStatus.java
+│   │   │   ├── NotificationChannel.java
+│   │   │   ├── OutboundNotificationStatus.java
+│   │   │   ├── ProjectPillar.java
+│   │   │   ├── ProjectStatus.java
 │   │   │   └── Role.java
 │   │   │
-│   │   ├── exception/                      # Centralised error handling (RFC 7807)
-│   │   │   ├── ApiErrorWriter.java             # Writes ProblemDetail outside MVC (filters)
-│   │   │   ├── ApiProblems.java                # Factory for ProblemDetail (code/traceId/...)
-│   │   │   ├── ErrorCode.java                  # Stable, machine-readable error catalog
-│   │   │   ├── FieldViolation.java             # {field, message} record for violations[]
-│   │   │   ├── GlobalExceptionHandler.java     # @RestControllerAdvice for all exceptions
-│   │   │   └── ResourceNotFoundException.java  # Domain-level "not found" signal
+│   │   ├── exception/
+│   │   │   ├── ApiErrorWriter.java
+│   │   │   ├── ApiProblems.java
+│   │   │   ├── ApplicationAlreadyExistsException.java
+│   │   │   ├── EmailAlreadyInUseException.java
+│   │   │   ├── ErrorCode.java                 # Stable RFC7807 extension `code` values
+│   │   │   ├── FieldViolation.java
+│   │   │   ├── GlobalExceptionHandler.java
+│   │   │   ├── InvalidApplicationTransitionException.java
+│   │   │   ├── ProjectHasApplicationsException.java
+│   │   │   └── ResourceNotFoundException.java
 │   │   │
-│   │   ├── mapper/                         # MapStruct mappers (Entity ↔ DTO). See package-info.
+│   │   ├── mapper/
+│   │   │   ├── package-info.java
+│   │   │   └── ProjectMapper.java
 │   │   │
-│   │   ├── repository/                     # Spring Data JPA repositories (interfaces only)
+│   │   ├── repository/
+│   │   │   ├── ActorRepository.java
+│   │   │   ├── OutboundNotificationRepository.java
+│   │   │   ├── ProjectApplicationRepository.java
+│   │   │   ├── ProjectImpactEntryRepository.java
+│   │   │   ├── ProjectRepository.java
 │   │   │   └── UserRepository.java
 │   │   │
-│   │   ├── security/                       # Auth & throttling — Spring Security building blocks
-│   │   │   ├── CustomUserDetailsService.java   # Loads users from the DB for Spring Security
+│   │   ├── security/
+│   │   │   ├── CustomUserDetailsService.java   # Spring Security user lookup
 │   │   │   ├── JwtAccessDeniedHandler.java     # 403 → ProblemDetail
-│   │   │   ├── JwtAuthenticationEntryPoint.java# 401 → ProblemDetail
-│   │   │   ├── JwtAuthenticationFilter.java    # Extracts & validates JWT per request
+│   │   │   ├── JwtAuthenticationEntryPoint.java # 401 → ProblemDetail
+│   │   │   ├── JwtAuthenticationFilter.java    # Bearer extraction + validation
 │   │   │   ├── JwtService.java                 # Sign/verify HS512 tokens (JJWT)
-│   │   │   └── RateLimitFilter.java            # Bucket4j throttle for /auth & /register
+│   │   │   └── RateLimitFilter.java            # Bucket4j on /auth/login & POST /applications
 │   │   │
-│   │   ├── service/                        # Business logic — orchestrates repos + utils
-│   │   │   └── AuthService.java                # Login + JWT issuance (skeleton)
+│   │   ├── service/
+│   │   │   ├── AdminActorService.java
+│   │   │   ├── AdminApplicationService.java
+│   │   │   ├── AdminOutboundNotificationService.java
+│   │   │   ├── AdminProjectImpactService.java
+│   │   │   ├── AdminProjectService.java
+│   │   │   ├── AdminReportService.java
+│   │   │   ├── AdminUserService.java
+│   │   │   ├── ApplicationStatusTransitions.java # Allowed PATCH transitions (domain guard)
+│   │   │   ├── ApplicationSubmissionService.java
+│   │   │   ├── AuthService.java
+│   │   │   └── PublicProjectService.java
 │   │   │
-│   │   └── util/                           # Stateless helpers, no Spring dependencies
-│   │       └── DniCipherService.java           # AES-256-GCM encrypt/decrypt for DNI
+│   │   ├── validation/
+│   │   │   ├── InternalPasswordPolicy.java     # Documents internal password rules
+│   │   │   ├── StrongInternalPassword.java      # Bean Validation annotation for admin passwords
+│   │   │   └── StrongInternalPasswordValidator.java
+│   │   │
+│   │   └── util/
+│   │       └── DniCipherService.java           # AES-GCM for applicant national IDs
 │   │
 │   └── resources/
 │       ├── application.properties              # Common defaults (active profile via env)
@@ -257,9 +384,24 @@ src/
 │
 └── test/
     ├── java/com/almanatura/api/
-    │   ├── AlmanaturaApiApplicationTests.java  # Context loads
-    │   ├── architecture/ArchitectureTest.java  # ArchUnit rules (layer boundaries)
-    │   └── exception/ErrorResponseTest.java    # MockMvc tests for RFC 7807 responses
+    │   ├── AbstractIntegrationTest.java        # Optional MySQL Testcontainers base (@Profile integration)
+    │   ├── AlmanaturaApiApplicationTests.java  # Context loads smoke test
+    │   ├── architecture/
+    │   │   └── ArchitectureTest.java           # ArchUnit layered rules
+    │   ├── controller/
+    │   │   ├── AdminApplicationControllerTest.java
+    │   │   ├── AdminOutboundNotificationControllerTest.java
+    │   │   ├── AdminProjectControllerTest.java
+    │   │   ├── AdminProjectImpactControllerTest.java
+    │   │   ├── AdminReportControllerTest.java
+    │   │   ├── AdminUserControllerTest.java
+    │   │   ├── ApplicationControllerTest.java
+    │   │   ├── AuthControllerTest.java
+    │   │   └── ProjectControllerTest.java
+    │   ├── exception/
+    │   │   └── ErrorResponseTest.java          # MockMvc coverage for ProblemDetail responses
+    │   └── validation/
+    │       └── InternalPasswordPolicyTest.java
     └── resources/
         ├── application-test.properties         # H2 in-memory, used by @SpringBootTest
         └── application-integration.properties  # Reserved for Testcontainers (future)
@@ -277,31 +419,53 @@ the codebase grows:
 - `entity` may not depend on `controller`, `service`, `repository` or `dto`.
 - No class outside `config` / `security` may import `org.springframework.security.*`.
 
+**Layout note:** The codebase uses **package-by-layer** (`controller`, `service`, …), not
+package-by-feature. That matches `ArchitectureTest` and is an intentional trade-off versus guides
+that recommend feature packages; migrating would be a large refactor.
+
 ## Security model
 
 Public endpoints (no JWT required):
 
 - `GET  /api/v1/ping`
-- `GET  /api/v1/events/**`               (cultural events agenda)
-- `POST /api/v1/events/{id}/register`    (public attendee registration)
-- `POST /api/v1/auth/**`                 (login / refresh)
+- `GET  /api/v1/projects`, `GET /api/v1/projects/{id}` — **PUBLISHED** projects only; optional `?pillar=` (`ProjectPillar`). List sorted by `startsAt` ascending. Response includes `imageUrl` (nullable). **`404`** `RESOURCE_NOT_FOUND` on detail if missing or not published.
+- `POST /api/v1/applications` — anonymous application to a **PUBLISHED** project; body: `projectId`, `fullName`, `email`, `dni`, optional `phone`; DNI encrypted at rest. **`201`** + `{ id, projectId, submittedAt }`. **`404`** if project missing/not published; **`409`** `APPLICATION_ALREADY_EXISTS` if the same email already applied to that project; **`429`** rate limit (same bucket family as documented for this path).
+- `POST /api/v1/auth/login` — internal login
 - `GET  /api/v1/swagger-ui/**`, `/api-docs/**`, `/actuator/health`
 
 Authenticated endpoints (JWT in `Authorization: Bearer <token>`):
 
-- `/api/v1/admin/**`           – any internal user
-- `/api/v1/admin/users/**`     – `SUPER_USER` only
+- `GET  /api/v1/auth/me` — current internal user (`SUPER_USER` or `EVENT_MANAGER`)
+- `POST /api/v1/admin/users`, `GET /api/v1/admin/users` — `SUPER_USER` only
+- `POST /api/v1/admin/projects` — create project (`DRAFT`); `SUPER_USER` or `EVENT_MANAGER`. Body includes optional `imageUrl` (max 512 chars).
+- `GET  /api/v1/admin/projects` — list all projects (sorted by `startsAt`)
+- `GET /api/v1/admin/projects/{id}`, `PUT /api/v1/admin/projects/{id}`, `DELETE /api/v1/admin/projects/{id}` — PUT accepts optional `imageUrl`. **`409`** `PROJECT_HAS_APPLICATIONS` on delete when rows still exist
+- `POST /api/v1/admin/notifications` — records a **`PENDING`** outbound notification row (stub; no SMTP/provider in this build)
+- `GET|POST /api/v1/admin/projects/{projectId}/impact-entries` — lightweight impact metrics for follow-up / reporting
+- `GET /api/v1/admin/applications` — optional `?projectId=&status=`
+- `GET /api/v1/admin/applications/{id}`, `PATCH /api/v1/admin/applications/{id}` — status transitions; **`400`** `INVALID_APPLICATION_TRANSITION` when illegal; `REGISTERED_AS_ACTOR` creates `Actor`
+- `GET /api/v1/admin/actors`, `GET /api/v1/admin/actors/{id}`
+- `GET /api/v1/admin/reports/summary` — counts per `ProjectStatus`, total projects, applications, impact entries and outbound notification rows (counts only; no applicant PII)
+- `GET /api/v1/admin/reports/projects/applications` — each project with `applicationCount`, ordered by count desc then `startsAt`
+- `/api/v1/admin/**` — `SUPER_USER` or `EVENT_MANAGER` except `/admin/users/**` (super only)
 
 Passwords are hashed with BCrypt. Sessions are stateless. CORS origins are
 controlled by the `APP_CORS_ALLOWED_ORIGINS` env var.
 
+### Hardening and deployment notes
+
+- **Rate-limit client identity**: By default (`APP_RATELIMIT_TRUST_FORWARDED_HEADERS=false`), login and `POST /applications` buckets use **only** the servlet remote address, so arbitrary clients cannot spoof `X-Forwarded-For` to bypass limits. Set **`APP_RATELIMIT_TRUST_FORWARDED_HEADERS=true`** only when every request passes through a **trusted** reverse proxy that controls forwarded headers.
+- **Horizontal scaling**: In-memory Bucket4j counters are **not** shared across JVM replicas; enforce limits at an edge gateway/WAF or move buckets to a shared store (e.g. Redis).
+- **JWT lifecycle**: Tokens remain valid until expiry unless you add revocation (denylist, shorter TTL + refresh, or key rotation with a planned logout). Prefer a **shorter `APP_JWT_EXPIRATION_MS`** in production when product constraints allow; rotating **`APP_JWT_SECRET`** invalidates all outstanding tokens—plan explicitly.
+- **HTTP security headers**: The API sends baseline headers (e.g. `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, CSP safe for a JSON-only surface, `Permissions-Policy`). Terminate TLS at the proxy or JVM and prefer **HSTS at the edge** when serving HTTPS.
+- **Forwarded headers**: If you enable `server.forward-headers-strategy` behind a proxy, read Spring Boot’s guidance so scheme/host/client IP match reality; combine with the rate-limit trust flag above.
+
 ## Sensitive data
 
-The DNI of public attendees must be stored encrypted at rest with AES-256-GCM.
-Use `DniCipherService` from any service that touches the field; never persist
-the cleartext. Rotate `APP_ENCRYPTION_DNI_KEY` only with a documented
-re-encryption migration; data encrypted with the previous key cannot be read
-by the new one.
+National ID numbers (`dni`) on **applications** are stored encrypted at rest (AES-256-GCM).
+Use `DniCipherService` in services; never persist cleartext. Public listings **never** return
+decrypted PII. Admin application responses may include decrypted values for authorized staff only.
+Rotate `APP_ENCRYPTION_DNI_KEY` only with a documented re-encryption migration.
 
 ## Error response format (RFC 7807)
 
@@ -311,7 +475,7 @@ AlmaNatura extensions: a stable, machine-readable `code` and the OpenTelemetry
 `traceId` of the request. The `Content-Type` is always
 `application/problem+json`.
 
-Example payload (`POST /api/v1/admin/events` with an invalid body):
+Example payload (`POST /api/v1/admin/projects` with an invalid body):
 
 ```json
 {
@@ -319,13 +483,13 @@ Example payload (`POST /api/v1/admin/events` with an invalid body):
   "title": "Validation failed",
   "status": 400,
   "detail": "One or more fields are invalid",
-  "instance": "/api/v1/admin/events",
+  "instance": "/api/v1/admin/projects",
   "code": "VALIDATION_FAILED",
   "traceId": "65c2f4a1b8d3e7f9a0b1c2d3e4f5a6b7",
   "timestamp": "2026-04-19T20:14:33.421Z",
   "violations": [
     { "field": "title", "message": "must not be blank" },
-    { "field": "date",  "message": "must be a future date" }
+    { "field": "startsAt",  "message": "must not be blank" }
   ]
 }
 ```
@@ -335,6 +499,10 @@ Example payload (`POST /api/v1/admin/events` with an invalid body):
 | `code`                      | HTTP | When it appears                                           |
 | --------------------------- | ---- | --------------------------------------------------------- |
 | `VALIDATION_FAILED`         | 400  | Bean Validation (`@Valid`) failed; see `violations[]`     |
+| `EMAIL_ALREADY_IN_USE`      | 409  | Email already registered (e.g. `POST /admin/users`); response omits the address |
+| `APPLICATION_ALREADY_EXISTS` | 409 | Same email twice for the same project (`POST /applications`) |
+| `INVALID_APPLICATION_TRANSITION` | 400 | Illegal `PATCH /admin/applications/{id}` status change |
+| `PROJECT_HAS_APPLICATIONS` | 409 | `DELETE /admin/projects/{id}` while applications exist   |
 | `MALFORMED_REQUEST`         | 400  | Body cannot be parsed (invalid JSON, type mismatch, etc.) |
 | `MISSING_PARAMETER`         | 400  | Required query/path parameter is absent                   |
 | `TYPE_MISMATCH`             | 400  | Parameter value cannot be converted to the declared type  |
@@ -344,7 +512,7 @@ Example payload (`POST /api/v1/admin/events` with an invalid body):
 | `RESOURCE_NOT_FOUND`        | 404  | Endpoint or domain object does not exist                  |
 | `METHOD_NOT_ALLOWED`        | 405  | HTTP method not supported by the endpoint                 |
 | `MEDIA_TYPE_NOT_SUPPORTED`  | 415  | `Content-Type` not accepted by the endpoint               |
-| `RATE_LIMIT_EXCEEDED`       | 429  | Bucket4j throttle on `/auth/login` or `/events/*/register` (response also includes `Retry-After`) |
+| `RATE_LIMIT_EXCEEDED`       | 429  | Bucket4j throttle on `/auth/login` or `POST /applications` (`Retry-After` header) |
 | `INTERNAL_ERROR`            | 500  | Unhandled exception; details in server logs               |
 
 ### Frontend integration guide
@@ -392,7 +560,10 @@ profile system works:
 1. `./mvnw -DskipTests package` (locally or in CI) → `target/api-0.0.1-SNAPSHOT.jar`.
 2. Provision a MySQL database in cPanel; record host, database, user, password.
 3. On the server, export every `APP_*` and `SPRING_DATASOURCE_*` env var, plus
-   `SPRING_PROFILES_ACTIVE=prod`.
+   `SPRING_PROFILES_ACTIVE=prod`. Ensure `SPRING_DATASOURCE_URL` includes
+   `useUnicode=true` and `characterEncoding=UTF-8` (same idea as in
+   `application-dev.properties` / `docker-compose.yml`) so Spanish text is not
+   corrupted at the JDBC layer.
 4. Run with `java -jar api-0.0.1-SNAPSHOT.jar` (cPanel "Setup Java App" or a
    systemd unit).
 5. Same health check + CORS rule as above.

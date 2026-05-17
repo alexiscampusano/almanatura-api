@@ -2,6 +2,7 @@ package com.almanatura.api.bootstrap;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import com.almanatura.api.config.AppProperties;
 import com.almanatura.api.entity.User;
 import com.almanatura.api.enums.Role;
 import com.almanatura.api.repository.UserRepository;
+import com.almanatura.api.validation.InternalPasswordPolicy;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * admin credentials are not configured to avoid creating predictable accounts.
  */
 @Slf4j
+@Profile({"dev", "docker"})
 @Component
 @RequiredArgsConstructor
 public class AdminBootstrapRunner implements ApplicationRunner {
@@ -36,6 +39,17 @@ public class AdminBootstrapRunner implements ApplicationRunner {
         if (isBlank(email) || isBlank(password)) {
             log.warn("Skipping admin bootstrap: APP_ADMIN_EMAIL / APP_ADMIN_PASSWORD are not set");
             return;
+        }
+
+        try {
+            InternalPasswordPolicy.validateOrThrow(password);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalStateException(
+                    "APP_ADMIN_PASSWORD does not meet the internal password policy: "
+                            + ex.getMessage()
+                            + ". See "
+                            + InternalPasswordPolicy.REQUIREMENTS_MESSAGE,
+                    ex);
         }
 
         if (userRepository.existsByEmailIgnoreCase(email)) {
