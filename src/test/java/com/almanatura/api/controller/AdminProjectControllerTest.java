@@ -80,7 +80,7 @@ class AdminProjectControllerTest {
                                           "title": "Beekeeping workshop",
                                           "description": "Rural skills",
                                           "pillar": "TECHNOLOGY",
-                                          "startsAt": "2030-04-01T10:00:00Z",
+                                          "startsAt": "2030-04-01",
                                           "location": "Village hall"
                                         }
                                         """))
