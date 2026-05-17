@@ -60,7 +60,8 @@ FROM DUAL
 WHERE NOT EXISTS (
         SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('Manuel Díaz Herrera'));
 
--- ---------- Published projects (same content as former ProjectBootstrapRunner) ----------
+-- ---------- Published projects ----------
+-- PUBLISHED (open for applications)
 INSERT INTO projects (
         title,
         description,
@@ -429,6 +430,85 @@ SELECT 'Tu Caja Online',
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM projects WHERE LOWER(title) = LOWER('Tu Caja Online'));
 
+-- ---------- Projects with non-PUBLISHED statuses (no applications allowed) ----------
+INSERT INTO projects (
+        title,
+        description,
+        pillar,
+        status,
+        starts_at,
+        ends_at,
+        location,
+        image_url,
+        version,
+        created_at,
+        updated_at)
+SELECT 'Borrador Sierra Norte',
+    'Proyecto en fase de diseño para la comarca de Sierra Norte.',
+    'ENTREPRENEURSHIP',
+    'DRAFT',
+    NULL,
+    NULL,
+    'Sierra Norte (Sevilla)',
+    NULL,
+    0,
+    UTC_TIMESTAMP(6),
+    UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM projects WHERE LOWER(title) = LOWER('Borrador Sierra Norte'));
+
+INSERT INTO projects (
+        title,
+        description,
+        pillar,
+        status,
+        starts_at,
+        ends_at,
+        location,
+        image_url,
+        version,
+        created_at,
+        updated_at)
+SELECT 'Cancelado Reto Territorial',
+    'Proyecto cancelado por falta de financiación.',
+    'EDUCATION',
+    'CANCELLED',
+    NULL,
+    NULL,
+    'Extremadura',
+    NULL,
+    0,
+    UTC_TIMESTAMP(6),
+    UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM projects WHERE LOWER(title) = LOWER('Cancelado Reto Territorial'));
+
+INSERT INTO projects (
+        title,
+        description,
+        pillar,
+        status,
+        starts_at,
+        ends_at,
+        location,
+        image_url,
+        version,
+        created_at,
+        updated_at)
+SELECT 'Finalizado GIRA 2022',
+    'Edición 2022 del programa GIRA, ya completado.',
+    'EDUCATION',
+    'DRAFT',
+    '2022-01-01 10:00:00.000000',
+    '2022-12-31 23:59:59.000000',
+    NULL,
+    'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800',
+    0,
+    UTC_TIMESTAMP(6),
+    UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM projects WHERE LOWER(title) = LOWER('Finalizado GIRA 2022'));
+
 -- Cover for "Tu Caja Online" (first card when sorted by starts_at): fix NULL or legacy URLs on re-seed
 UPDATE projects
 SET
@@ -436,7 +516,7 @@ SET
     updated_at = UTC_TIMESTAMP(6)
 WHERE LOWER(title) = LOWER('Tu Caja Online');
 
--- ---------- Applications (vinculan actores a proyectos con diferentes estados) ----------
+-- ---------- Applications (vinculan actores a proyectos PUBLISHED con diferentes estados) ----------
 -- María García López → Proyecto MIES (REGISTERED_AS_ACTOR, Entrepreneurship)
 INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
 SELECT
@@ -446,7 +526,7 @@ SELECT
     'María García López',
     'maria.garcia@email.com',
     '+34 612 345 678',
-    'ENC:maria-dni-encrypted-placeholder',
+    'LQWr3O5tb6ubiVzO6SC/v4aDXS/8PzRiDbSqYlShA+Zy/mp5hg==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'maria.garcia@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Proyecto MIES'));
@@ -460,7 +540,7 @@ SELECT
     'Antonio Fernández Ruiz',
     'antonio.fernandez@email.com',
     '+34 623 456 789',
-    'ENC:antonio-dni-encrypted-placeholder',
+    'SFyGDd7kWOR28icUxJEku/e+cdsHMUzrV6C6667ItWHzuy5Fqg==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'antonio.fernandez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'RURAL 2030. La Universidad en el pueblo'));
@@ -474,7 +554,7 @@ SELECT
     'Carmen Martínez Delgado',
     'carmen.martinez@email.com',
     '+34 634 567 890',
-    'ENC:carmen-dni-encrypted-placeholder',
+    'psIQKZn1XhezoVf20rIX20oCHMOCdNHq25R+GRha7PP/N7HN0Q==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'carmen.martinez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'AlmaNatura LAB'));
@@ -488,7 +568,7 @@ SELECT
     'José Luis Moreno Vega',
     'joseluis.moreno@email.com',
     '+34 645 678 901',
-    'ENC:joseluis-dni-encrypted-placeholder',
+    'B1CiDAHCfa7dNGvxw/IayDrspHZRw26ON+RVgZN4DbtnEukoGg==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'joseluis.moreno@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'GIRA Jóvenes'));
@@ -502,7 +582,7 @@ SELECT
     'Ana Belén Rodríguez Pinto',
     'anabelen.rodriguez@email.com',
     '+34 656 789 012',
-    'ENC:anabelen-dni-encrypted-placeholder',
+    '4d0GbjEhO4mOLqAE118ScV70FgKQufCDAh93uGHX3GJ5WazM7w==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'anabelen.rodriguez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Colabora Almendralejo'));
@@ -516,7 +596,7 @@ SELECT
     'Francisco Javier Torres Ramos',
     'francisco.torres@email.com',
     '+34 667 890 123',
-    'ENC:francisco-dni-encrypted-placeholder',
+    'FJ7NFJIq/neW3D5tKHFuVPzrbEWqewboPM6a8vxX481S7ZdQWQ==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'francisco.torres@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Tu Caja Online'));
@@ -530,7 +610,7 @@ SELECT
     'Isabel Navarro Campos',
     'isabel.navarro@email.com',
     '+34 678 901 234',
-    'ENC:isabel-dni-encrypted-placeholder',
+    'CBCI+ZxS42+S6g8u7Je9RrPnJ4YcO/2QClWChagUFVQlpIyftg==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'isabel.navarro@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'GIRA Mujeres'));
@@ -544,7 +624,7 @@ SELECT
     'Pedro Sánchez Molina',
     'pedro.sanchez@email.com',
     '+34 689 012 345',
-    'ENC:pedro-dni-encrypted-placeholder',
+    'UYsqQzEccefAKGfTKMoZ5HDhB6gHfIn0QawfvFbAhgsdO4PHSQ==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'pedro.sanchez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Rural Emprende'));
@@ -558,7 +638,7 @@ SELECT
     'Lucía Romero Gil',
     'lucia.romero@email.com',
     '+34 690 123 456',
-    'ENC:lucia-dni-encrypted-placeholder',
+    'TSJYl56ZnUZ19EnfeXmOf7/uVa18tZmjVr4YRWxUzJcQQWixag==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'lucia.romero@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Lab de Innovación Rural'));
@@ -572,7 +652,7 @@ SELECT
     'Manuel Díaz Herrera',
     'manuel.diaz@email.com',
     '+34 601 234 567',
-    'ENC:manuel-dni-encrypted-placeholder',
+    'jIlUl+r4kdQQ6tCnwlKXGJK32STGqloBUt6PvCm7Jk7DyHc4Vg==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'manuel.diaz@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Comisionado Reto Demográfico'));
@@ -587,7 +667,7 @@ SELECT
     'María García López',
     'maria.garcia.activa@email.com',
     '+34 612 345 678',
-    'ENC:maria-dni-encrypted-placeholder-2',
+    '7W2hZ8ijGdg0YJo91Nqe21gqrxaP1+gpxkAfgXCm23s9kzCeiw==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'maria.garcia.activa@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Activa tu pueblo'));
@@ -601,7 +681,7 @@ SELECT
     'Antonio Fernández Ruiz',
     'antonio.fernandez.break@email.com',
     '+34 623 456 789',
-    'ENC:antonio-dni-encrypted-placeholder-2',
+    'DUsDzxGY6o5MSancHvS5CbpnjpiMjLJ/9OGKHj//iWeIOGPn0A==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'antonio.fernandez.break@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'The Break'));
@@ -615,7 +695,7 @@ SELECT
     'Carmen Martínez Delgado',
     'carmen.martinez.hola@email.com',
     '+34 634 567 890',
-    'ENC:carmen-dni-encrypted-placeholder-2',
+    'kDGU6xzQBaUo0pMY0hMK4H57j/lTuQiS8nFXI89UJVyMCJo03A==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'carmen.martinez.hola@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Holapueblo'));
@@ -629,7 +709,7 @@ SELECT
     'José Luis Moreno Vega',
     'joseluis.moreno.relevo@email.com',
     '+34 645 678 901',
-    'ENC:joseluis-dni-encrypted-placeholder-2',
+    'DvXw3hHuud1VkIFvKtq6D8tFzho9rpWYhJp47mPmoOJ2V8He0w==',
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'joseluis.moreno.relevo@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Relevo Generacional'));
