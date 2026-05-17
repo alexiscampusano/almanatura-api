@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.almanatura.api.entity.Project;
 import com.almanatura.api.enums.ProjectPillar;
@@ -28,6 +29,7 @@ import com.almanatura.api.repository.ProjectRepository;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional
 class ProjectControllerTest {
 
     private static final String PATH = "/projects";
@@ -80,11 +82,11 @@ class ProjectControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(PATH))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].title").value("First public"))
-                .andExpect(jsonPath("$[1].title").value("Second public"))
-                .andExpect(jsonPath("$[0].pillar").value("HEALTH"))
-                .andExpect(jsonPath("$[0].status").doesNotExist());
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].title").value("First public"))
+                .andExpect(jsonPath("$.content[1].title").value("Second public"))
+                .andExpect(jsonPath("$.content[0].pillar").value("HEALTH"))
+                .andExpect(jsonPath("$.content[0].status").doesNotExist());
     }
 
     @Test
@@ -106,8 +108,8 @@ class ProjectControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(PATH).param("pillar", "TECHNOLOGY"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].title").value("Tech outreach"));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].title").value("Tech outreach"));
     }
 
     @Test
