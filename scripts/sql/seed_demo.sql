@@ -435,3 +435,201 @@ SET
     image_url = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80',
     updated_at = UTC_TIMESTAMP(6)
 WHERE LOWER(title) = LOWER('Tu Caja Online');
+
+-- ---------- Applications (vinculan actores a proyectos con diferentes estados) ----------
+-- María García López → Proyecto MIES (REGISTERED_AS_ACTOR, Entrepreneurship)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Proyecto MIES'),
+    (SELECT id FROM actors WHERE full_name = 'María García López'),
+    'REGISTERED_AS_ACTOR',
+    'María García López',
+    'maria.garcia@email.com',
+    '+34 612 345 678',
+    'ENC:maria-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'maria.garcia@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Proyecto MIES'));
+
+-- Antonio Fernández Ruiz → RURAL 2030 (REGISTERED_AS_ACTOR, Education)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'RURAL 2030. La Universidad en el pueblo'),
+    (SELECT id FROM actors WHERE full_name = 'Antonio Fernández Ruiz'),
+    'REGISTERED_AS_ACTOR',
+    'Antonio Fernández Ruiz',
+    'antonio.fernandez@email.com',
+    '+34 623 456 789',
+    'ENC:antonio-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'antonio.fernandez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'RURAL 2030. La Universidad en el pueblo'));
+
+-- Carmen Martínez Delgado → AlmaNatura LAB (REGISTERED_AS_ACTOR, Technology)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'AlmaNatura LAB'),
+    (SELECT id FROM actors WHERE full_name = 'Carmen Martínez Delgado'),
+    'REGISTERED_AS_ACTOR',
+    'Carmen Martínez Delgado',
+    'carmen.martinez@email.com',
+    '+34 634 567 890',
+    'ENC:carmen-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'carmen.martinez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'AlmaNatura LAB'));
+
+-- José Luis Moreno Vega → GIRA Jóvenes (APPROVED, Education)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'GIRA Jóvenes'),
+    (SELECT id FROM actors WHERE full_name = 'José Luis Moreno Vega'),
+    'APPROVED',
+    'José Luis Moreno Vega',
+    'joseluis.moreno@email.com',
+    '+34 645 678 901',
+    'ENC:joseluis-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'joseluis.moreno@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'GIRA Jóvenes'));
+
+-- Ana Belén Rodríguez Pinto → Colabora Almendralejo (UNDER_REVIEW, Entrepreneurship)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Colabora Almendralejo'),
+    (SELECT id FROM actors WHERE full_name = 'Ana Belén Rodríguez Pinto'),
+    'UNDER_REVIEW',
+    'Ana Belén Rodríguez Pinto',
+    'anabelen.rodriguez@email.com',
+    '+34 656 789 012',
+    'ENC:anabelen-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'anabelen.rodriguez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Colabora Almendralejo'));
+
+-- Francisco Javier Torres Ramos → Tu Caja Online (SUBMITTED, Technology)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Tu Caja Online'),
+    (SELECT id FROM actors WHERE full_name = 'Francisco Javier Torres Ramos'),
+    'SUBMITTED',
+    'Francisco Javier Torres Ramos',
+    'francisco.torres@email.com',
+    '+34 667 890 123',
+    'ENC:francisco-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'francisco.torres@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Tu Caja Online'));
+
+-- Isabel Navarro Campos → GIRA Mujeres (REGISTERED_AS_ACTOR, Entrepreneurship)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'GIRA Mujeres'),
+    (SELECT id FROM actors WHERE full_name = 'Isabel Navarro Campos'),
+    'REGISTERED_AS_ACTOR',
+    'Isabel Navarro Campos',
+    'isabel.navarro@email.com',
+    '+34 678 901 234',
+    'ENC:isabel-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'isabel.navarro@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'GIRA Mujeres'));
+
+-- Pedro Sánchez Molina → Rural Emprende (REJECTED, Entrepreneurship)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Rural Emprende'),
+    (SELECT id FROM actors WHERE full_name = 'Pedro Sánchez Molina'),
+    'REJECTED',
+    'Pedro Sánchez Molina',
+    'pedro.sanchez@email.com',
+    '+34 689 012 345',
+    'ENC:pedro-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'pedro.sanchez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Rural Emprende'));
+
+-- Lucía Romero Gil → Lab de Innovación Rural (REGISTERED_AS_ACTOR, Technology)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Lab de Innovación Rural'),
+    (SELECT id FROM actors WHERE full_name = 'Lucía Romero Gil'),
+    'REGISTERED_AS_ACTOR',
+    'Lucía Romero Gil',
+    'lucia.romero@email.com',
+    '+34 690 123 456',
+    'ENC:lucia-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'lucia.romero@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Lab de Innovación Rural'));
+
+-- Manuel Díaz Herrera → Comisionado Reto Demográfico (NEEDS_INFO, Education)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Comisionado Reto Demográfico'),
+    (SELECT id FROM actors WHERE full_name = 'Manuel Díaz Herrera'),
+    'NEEDS_INFO',
+    'Manuel Díaz Herrera',
+    'manuel.diaz@email.com',
+    '+34 601 234 567',
+    'ENC:manuel-dni-encrypted-placeholder',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'manuel.diaz@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Comisionado Reto Demográfico'));
+
+-- ---------- Aplicaciones adicionales para más variedad ----------
+-- María García López → Activa tu pueblo (UNDER_REVIEW, Entrepreneurship)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Activa tu pueblo'),
+    (SELECT id FROM actors WHERE full_name = 'María García López'),
+    'UNDER_REVIEW',
+    'María García López',
+    'maria.garcia.activa@email.com',
+    '+34 612 345 678',
+    'ENC:maria-dni-encrypted-placeholder-2',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'maria.garcia.activa@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Activa tu pueblo'));
+
+-- Antonio Fernández Ruiz → The Break (SUBMITTED, Entrepreneurship)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'The Break'),
+    (SELECT id FROM actors WHERE full_name = 'Antonio Fernández Ruiz'),
+    'SUBMITTED',
+    'Antonio Fernández Ruiz',
+    'antonio.fernandez.break@email.com',
+    '+34 623 456 789',
+    'ENC:antonio-dni-encrypted-placeholder-2',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'antonio.fernandez.break@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'The Break'));
+
+-- Carmen Martínez Delgado → Holapueblo (APPROVED, Entrepreneurship)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Holapueblo'),
+    (SELECT id FROM actors WHERE full_name = 'Carmen Martínez Delgado'),
+    'APPROVED',
+    'Carmen Martínez Delgado',
+    'carmen.martinez.hola@email.com',
+    '+34 634 567 890',
+    'ENC:carmen-dni-encrypted-placeholder-2',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'carmen.martinez.hola@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Holapueblo'));
+
+-- José Luis Moreno Vega → Relevo Generacional (SUBMITTED, Entrepreneurship)
+INSERT INTO applications (project_id, actor_id, status, full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT
+    (SELECT id FROM projects WHERE title = 'Relevo Generacional'),
+    (SELECT id FROM actors WHERE full_name = 'José Luis Moreno Vega'),
+    'SUBMITTED',
+    'José Luis Moreno Vega',
+    'joseluis.moreno.relevo@email.com',
+    '+34 645 678 901',
+    'ENC:joseluis-dni-encrypted-placeholder-2',
+    0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM applications WHERE email = 'joseluis.moreno.relevo@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Relevo Generacional'));
