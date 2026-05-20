@@ -51,12 +51,18 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    private static final String APPLICATION_DUPLICATE_CONSTRAINT = "uq_applications_project_email";
+    private static final String USER_EMAIL_CONSTRAINT = "uk_users_email";
+    private static final String APPLICATION_DUPLICATE_DETAIL =
+            "An application with this email already exists for this project.";
+
     private final ApiProblems apiProblems;
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFound(
             ResourceNotFoundException ex, HttpServletRequest request) {
-        return entity(ErrorCode.RESOURCE_NOT_FOUND, ex.getMessage(), request);
+        log.debug("Resource not found at {}: {}", request.getRequestURI(), ex.getMessage());
+        return entity(ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND.title(), request);
     }
 
     @ExceptionHandler(EmailAlreadyInUseException.class)
@@ -70,33 +76,48 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ApplicationAlreadyExistsException.class)
     public ResponseEntity<ProblemDetail> handleApplicationAlreadyExists(
             ApplicationAlreadyExistsException ex, HttpServletRequest request) {
-        return entity(ErrorCode.APPLICATION_ALREADY_EXISTS, ex.getMessage(), request);
+        log.debug(
+                "Application already exists at {} (detail omitted): {}",
+                request.getRequestURI(),
+                ex.getMessage());
+        return entity(ErrorCode.APPLICATION_ALREADY_EXISTS, APPLICATION_DUPLICATE_DETAIL, request);
     }
 
     @ExceptionHandler(InvalidApplicationTransitionException.class)
     public ResponseEntity<ProblemDetail> handleInvalidTransition(
             InvalidApplicationTransitionException ex, HttpServletRequest request) {
-        return entity(ErrorCode.INVALID_APPLICATION_TRANSITION, ex.getMessage(), request);
+        log.debug(
+                "Invalid application transition at {} (detail omitted): {}",
+                request.getRequestURI(),
+                ex.getMessage());
+        return entity(
+                ErrorCode.INVALID_APPLICATION_TRANSITION,
+                ErrorCode.INVALID_APPLICATION_TRANSITION.title(),
+                request);
     }
 
     @ExceptionHandler(ProjectHasApplicationsException.class)
     public ResponseEntity<ProblemDetail> handleProjectHasApplications(
             ProjectHasApplicationsException ex, HttpServletRequest request) {
-        return entity(ErrorCode.PROJECT_HAS_APPLICATIONS, ex.getMessage(), request);
+        log.debug(
+                "Project has applications preventing delete at {} (detail omitted): {}",
+                request.getRequestURI(),
+                ex.getMessage());
+        return entity(
+                ErrorCode.PROJECT_HAS_APPLICATIONS,
+                ErrorCode.PROJECT_HAS_APPLICATIONS.title(),
+                request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ProblemDetail> handleDataIntegrity(
             DataIntegrityViolationException ex, HttpServletRequest request) {
-        Throwable cause = ex.getMostSpecificCause();
-        String msg = cause.getMessage();
-        if (msg != null
-                && (msg.contains("uq_applications_project_email")
-                        || msg.contains("applications_project"))) {
-            return entity(
-                    ErrorCode.APPLICATION_ALREADY_EXISTS,
-                    "An application with this email already exists for this project.",
-                    request);
+        ErrorCode mapped = mapDataIntegrity(ex);
+        if (mapped == ErrorCode.APPLICATION_ALREADY_EXISTS) {
+            return entity(mapped, APPLICATION_DUPLICATE_DETAIL, request);
+        }
+        if (mapped == ErrorCode.EMAIL_ALREADY_IN_USE) {
+            return entity(mapped, mapped.title(), request);
         }
         log.warn(
                 "Data integrity violation at {} {}",
@@ -289,6 +310,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static FieldViolation toViolation(ConstraintViolation<?> cv) {
         String field = cv.getPropertyPath() == null ? "" : cv.getPropertyPath().toString();
         return new FieldViolation(field, cv.getMessage());
+    }
+
+    private static ErrorCode mapDataIntegrity(DataIntegrityViolationException ex) {
+        for (Throwable current = ex; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message == null || message.isBlank()) {
+                continue;
+            }
+            if (containsConstraint(message, APPLICATION_DUPLICATE_CONSTRAINT)) {
+                return ErrorCode.APPLICATION_ALREADY_EXISTS;
+            }
+            if (containsConstraint(message, USER_EMAIL_CONSTRAINT)) {
+                return ErrorCode.EMAIL_ALREADY_IN_USE;
+            }
+        }
+        return null;
+    }
+
+    private static boolean containsConstraint(String message, String constraintName) {
+        return message.contains(constraintName) || message.contains(constraintName.toUpperCase());
     }
 
     private static HttpServletRequest servletRequest(WebRequest request) {

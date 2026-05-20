@@ -15,6 +15,36 @@ COPY src src
 
 RUN ./mvnw -q clean package -DskipTests -B
 
+# ---- Stage 2: Development ----
+FROM eclipse-temurin:25-jdk-alpine AS dev
+
+RUN addgroup -g 1001 -S spring && \
+    adduser -u 1001 -S spring -G spring && \
+    apk add --no-cache wget
+
+WORKDIR /workspace
+
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+RUN chmod +x ./mvnw && ./mvnw -q dependency:go-offline -B
+
+COPY src src
+
+ENV JAVA_OPTS="-Xms256m -Xmx768m -XX:+UseG1GC" \
+    SPRING_PROFILES_ACTIVE=dev \
+    TZ=Europe/Madrid
+
+EXPOSE 8080 5005
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD wget -qO- http://localhost:8080/api/v1/actuator/health || exit 1
+
+USER spring:spring
+
+ENTRYPOINT ["sh", "-c", "./mvnw -q -Dspring-boot.run.jvmArguments=\"$JAVA_OPTS\" spring-boot:run"]
+
 # ---- Stage 2: Runtime ----
 FROM eclipse-temurin:25-jre-alpine AS runtime
 

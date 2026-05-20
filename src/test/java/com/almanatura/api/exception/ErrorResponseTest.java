@@ -108,6 +108,28 @@ class ErrorResponseTest {
     }
 
     @Test
+    void duplicateApplicationConstraint_returnsApplicationAlreadyExistsProblem() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/auth/test/data-integrity/application"))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value(ErrorCode.APPLICATION_ALREADY_EXISTS.code()))
+                .andExpect(
+                        jsonPath("$.detail")
+                                .value(
+                                        "An application with this email already exists for this"
+                                                + " project."));
+    }
+
+    @Test
+    void duplicateUserConstraint_returnsEmailAlreadyInUseProblem() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/auth/test/data-integrity/user"))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value(ErrorCode.EMAIL_ALREADY_IN_USE.code()))
+                .andExpect(jsonPath("$.detail").value(ErrorCode.EMAIL_ALREADY_IN_USE.title()));
+    }
+
+    @Test
     void healthEndpoint_setsTraceIdHeaderAndProblemContainsTraceWhenFails() throws Exception {
         // Quick sanity check that the traceId field exists (may be null if tracing not active).
         mockMvc.perform(MockMvcRequestBuilders.get("/auth/me"))
@@ -134,6 +156,23 @@ class ErrorResponseTest {
         @PostMapping(value = "/validate", consumes = MediaType.APPLICATION_JSON_VALUE)
         public TestPayload validate(@Valid @RequestBody TestPayload payload) {
             return payload;
+        }
+
+        @PostMapping("/data-integrity/application")
+        public void duplicateApplication() {
+            throw new org.springframework.dao.DataIntegrityViolationException(
+                    "duplicate key",
+                    new RuntimeException(
+                            "Unique index or primary key violation:"
+                                    + " \"uq_applications_project_email\""));
+        }
+
+        @PostMapping("/data-integrity/user")
+        public void duplicateUser() {
+            throw new org.springframework.dao.DataIntegrityViolationException(
+                    "duplicate key",
+                    new RuntimeException(
+                            "Unique index or primary key violation: \"uk_users_email\""));
         }
     }
 }

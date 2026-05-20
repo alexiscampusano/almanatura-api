@@ -3,7 +3,9 @@ package com.almanatura.api.controller;
 import java.util.List;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 /** Admin REST API for reviewing and transitioning project applications. */
 @RestController
+@Validated
 @RequestMapping("/admin/applications")
 @RequiredArgsConstructor
 @Tag(
@@ -37,14 +40,14 @@ public class AdminApplicationController {
     @GetMapping
     @Operation(summary = "Search applications", description = "Optional projectId and status.")
     public List<AdminApplicationResponse> search(
-            @RequestParam(name = "projectId", required = false) Long projectId,
+            @RequestParam(name = "projectId", required = false) @Positive Long projectId,
             @RequestParam(name = "status", required = false) ApplicationStatus status) {
         return adminApplicationService.search(projectId, status);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get application by id")
-    public AdminApplicationResponse getById(@PathVariable long id) {
+    public AdminApplicationResponse getById(@PathVariable @Positive long id) {
         return adminApplicationService.getById(id);
     }
 
@@ -53,7 +56,8 @@ public class AdminApplicationController {
             summary = "Transition application status",
             description = "Invalid transitions return 400 INVALID_APPLICATION_TRANSITION.")
     public AdminApplicationResponse patchStatus(
-            @PathVariable long id, @Valid @RequestBody PatchApplicationStatusRequest body) {
+            @PathVariable @Positive long id,
+            @Valid @RequestBody PatchApplicationStatusRequest body) {
         return adminApplicationService.patchStatus(id, body);
     }
 }

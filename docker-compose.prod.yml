@@ -18,6 +18,8 @@ services:
   almanatura-db:
     restart: always
     ports: !reset []  # do not publish MySQL on the host in production
+    mem_limit: 1g
+    mem_reservation: 512m
     deploy:
       resources:
         limits:
@@ -35,6 +37,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker,prod
       JAVA_OPTS: "-Xms256m -Xmx768m -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
+    mem_limit: 1g
+    mem_reservation: 512m
     ports: !override
       # Bind only to localhost so the reverse proxy is the single ingress.
       - target: 8080

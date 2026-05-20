@@ -1,6 +1,6 @@
 .PHONY: help build rebuild up up-logs up-dev up-tools down down-volumes restart \
         logs logs-api logs-db status shell db-shell clean test verify format format-check \
-        coverage db-backup db-restore seed-demo \
+	coverage db-backup db-restore seed-demo db-reset db-reseed wait-db \
         prod-up prod-up-logs prod-down prod-restart prod-logs prod-status prod-build
 
 DOCKER_COMPOSE      = docker compose
@@ -9,32 +9,37 @@ DOCKER_COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.pro
 
 help:
 	@echo "AlmaNatura API - available commands:"
-	@echo "  make build         - Build Docker images"
+	@echo "  make build         - Build the base Docker images"
 	@echo "  make rebuild       - Rebuild without cache"
-	@echo "  make up            - Start prod-like stack in background"
-	@echo "  make up-logs       - Start prod-like stack attached"
-	@echo "  make up-dev        - Start with dev override (DevTools, debug port 5005)"
-	@echo "  make up-tools      - Start with phpMyAdmin (profile: tools)"
-	@echo "  make down          - Stop containers"
+	@echo "  make up            - Start the base stack in detached mode"
+	@echo "  make up-logs       - Start the base stack attached"
+	@echo "  make up-dev        - Start the development stack (hot reload + debug port 5005)"
+	@echo "  make up-tools      - Start phpMyAdmin via the tools profile"
+	@echo "  make down          - Stop the base stack"
 	@echo "  make down-volumes  - Stop and remove volumes (resets the database)"
-	@echo "  make restart       - Restart containers"
-	@echo "  make logs          - Tail all logs"
+	@echo "  make restart       - Restart base containers"
+	@echo "  make logs          - Tail all base logs"
 	@echo "  make logs-api      - Tail API logs"
 	@echo "  make logs-db       - Tail DB logs"
-	@echo "  make status        - Show container status"
+	@echo "  make status        - Show base container status"
 	@echo "  make shell         - Shell into the API container"
-	@echo "  make db-shell      - MySQL shell"
-	@echo "  make test          - Run unit tests with Maven wrapper"
-	@echo "  make verify        - Full build: tests + JaCoCo + Spotless check + ArchUnit"
-	@echo "  make coverage      - Open the JaCoCo HTML report"
-	@echo "  make format        - Auto-format all Java sources with Spotless"
+	@echo "  make db-shell      - Open a MySQL shell in the DB container"
+	@echo "  make test          - Run unit tests with the Maven wrapper"
+	@echo "  make verify        - Full build: tests + JaCoCo + Spotless + ArchUnit"
+	@echo "  make coverage      - Build and point to the JaCoCo HTML report"
+	@echo "  make format        - Auto-format Java sources with Spotless"
 	@echo "  make format-check  - Verify formatting without modifying files"
 	@echo "  make db-backup     - Dump the database to ./backups"
 	@echo "  make db-restore    - Restore from FILE=./backups/your.sql"
-	@echo "  make seed-demo     - Load idempotent demo actors + projects (MySQL must be up)"
+	@echo "  make seed-demo     - Load demo actors + projects (idempotent)"
+	@echo "  make db-reset      - Recreate the stack with an empty database"
+	@echo "  make db-reseed     - Reset the database and load demo data"
 	@echo "  make clean         - Remove containers, images and volumes"
 	@echo ""
-	@echo "Production (uses docker-compose.prod.yml override):"
+	@echo "Development: docker-compose.dev.yml"
+	@echo "  make up-dev        - Build and run the dev image with source mount"
+	@echo ""
+	@echo "Production: docker-compose.prod.yml"
 	@echo "  make prod-build    - Build images with production overrides"
 	@echo "  make prod-up       - Start the production stack in background"
 	@echo "  make prod-up-logs  - Start the production stack attached"
@@ -50,16 +55,16 @@ rebuild:
 	$(DOCKER_COMPOSE) build --no-cache
 
 up:
-	$(DOCKER_COMPOSE) up -d
+	$(DOCKER_COMPOSE) up -d --build
 
 up-logs:
-	$(DOCKER_COMPOSE) up
+	$(DOCKER_COMPOSE) up --build
 
 up-dev:
-	$(DOCKER_COMPOSE_DEV) up
+	$(DOCKER_COMPOSE_DEV) up --build
 
 up-tools:
-	$(DOCKER_COMPOSE) --profile tools up -d
+	$(DOCKER_COMPOSE) --profile tools up -d --build
 
 down:
 	$(DOCKER_COMPOSE) down
@@ -118,6 +123,26 @@ seed-demo:
 	@test -f scripts/sql/seed_demo.sql || (echo "Missing scripts/sql/seed_demo.sql" && exit 1)
 	cat scripts/sql/seed_demo.sql | $(DOCKER_COMPOSE) exec -T almanatura-db sh -c 'mysql --default-character-set=utf8mb4 -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
 	@echo "Demo seed applied (safe to re-run)."
+
+wait-db:
+	@attempt=1; \
+	while ! $(DOCKER_COMPOSE) exec -T almanatura-db sh -c 'mysqladmin ping -h localhost -u root -p"$$MYSQL_ROOT_PASSWORD" >/dev/null 2>&1'; do \
+		if [ $$attempt -ge 60 ]; then \
+			echo "Database did not become ready in time"; \
+			exit 1; \
+		fi; \
+		attempt=$$((attempt + 1)); \
+	done
+
+db-reset:
+	$(DOCKER_COMPOSE) down -v --remove-orphans
+	$(DOCKER_COMPOSE) up -d --build
+	$(MAKE) wait-db
+	@echo "Database reset complete."
+
+db-reseed: db-reset
+	$(MAKE) seed-demo
+	@echo "Database reset and demo seed applied."
 
 clean:
 	$(DOCKER_COMPOSE) down --rmi local -v --remove-orphans
