@@ -130,56 +130,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 request);
     }
 
-    @ExceptionHandler(EmailAlreadyInUseException.class)
-    public ResponseEntity<ProblemDetail> handleEmailAlreadyInUse(
-            EmailAlreadyInUseException ex, HttpServletRequest request) {
-        log.debug("Email conflict on {} (detail omitted from response)", request.getRequestURI());
-        return entity(
-                ErrorCode.EMAIL_ALREADY_IN_USE, ErrorCode.EMAIL_ALREADY_IN_USE.title(), request);
-    }
-
-    @ExceptionHandler(ApplicationAlreadyExistsException.class)
-    public ResponseEntity<ProblemDetail> handleApplicationAlreadyExists(
-            ApplicationAlreadyExistsException ex, HttpServletRequest request) {
-        return entity(ErrorCode.APPLICATION_ALREADY_EXISTS, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(InvalidApplicationTransitionException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidTransition(
-            InvalidApplicationTransitionException ex, HttpServletRequest request) {
-        return entity(ErrorCode.INVALID_APPLICATION_TRANSITION, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(ProjectHasApplicationsException.class)
-    public ResponseEntity<ProblemDetail> handleProjectHasApplications(
-            ProjectHasApplicationsException ex, HttpServletRequest request) {
-        return entity(ErrorCode.PROJECT_HAS_APPLICATIONS, ex.getMessage(), request);
-    }
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ProblemDetail> handleDataIntegrity(
-            DataIntegrityViolationException ex, HttpServletRequest request) {
-        Throwable cause = ex.getMostSpecificCause();
-        String msg = cause.getMessage();
-        if (msg != null
-                && (msg.contains("uq_applications_project_email")
-                        || msg.contains("applications_project"))) {
-            return entity(
-                    ErrorCode.APPLICATION_ALREADY_EXISTS,
-                    "An application with this email already exists for this project.",
-                    request);
-        }
-        log.warn(
-                "Data integrity violation at {} {}",
-                request.getMethod(),
-                request.getRequestURI(),
-                ex);
-        return entity(
-                ErrorCode.INTERNAL_ERROR,
-                "An unexpected error occurred. Please contact support if the problem persists.",
-                request);
-    }
-
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(
             BadCredentialsException ex, HttpServletRequest request) {
