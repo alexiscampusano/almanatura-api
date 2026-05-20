@@ -107,27 +107,27 @@ class ErrorResponseTest {
                 .andExpect(jsonPath("$.code").value(ErrorCode.MEDIA_TYPE_NOT_SUPPORTED.code()));
     }
 
-        @Test
-        void duplicateApplicationConstraint_returnsApplicationAlreadyExistsProblem() throws Exception {
+    @Test
+    void duplicateApplicationConstraint_returnsApplicationAlreadyExistsProblem() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post("/auth/test/data-integrity/application"))
-            .andExpect(status().isConflict())
-            .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
-            .andExpect(jsonPath("$.code").value(ErrorCode.APPLICATION_ALREADY_EXISTS.code()))
-            .andExpect(
-                jsonPath("$.detail")
-                    .value(
-                        "An application with this email already exists for this"
-                            + " project."));
-        }
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value(ErrorCode.APPLICATION_ALREADY_EXISTS.code()))
+                .andExpect(
+                        jsonPath("$.detail")
+                                .value(
+                                        "An application with this email already exists for this"
+                                                + " project."));
+    }
 
-        @Test
-        void duplicateUserConstraint_returnsEmailAlreadyInUseProblem() throws Exception {
+    @Test
+    void duplicateUserConstraint_returnsEmailAlreadyInUseProblem() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post("/auth/test/data-integrity/user"))
-            .andExpect(status().isConflict())
-            .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
-            .andExpect(jsonPath("$.code").value(ErrorCode.EMAIL_ALREADY_IN_USE.code()))
-            .andExpect(jsonPath("$.detail").value(ErrorCode.EMAIL_ALREADY_IN_USE.title()));
-        }
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value(ErrorCode.EMAIL_ALREADY_IN_USE.code()))
+                .andExpect(jsonPath("$.detail").value(ErrorCode.EMAIL_ALREADY_IN_USE.title()));
+    }
 
     @Test
     void healthEndpoint_setsTraceIdHeaderAndProblemContainsTraceWhenFails() throws Exception {
@@ -163,14 +163,16 @@ class ErrorResponseTest {
             throw new org.springframework.dao.DataIntegrityViolationException(
                     "duplicate key",
                     new RuntimeException(
-                            "Unique index or primary key violation: \"uq_applications_project_email\""));
+                            "Unique index or primary key violation:"
+                                    + " \"uq_applications_project_email\""));
         }
 
         @PostMapping("/data-integrity/user")
         public void duplicateUser() {
             throw new org.springframework.dao.DataIntegrityViolationException(
                     "duplicate key",
-                    new RuntimeException("Unique index or primary key violation: \"uk_users_email\""));
+                    new RuntimeException(
+                            "Unique index or primary key violation: \"uk_users_email\""));
         }
     }
 }

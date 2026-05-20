@@ -16,8 +16,8 @@ import jakarta.persistence.UniqueConstraint;
 
 import com.almanatura.api.enums.ApplicationStatus;
 
-import lombok.Builder;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,11 +29,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(
-    name = "applications",
-    uniqueConstraints =
-        @UniqueConstraint(
-            name = "uq_applications_project_email",
-            columnNames = {"project_id", "email"}))
+        name = "applications",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        name = "uq_applications_project_email",
+                        columnNames = {"project_id", "email"}))
 public class ProjectApplication extends BaseAuditableEntity {
 
     @Id

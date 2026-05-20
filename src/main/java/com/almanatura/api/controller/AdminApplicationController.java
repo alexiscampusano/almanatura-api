@@ -3,7 +3,9 @@ package com.almanatura.api.controller;
 import java.util.List;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,9 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.validation.annotation.Validated;
-
-import jakarta.validation.constraints.Positive;
 
 import com.almanatura.api.dto.AdminApplicationResponse;
 import com.almanatura.api.dto.PatchApplicationStatusRequest;
@@ -57,7 +56,8 @@ public class AdminApplicationController {
             summary = "Transition application status",
             description = "Invalid transitions return 400 INVALID_APPLICATION_TRANSITION.")
     public AdminApplicationResponse patchStatus(
-            @PathVariable @Positive long id, @Valid @RequestBody PatchApplicationStatusRequest body) {
+            @PathVariable @Positive long id,
+            @Valid @RequestBody PatchApplicationStatusRequest body) {
         return adminApplicationService.patchStatus(id, body);
     }
 }

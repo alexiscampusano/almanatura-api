@@ -27,10 +27,10 @@ import com.almanatura.api.repository.ProjectImpactEntryRepository;
 import com.almanatura.api.repository.ProjectRepository;
 
 @SpringBootTest(
-                properties = {
-                        "app.rate-limit.register.requests=1",
-                        "app.rate-limit.register.window-minutes=60"
-                })
+        properties = {
+            "app.rate-limit.register.requests=1",
+            "app.rate-limit.register.window-minutes=60"
+        })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class RateLimitFilterTest {
@@ -75,10 +75,16 @@ class RateLimitFilterTest {
                 """
                         .formatted(published.getId());
 
-        mockMvc.perform(MockMvcRequestBuilders.post(PATH).contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(PATH)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(MockMvcRequestBuilders.post(PATH).contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post(PATH)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(header().string("Retry-After", "60"))
                 .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))

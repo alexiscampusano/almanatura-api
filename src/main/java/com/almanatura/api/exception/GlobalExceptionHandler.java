@@ -62,8 +62,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ProblemDetail> handleNotFound(
             ResourceNotFoundException ex, HttpServletRequest request) {
         log.debug("Resource not found at {}: {}", request.getRequestURI(), ex.getMessage());
-        return entity(
-            ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND.title(), request);
+        return entity(ErrorCode.RESOURCE_NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND.title(), request);
     }
 
     @ExceptionHandler(EmailAlreadyInUseException.class)
@@ -78,35 +77,36 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ProblemDetail> handleApplicationAlreadyExists(
             ApplicationAlreadyExistsException ex, HttpServletRequest request) {
         log.debug(
-            "Application already exists at {} (detail omitted): {}",
-            request.getRequestURI(),
-            ex.getMessage());
-        return entity(
-            ErrorCode.APPLICATION_ALREADY_EXISTS, APPLICATION_DUPLICATE_DETAIL, request);
+                "Application already exists at {} (detail omitted): {}",
+                request.getRequestURI(),
+                ex.getMessage());
+        return entity(ErrorCode.APPLICATION_ALREADY_EXISTS, APPLICATION_DUPLICATE_DETAIL, request);
     }
 
     @ExceptionHandler(InvalidApplicationTransitionException.class)
     public ResponseEntity<ProblemDetail> handleInvalidTransition(
             InvalidApplicationTransitionException ex, HttpServletRequest request) {
         log.debug(
-            "Invalid application transition at {} (detail omitted): {}",
-            request.getRequestURI(),
-            ex.getMessage());
+                "Invalid application transition at {} (detail omitted): {}",
+                request.getRequestURI(),
+                ex.getMessage());
         return entity(
-            ErrorCode.INVALID_APPLICATION_TRANSITION,
-            ErrorCode.INVALID_APPLICATION_TRANSITION.title(),
-            request);
+                ErrorCode.INVALID_APPLICATION_TRANSITION,
+                ErrorCode.INVALID_APPLICATION_TRANSITION.title(),
+                request);
     }
 
     @ExceptionHandler(ProjectHasApplicationsException.class)
     public ResponseEntity<ProblemDetail> handleProjectHasApplications(
             ProjectHasApplicationsException ex, HttpServletRequest request) {
         log.debug(
-            "Project has applications preventing delete at {} (detail omitted): {}",
-            request.getRequestURI(),
-            ex.getMessage());
+                "Project has applications preventing delete at {} (detail omitted): {}",
+                request.getRequestURI(),
+                ex.getMessage());
         return entity(
-            ErrorCode.PROJECT_HAS_APPLICATIONS, ErrorCode.PROJECT_HAS_APPLICATIONS.title(), request);
+                ErrorCode.PROJECT_HAS_APPLICATIONS,
+                ErrorCode.PROJECT_HAS_APPLICATIONS.title(),
+                request);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
