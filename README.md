@@ -115,96 +115,63 @@ requests. See [`postman/README.md`](postman/README.md) for import and usage.
 
 ## Run modes (local / docker / production)
 
-The project supports three runtimes. They are not alternatives — each one is
-the right tool for a different situation. **You never need to edit the
-`SPRING_PROFILES_ACTIVE` value when switching between modes**: each runtime
-selects the correct Spring profile automatically.
+The repository is organized around one base compose file plus two overrides.
+Each one serves a different operating mode and the `Makefile` wraps them so
+you do not have to remember the exact compose flags.
 
-| Mode | Spring profile | DB host | Where it runs | Use it when |
-| ---- | -------------- | ------- | ------------- | ----------- |
-| **A. Local (Maven)** | `dev` (from `.env`) | `localhost:3306` (Docker) | Your IDE / shell | Daily backend coding (hot reload + debugger) |
-| **B. Docker dev** | `docker` (forced in compose) | `almanatura-db` (internal network) | Docker containers | Full-stack demo, frontend integration, no JDK needed |
-| **C. Production** | `docker,prod` (forced in compose) | `almanatura-db` (internal network) | Server (VPS / cPanel) | Real deployment behind a reverse proxy |
+| Mode | Files | What it does | Typical use |
+| ---- | ----- | ------------ | ----------- |
+| **Local backend dev** | `./mvnw` + `docker compose up -d almanatura-db` | Runs the API on your machine and MySQL in Docker | Day-to-day coding with IDE debugging |
+| **Docker dev** | `docker-compose.yml` + `docker-compose.dev.yml` | Runs the API from source inside a dev container with JDK/Maven and JDWP | Full-stack work, parity checks, onboarding |
+| **Production** | `docker-compose.yml` + `docker-compose.prod.yml` | Runs the hardened runtime image with internal-only DB and production bindings | VPS/server deployments |
 
-### Mode A — Local backend dev (recommended for everyday coding)
+### Local backend dev
 
-Runs MySQL in Docker and the API directly on your machine via the Maven
-wrapper. Spring Boot DevTools restarts the context on every save, the IDE
-attaches the debugger natively, and there is no image rebuild loop.
-
-```bash
-docker compose up -d almanatura-db          # MySQL only
-set -a; source .env; set +a                 # load env vars (one shell session)
-./mvnw spring-boot:run                      # API on http://localhost:8080
-```
-
-That's it — no `SPRING_PROFILES_ACTIVE=...` override needed: `.env` already
-sets it to `dev`, which targets `jdbc:mysql://localhost:3306/almanatura` with
-`useUnicode=true` and `characterEncoding=UTF-8` (see `application-dev.properties`).
-
-> **Tests only:** `./mvnw test` (or `make test`). Uses H2 in memory, no
-> MySQL or Docker required.
-
-**Demo actors and projects** are optional: they do not run on startup. After
-Flyway has created the schema, load them explicitly with **`make seed-demo`**
-(with the stack from Mode A or B, so MySQL is reachable). The API still
-creates the initial **super user** from `APP_ADMIN_EMAIL` / `APP_ADMIN_PASSWORD`
-when it starts (see `AdminBootstrapRunner`). Without `make seed-demo`, the
-public project list starts empty.
-
-For Mode A without the full compose stack, you can pipe the same file with the
-`mysql` client (same host/port/credentials as in `.env`).
-
-### Mode B — Full stack in Docker (no JDK on host)
-
-Builds the multi-stage image and runs the API + MySQL together. Ideal for
-onboarding, frontend integration or validating the image before deploying.
+This is still the recommended workflow when you are actively coding the API.
+MySQL runs in Docker, while Spring Boot runs on the host so DevTools and the IDE
+work with the least friction.
 
 ```bash
-make up-logs        # attached, see logs in the terminal
-# or
-make up             # detached; then `make logs-api` to follow
+docker compose up -d almanatura-db
+set -a; source .env; set +a
+./mvnw spring-boot:run
 ```
 
-The container forces `SPRING_PROFILES_ACTIVE=docker` regardless of what your
-`.env` says, so you cannot accidentally launch it in dev mode.
+`SPRING_PROFILES_ACTIVE` already comes from `.env` and points to `dev`, which
+matches `src/main/resources/application-dev.properties`.
 
-| Tool | Command | URL |
-| ---- | ------- | --- |
-| phpMyAdmin (optional) | `make up-tools` | http://localhost:8081 |
-| Remote debugger (JDWP) | `make up-dev` | port `5005` (mounts `./src` ro, DevTools on) |
+> Tests remain separate: `./mvnw test` or `make test` uses H2 in memory.
 
-After the API has applied migrations, run **`make seed-demo`** once if you want
-the same sample actors and published projects as in local dev (idempotent;
-safe to run again). `make seed-demo` and `make db-restore` invoke the MySQL
-client with **`--default-character-set=utf8mb4`** so UTF-8 text in SQL files is
-not mangled. **Do not use this against a real production database** with
-customer data unless you consciously want those demo rows.
+### Docker dev
 
-### Mode C — Production deployment
-
-Production uses an **override file** (`docker-compose.prod.yml`) on top of the
-- removes the host port mapping for MySQL — only the API container can reach
-  it, on the internal `almanatura-network`;
-- sets `restart: always`, JSON-file log rotation and memory limits;
-
-# Edit APP_CORS_ALLOWED_ORIGINS, APP_ADMIN_EMAIL, APP_ADMIN_PASSWORD too.
-# APP_ADMIN_PASSWORD must satisfy the internal password policy (same as login);
-# otherwise the API container will exit on bootstrap.
-nano .env
-```
-
-#### Daily operations
+Use `make up-dev` when you want the application running inside Docker but still
+in a development-friendly environment. The dev compose file builds the `dev`
+stage of the `Dockerfile`, mounts the repository, exposes the JDWP port, and
+keeps the database on the same compose network.
 
 ```bash
-make prod-up          # build + start (detached)
-make prod-logs        # tail logs
-make prod-status      # ps
-make prod-restart     # rolling restart
-make prod-down        # stop (volumes are kept)
+make up-dev
 ```
 
-…or the equivalent raw commands if you do not want to use `make`:
+This mode is useful for frontend integration, checking container behavior, or
+working on a machine without a local JDK. You still edit code on the host; the
+container runs the application from source.
+
+### Production
+
+Production uses the base compose file plus `docker-compose.prod.yml`. MySQL is
+not published on the host, the API binds to localhost unless you place a proxy
+in front of it, and the stack uses restart policies plus resource limits.
+
+```bash
+make prod-up
+make prod-logs
+make prod-status
+make prod-restart
+make prod-down
+```
+
+If you prefer raw Compose commands:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
@@ -212,29 +179,40 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f --tail=2
 docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 ```
 
-#### Why we don't use a `.env.dev` / `.env.prod` split
+#### Demo data and templates
 
-The `.env` file is gitignored and lives in **one** place: each environment
-has exactly one (your laptop / the server). The "shape" of variables is the
-same; only the values differ. We track two **templates** in git so you know
-what to fill:
+Demo actors and published projects are optional. After the schema exists,
+load them with `make seed-demo` against either the local or Docker dev stack.
+`make db-restore` and `make seed-demo` both force `--default-character-set=utf8mb4`
+so UTF-8 SQL stays intact.
 
-- `.env.example` – local development defaults (safe placeholder secrets)
-- `.env.production.example` – production checklist (every secret marked
-  `CHANGE_ME`, instructions on how to generate it)
+If you need to completely reset a local database, use:
 
-Real secrets are never in the repository, in CI variables, or in chat. They
-live in `/path/to/almanatura-api/.env` on the server, with permissions `600`.
+```bash
+make db-reset      # drop volumes and bring the stack back with an empty DB
+make db-reseed     # reset the database and load the demo data again
+```
+
+`make db-reset` is the clean starting point for a fresh environment. `make db-reseed`
+wraps the reset and then loads [`scripts/sql/seed_demo.sql`](scripts/sql/seed_demo.sql),
+which is idempotent, so you can rerun it safely without duplicating rows.
+
+The repository keeps two templates only:
+
+- `.env.example` for local development defaults
+- `.env.production.example` for the production checklist
+
+Real secrets live only in your local `.env` file or the server `.env` file.
 
 ## Available make targets
 
-Run `make help` for the full list. Most useful:
+Run `make help` for the full list. The most useful commands are:
 
-```
-# Dev / local
+```bash
+# Base / local
 make build | rebuild
-make up | up-logs | up-dev | up-tools
-make down | down-volumes
+make up | up-logs
+make down | down-volumes | restart
 make logs | logs-api | logs-db | status
 make shell | db-shell
 make test | verify | coverage
@@ -243,7 +221,10 @@ make db-backup | db-restore FILE=...
 make seed-demo
 make clean
 
-# Production (uses docker-compose.prod.yml override)
+# Docker dev
+make up-dev
+
+# Production
 make prod-build
 make prod-up | prod-up-logs
 make prod-down | prod-restart
