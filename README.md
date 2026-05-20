@@ -221,40 +221,57 @@ make db-backup | db-restore FILE=...
 make seed-demo
 make clean
 
-# Docker dev
-make up-dev
+**Makefile targets (common usage)**
 
-# Production
-make prod-build
-make prod-up | prod-up-logs
-make prod-down | prod-restart
-make prod-logs | prod-status
-```
+The repository includes a `Makefile` that wraps common development and release tasks. Below are the most-used targets with a short explanation and example usage.
 
+- **`make build`**: Build the base Docker images used by the compose files.
+  - Example: `make build`
+- **`make rebuild`**: Rebuild images without using the cache.
+  - Example: `make rebuild`
+- **`make up`**: Start the default stack in detached mode (background).
+  - Example: `make up`
+- **`make up-logs`**: Start the stack in the foreground and stream logs.
+  - Example: `make up-logs`
+- **`make up-dev`**: Start the development stack (mounts sources, enables hot-reload and JDWP debug port).
+  - Example: `make up-dev`
+- **`make up-tools`**: Start helper tooling (e.g. phpMyAdmin) via the `tools` profile.
+  - Example: `make up-tools`
+- **`make down`**: Stop the compose stack.
+  - Example: `make down`
+- **`make down-volumes`**: Stop the stack and remove volumes (destructive; resets DB data).
+  - Example: `make down-volumes`
+- **`make restart`**: Restart running containers.
+  - Example: `make restart`
+- **`make logs` / `make logs-api` / `make logs-db`**: Tail logs for the whole stack, API only, or DB only.
+  - Example: `make logs-api`
+- **`make status`**: Display `docker compose ps` output for the stack.
 
-→ business logic (`service`) → persistence (`repository` + `entity`). Cross-cutting
-concerns live in dedicated packages (`security`, `config`, `exception`, `util`,
-in any of them, it is probably doing too much.
-```
-src/
-│   ├── java/com/almanatura/api/
-│   │   ├── AlmanaturaApiApplication.java       # Spring Boot entry point (@SpringBootApplication)
-│   │   │
-│   │   ├── bootstrap/
-│   │   │   └── AdminBootstrapRunner.java       # SUPER_USER from env on startup (dev/docker)
-│   │   │
-│   │   ├── config/
-│   │   │   ├── AppProperties.java              # @ConfigurationProperties for app.* keys
-│   │   │   ├── AuditorAwareConfig.java        # AuditorAware<String> for JPA auditing metadata
-│   │   │   ├── CorsConfig.java                # CORS from APP_CORS_ALLOWED_ORIGINS
-│   │   │   ├── OpenApiConfig.java             # Springdoc/OpenAPI + shared RFC 7807 schema bits
-│   │   │   ├── PasswordEncoderConfig.java     # BCryptPasswordEncoder bean
-│   │   │   └── SecurityConfig.java            # SecurityFilterChain — public routes vs JWT
-│   │   │
-│   │   ├── controller/
-│   │   │   ├── AdminActorController.java      # GET /admin/actors, GET /admin/actors/{id}
-│   │   │   ├── AdminApplicationController.java # GET/GET/{id}/PATCH /admin/applications
-│   │   │   ├── AdminOutboundNotificationController.java   # POST /admin/notifications (stub)
+- **`make shell`**: Open a shell in the API container (useful for debugging inside the container).
+  - Example: `make shell`
+- **`make db-shell`**: Open a MySQL client shell inside the DB container.
+  - Example: `make db-shell`
+
+- **`make test`**: Run unit tests via the Maven wrapper (`./mvnw test`).
+  - Example: `make test`
+- **`make verify`**: Full verification build: tests + code coverage + formatting + architecture checks.
+  - Example: `make verify`
+- **`make coverage`**: Run the build and show where the JaCoCo HTML report is generated (`target/site/jacoco/index.html`).
+
+- **Formatting**: `make format` applies Spotless formatting; `make format-check` verifies formatting without changing files.
+
+- **Database helpers**:
+  - `make db-backup`: Export the MySQL database to `./backups`.
+  - `make db-restore FILE=./backups/your.sql`: Restore from a backup file.
+  - `make seed-demo`: Load idempotent demo data (`scripts/sql/seed_demo.sql`).
+  - `make db-reset`: Recreate the stack with an empty database (stops containers, removes volumes, brings stack up).
+  - `make db-reseed`: `db-reset` followed by `seed-demo`.
+  - `make wait-db`: Block until the DB reports ready (used by scripts that need the DB to be up).
+
+- **Production targets** (use on a deployment host):
+  - `make prod-build` / `make prod-up` / `make prod-up-logs` / `make prod-down` / `make prod-restart` / `make prod-logs` / `make prod-status` — manage the production compose combination (`docker-compose.yml` + `docker-compose.prod.yml`).
+
+Best practice: use `make up-dev` for local development and keep data safe by using `make db-backup` before running destructive targets like `make down-volumes` or `make db-reset`.
 │   │   │   ├── AdminProjectController.java    # CRUD /admin/projects
 │   │   │   ├── AdminProjectImpactController.java          # GET/POST …/projects/{id}/impact-entries
 │   │   │   ├── AdminReportController.java     # GET …/reports/summary, …/projects/applications
