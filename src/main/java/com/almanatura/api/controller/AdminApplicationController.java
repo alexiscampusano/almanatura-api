@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+
+import jakarta.validation.constraints.Positive;
 
 import com.almanatura.api.dto.AdminApplicationResponse;
 import com.almanatura.api.dto.PatchApplicationStatusRequest;
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 
 /** Admin REST API for reviewing and transitioning project applications. */
 @RestController
+@Validated
 @RequestMapping("/admin/applications")
 @RequiredArgsConstructor
 @Tag(
@@ -37,14 +41,14 @@ public class AdminApplicationController {
     @GetMapping
     @Operation(summary = "Search applications", description = "Optional projectId and status.")
     public List<AdminApplicationResponse> search(
-            @RequestParam(name = "projectId", required = false) Long projectId,
+            @RequestParam(name = "projectId", required = false) @Positive Long projectId,
             @RequestParam(name = "status", required = false) ApplicationStatus status) {
         return adminApplicationService.search(projectId, status);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get application by id")
-    public AdminApplicationResponse getById(@PathVariable long id) {
+    public AdminApplicationResponse getById(@PathVariable @Positive long id) {
         return adminApplicationService.getById(id);
     }
 
@@ -53,7 +57,7 @@ public class AdminApplicationController {
             summary = "Transition application status",
             description = "Invalid transitions return 400 INVALID_APPLICATION_TRANSITION.")
     public AdminApplicationResponse patchStatus(
-            @PathVariable long id, @Valid @RequestBody PatchApplicationStatusRequest body) {
+            @PathVariable @Positive long id, @Valid @RequestBody PatchApplicationStatusRequest body) {
         return adminApplicationService.patchStatus(id, body);
     }
 }

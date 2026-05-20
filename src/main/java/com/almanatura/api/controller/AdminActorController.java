@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+
+import jakarta.validation.constraints.Positive;
 
 import com.almanatura.api.dto.PublicActorResponse;
 import com.almanatura.api.enums.ProjectPillar;
@@ -18,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 /** Internal REST endpoints for the actor directory. */
 @RestController
+@Validated
 @RequestMapping("/admin/actors")
 @RequiredArgsConstructor
 @Tag(name = "Actors (admin)", description = "Internal actor directory. JWT required.")
@@ -34,7 +38,7 @@ public class AdminActorController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get actor by id")
-    public PublicActorResponse getById(@PathVariable long id) {
+    public PublicActorResponse getById(@PathVariable @Positive long id) {
         return adminActorService.getById(id);
     }
 }

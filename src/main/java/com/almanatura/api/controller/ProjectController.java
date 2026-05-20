@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+
+import jakarta.validation.constraints.Positive;
 
 import com.almanatura.api.dto.PublicProjectResponse;
 import com.almanatura.api.enums.ProjectPillar;
@@ -21,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 /** Catalogue published rural projects and their public activity schedule. */
 @RestController
+@Validated
 @RequestMapping("/projects")
 @RequiredArgsConstructor
 @Tag(name = "Projects (public)", description = "Published rural projects. No JWT.")
@@ -46,7 +50,7 @@ public class ProjectController {
     @Operation(
             summary = "Get published project by id",
             description = "404 if missing or not PUBLISHED.")
-    public PublicProjectResponse getById(@PathVariable long id) {
+    public PublicProjectResponse getById(@PathVariable @Positive long id) {
         return publicProjectService.getPublished(id);
     }
 }

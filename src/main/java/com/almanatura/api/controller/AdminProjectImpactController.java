@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+
+import jakarta.validation.constraints.Positive;
 
 import com.almanatura.api.dto.CreateProjectImpactEntryRequest;
 import com.almanatura.api.dto.ProjectImpactEntryResponse;
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 
 /** Admin REST API for lightweight impact metrics on a project. */
 @RestController
+@Validated
 @RequestMapping("/admin/projects/{projectId}/impact-entries")
 @RequiredArgsConstructor
 @Tag(
@@ -34,7 +38,7 @@ public class AdminProjectImpactController {
 
     @GetMapping
     @Operation(summary = "List impact entries for project (newest first)")
-    public List<ProjectImpactEntryResponse> list(@PathVariable long projectId) {
+    public List<ProjectImpactEntryResponse> list(@PathVariable @Positive long projectId) {
         return adminProjectImpactService.list(projectId);
     }
 
@@ -42,7 +46,7 @@ public class AdminProjectImpactController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Add impact entry")
     public ProjectImpactEntryResponse create(
-            @PathVariable long projectId,
+            @PathVariable @Positive long projectId,
             @Valid @RequestBody CreateProjectImpactEntryRequest body) {
         return adminProjectImpactService.create(projectId, body);
     }

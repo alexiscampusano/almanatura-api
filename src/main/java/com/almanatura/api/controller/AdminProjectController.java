@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+
+import jakarta.validation.constraints.Positive;
 
 import com.almanatura.api.dto.CreateProjectRequest;
 import com.almanatura.api.dto.ProjectResponse;
@@ -26,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 
 /** Admin REST API for project lifecycle (create, read, update, delete). */
 @RestController
+@Validated
 @RequestMapping("/admin/projects")
 @RequiredArgsConstructor
 @Tag(
@@ -50,14 +54,14 @@ public class AdminProjectController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get project by id")
-    public ProjectResponse getById(@PathVariable long id) {
+    public ProjectResponse getById(@PathVariable @Positive long id) {
         return adminProjectService.getById(id);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Replace project fields and status")
     public ProjectResponse update(
-            @PathVariable long id, @Valid @RequestBody UpdateProjectRequest body) {
+            @PathVariable @Positive long id, @Valid @RequestBody UpdateProjectRequest body) {
         return adminProjectService.update(id, body);
     }
 
