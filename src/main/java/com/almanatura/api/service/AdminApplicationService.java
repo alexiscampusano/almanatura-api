@@ -58,7 +58,6 @@ public class AdminApplicationService {
         if (to == ApplicationStatus.REGISTERED_AS_ACTOR) {
             Actor actor = Actor.builder()
                     .fullName(app.getFullName())
-                    .region(null)
                     .email(app.getEmail())
                     .phone(app.getPhone())
                     .dniEncrypted(app.getDniEncrypted())
