@@ -30,9 +30,6 @@ public class Actor extends BaseAuditableEntity {
     @Column(name = "full_name", nullable = false, length = 255)
     private String fullName;
 
-    @Column(length = 120)
-    private String region;
-
     @Column(length = 255)
     private String email;
 

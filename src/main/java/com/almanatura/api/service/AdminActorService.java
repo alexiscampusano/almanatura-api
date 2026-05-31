@@ -66,7 +66,6 @@ public class AdminActorService {
         return new PublicActorResponse(
                 actor.getId(),
                 actor.getFullName(),
-                actor.getRegion(),
                 actor.getEmail(),
                 actor.getPhone(),
                 nationalId,

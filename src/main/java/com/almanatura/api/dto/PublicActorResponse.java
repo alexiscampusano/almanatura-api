@@ -5,14 +5,13 @@ import java.util.List;
 public record PublicActorResponse(
         Long id,
         String fullName,
-        String region,
         String email,
         String phone,
         String nationalId,
         List<ActorProjectInfo> projects) {
 
-    public PublicActorResponse(Long id, String fullName, String region) {
-        this(id, fullName, region, null, null, null, List.of());
+    public PublicActorResponse(Long id, String fullName) {
+        this(id, fullName, null, null, null, List.of());
     }
 
     public record ActorProjectInfo(
