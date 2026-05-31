@@ -47,7 +47,9 @@ public class EmailSenderService {
         }
 
         if (brevoApiKey == null || brevoApiKey.isEmpty()) {
-            log.error("Brevo API Key is missing. Cannot send email to {}", notification.getRecipientHint());
+            log.error(
+                    "Brevo API Key is missing. Cannot send email to {}",
+                    notification.getRecipientHint());
             updateStatus(notification, OutboundNotificationStatus.FAILED);
             return;
         }
@@ -60,22 +62,27 @@ public class EmailSenderService {
             headers.set("api-key", brevoApiKey);
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
-            Map<String, Object> body = Map.of(
-                    "sender", Map.of("name", fromName, "email", fromAddress),
-                    "to", List.of(Map.of("email", notification.getRecipientHint())),
-                    "subject", notification.getSubject(),
-                    "htmlContent", notification.getBody());
+            Map<String, Object> body =
+                    Map.of(
+                            "sender", Map.of("name", fromName, "email", fromAddress),
+                            "to", List.of(Map.of("email", notification.getRecipientHint())),
+                            "subject", notification.getSubject(),
+                            "htmlContent", notification.getBody());
 
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(
-                    BREVO_API_URL, HttpMethod.POST, requestEntity, String.class);
+            ResponseEntity<String> response =
+                    restTemplate.exchange(
+                            BREVO_API_URL, HttpMethod.POST, requestEntity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Email successfully sent to {}", notification.getRecipientHint());
                 updateStatus(notification, OutboundNotificationStatus.SENT);
             } else {
-                log.error("Failed to send email to {}. Brevo response: {}", notification.getRecipientHint(), response.getBody());
+                log.error(
+                        "Failed to send email to {}. Brevo response: {}",
+                        notification.getRecipientHint(),
+                        response.getBody());
                 updateStatus(notification, OutboundNotificationStatus.FAILED);
             }
         } catch (Exception e) {
