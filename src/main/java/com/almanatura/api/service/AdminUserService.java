@@ -48,6 +48,25 @@ public class AdminUserService {
                 .toList();
     }
 
+    @Transactional
+    public void delete(Long id) {
+        User user =
+                userRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        com.almanatura.api.exception.ResourceNotFoundException.of(
+                                                "User", id));
+        String currentUserEmail =
+                org.springframework.security.core.context.SecurityContextHolder.getContext()
+                        .getAuthentication()
+                        .getName();
+        if (user.getEmail().equalsIgnoreCase(currentUserEmail)) {
+            throw new IllegalStateException("Cannot delete yourself");
+        }
+        userRepository.delete(user);
+    }
+
     private static UserSummary toSummary(User user) {
         return new UserSummary(user.getId(), user.getEmail(), user.getName(), user.getRole());
     }

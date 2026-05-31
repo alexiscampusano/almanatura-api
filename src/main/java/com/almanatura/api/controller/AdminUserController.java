@@ -53,4 +53,13 @@ public class AdminUserController {
     public List<UserSummary> list() {
         return adminUserService.listAll();
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+            summary = "Delete internal user",
+            description = "Deletes an internal user by id. A user cannot delete themselves.")
+    public void delete(@org.springframework.web.bind.annotation.PathVariable Long id) {
+        adminUserService.delete(id);
+    }
 }
