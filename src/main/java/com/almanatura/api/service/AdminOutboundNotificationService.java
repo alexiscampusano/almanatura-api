@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminOutboundNotificationService {
 
     private final OutboundNotificationRepository outboundNotificationRepository;
+    private final EmailSenderService emailSenderService;
 
     @Transactional
     public OutboundNotificationResponse create(CreateOutboundNotificationRequest request) {
@@ -27,6 +28,10 @@ public class AdminOutboundNotificationService {
                         .body(request.body())
                         .build();
         OutboundNotification saved = outboundNotificationRepository.save(entity);
+
+        // Disparar el envío de forma asíncrona
+        emailSenderService.sendEmailAndUpdateStatus(saved);
+
         return new OutboundNotificationResponse(
                 saved.getId(),
                 saved.getChannel(),
