@@ -91,11 +91,9 @@ class AdminUserControllerTest {
     }
 
     @Test
-    void list_asEventManager_returnsAccessDenied() throws Exception {
+    void list_asEventManager_returnsOk() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(USERS_PATH).with(user(eventManager)))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
-                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.code()));
+                .andExpect(status().isOk());
     }
 
     @Test

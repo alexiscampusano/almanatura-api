@@ -77,7 +77,7 @@ class ErrorResponseTest {
     @Test
     void protectedEndpointWrongRole_returnsAccessDeniedProblem() throws Exception {
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/admin/users/1")
+                        MockMvcRequestBuilders.post("/admin/users")
                                 .with(
                                         org.springframework.security.test.web.servlet.request
                                                 .SecurityMockMvcRequestPostProcessors.user(

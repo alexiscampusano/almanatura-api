@@ -100,6 +100,10 @@ public class SecurityConfig {
                                                 "/api-docs/**",
                                                 "/v3/api-docs/**")
                                         .permitAll()
+                                        .requestMatchers(
+                                                org.springframework.http.HttpMethod.GET,
+                                                "/admin/users/**")
+                                        .hasAnyRole("SUPER_USER", "EVENT_MANAGER")
                                         .requestMatchers("/admin/users/**")
                                         .hasRole("SUPER_USER")
                                         .requestMatchers("/admin/**")
