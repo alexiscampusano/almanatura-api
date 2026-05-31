@@ -56,12 +56,13 @@ public class AdminApplicationService {
         ApplicationStatusTransitions.requireTransition(from, to);
 
         if (to == ApplicationStatus.REGISTERED_AS_ACTOR) {
-            Actor actor = Actor.builder()
-                    .fullName(app.getFullName())
-                    .email(app.getEmail())
-                    .phone(app.getPhone())
-                    .dniEncrypted(app.getDniEncrypted())
-                    .build();
+            Actor actor =
+                    Actor.builder()
+                            .fullName(app.getFullName())
+                            .email(app.getEmail())
+                            .phone(app.getPhone())
+                            .dniEncrypted(app.getDniEncrypted())
+                            .build();
             app.setActor(actorRepository.save(actor));
         }
 
