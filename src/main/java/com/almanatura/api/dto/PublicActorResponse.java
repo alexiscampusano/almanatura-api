@@ -3,10 +3,16 @@ package com.almanatura.api.dto;
 import java.util.List;
 
 public record PublicActorResponse(
-        Long id, String fullName, String region, List<ActorProjectInfo> projects) {
+        Long id,
+        String fullName,
+        String region,
+        String email,
+        String phone,
+        String nationalId,
+        List<ActorProjectInfo> projects) {
 
     public PublicActorResponse(Long id, String fullName, String region) {
-        this(id, fullName, region, List.of());
+        this(id, fullName, region, null, null, null, List.of());
     }
 
     public record ActorProjectInfo(
