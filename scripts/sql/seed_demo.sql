@@ -2,60 +2,60 @@
 -- Requires schema from Flyway migrations. Does not touch users (admin comes from APP_ADMIN_* at startup).
 
 -- ---------- Actors ----------
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'María García López', 'Sierra de Aracena (Huelva)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'María García López', 'maria.garcia@email.com', '+34 612 345 678', 'LQWr3O5tb6ubiVzO6SC/v4aDXS/8PzRiDbSqYlShA+Zy/mp5hg==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('María García López'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'Antonio Fernández Ruiz', 'Villanueva de los Castillejos (Huelva)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'Antonio Fernández Ruiz', 'antonio.fernandez@email.com', '+34 623 456 789', 'SFyGDd7kWOR28icUxJEku/e+cdsHMUzrV6C6667ItWHzuy5Fqg==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (
         SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('Antonio Fernández Ruiz'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'Carmen Martínez Delgado', 'Almendralejo (Badajoz)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'Carmen Martínez Delgado', 'carmen.martinez@email.com', '+34 634 567 890', 'psIQKZn1XhezoVf20rIX20oCHMOCdNHq25R+GRha7PP/N7HN0Q==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (
         SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('Carmen Martínez Delgado'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'José Luis Moreno Vega', 'Cazalla de la Sierra (Sevilla)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'José Luis Moreno Vega', 'joseluis.moreno@email.com', '+34 645 678 901', 'B1CiDAHCfa7dNGvxw/IayDrspHZRw26ON+RVgZN4DbtnEukoGg==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (
         SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('José Luis Moreno Vega'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'Ana Belén Rodríguez Pinto', 'Aracena (Huelva)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'Ana Belén Rodríguez Pinto', 'anabelen.rodriguez@email.com', '+34 656 789 012', '4d0GbjEhO4mOLqAE118ScV70FgKQufCDAh93uGHX3GJ5WazM7w==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (
         SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('Ana Belén Rodríguez Pinto'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'Francisco Javier Torres Ramos', 'Cortegana (Huelva)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'Francisco Javier Torres Ramos', 'francisco.torres@email.com', '+34 667 890 123', 'FJ7NFJIq/neW3D5tKHFuVPzrbEWqewboPM6a8vxX481S7ZdQWQ==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (
         SELECT 1
         FROM actors
         WHERE LOWER(full_name) = LOWER('Francisco Javier Torres Ramos'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'Isabel Navarro Campos', 'Jabugo (Huelva)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'Isabel Navarro Campos', 'isabel.navarro@email.com', '+34 678 901 234', 'CBCI+ZxS42+S6g8u7Je9RrPnJ4YcO/2QClWChagUFVQlpIyftg==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('Isabel Navarro Campos'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'Pedro Sánchez Molina', 'Zafra (Badajoz)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'Pedro Sánchez Molina', 'pedro.sanchez@email.com', '+34 689 012 345', 'UYsqQzEccefAKGfTKMoZ5HDhB6gHfIn0QawfvFbAhgsdO4PHSQ==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('Pedro Sánchez Molina'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'Lucía Romero Gil', 'Alájar (Huelva)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'Lucía Romero Gil', 'lucia.romero@email.com', '+34 690 123 456', 'TSJYl56ZnUZ19EnfeXmOf7/uVa18tZmjVr4YRWxUzJcQQWixag==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('Lucía Romero Gil'));
 
-INSERT INTO actors (full_name, region, version, created_at, updated_at)
-SELECT 'Manuel Díaz Herrera', 'Fregenal de la Sierra (Badajoz)', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+INSERT INTO actors (full_name, email, phone, dni_encrypted, version, created_at, updated_at)
+SELECT 'Manuel Díaz Herrera', 'manuel.diaz@email.com', '+34 601 234 567', 'jIlUl+r4kdQQ6tCnwlKXGJK32STGqloBUt6PvCm7Jk7DyHc4Vg==', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (
         SELECT 1 FROM actors WHERE LOWER(full_name) = LOWER('Manuel Díaz Herrera'));
