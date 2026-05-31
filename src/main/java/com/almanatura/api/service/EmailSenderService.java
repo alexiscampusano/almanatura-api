@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.almanatura.api.entity.OutboundNotification;
-import com.almanatura.api.enums.NotificationStatus;
+import com.almanatura.api.enums.OutboundNotificationStatus;
 import com.almanatura.api.repository.OutboundNotificationRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class EmailSenderService {
     @Async
     public void sendEmailAndUpdateStatus(OutboundNotification notification) {
         if (notification.getRecipientHint() == null || notification.getRecipientHint().isEmpty()) {
-            updateStatus(notification, NotificationStatus.FAILED);
+            updateStatus(notification, OutboundNotificationStatus.FAILED);
             return;
         }
 
@@ -48,14 +48,15 @@ public class EmailSenderService {
 
             javaMailSender.send(message);
             log.info("Email successfully sent to {}", notification.getRecipientHint());
-            updateStatus(notification, NotificationStatus.SENT);
+            updateStatus(notification, OutboundNotificationStatus.SENT);
         } catch (Exception e) {
             log.error("Failed to send email to {}", notification.getRecipientHint(), e);
-            updateStatus(notification, NotificationStatus.FAILED);
+            updateStatus(notification, OutboundNotificationStatus.FAILED);
         }
     }
 
-    private void updateStatus(OutboundNotification notification, NotificationStatus status) {
+    private void updateStatus(
+            OutboundNotification notification, OutboundNotificationStatus status) {
         notification.setStatus(status);
         outboundNotificationRepository.save(notification);
     }
