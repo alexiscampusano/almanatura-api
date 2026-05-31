@@ -11,6 +11,7 @@ import com.almanatura.api.enums.ProjectPillar;
 import com.almanatura.api.exception.ResourceNotFoundException;
 import com.almanatura.api.repository.ActorRepository;
 import com.almanatura.api.repository.ProjectApplicationRepository;
+import com.almanatura.api.util.DniCipherService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +22,7 @@ public class AdminActorService {
 
     private final ActorRepository actorRepository;
     private final ProjectApplicationRepository applicationRepository;
+    private final DniCipherService dniCipherService;
 
     @Transactional(readOnly = true)
     public List<PublicActorResponse> findAll(ProjectPillar pillar) {
@@ -56,7 +58,18 @@ public class AdminActorService {
                                                 app.getStatus().name()))
                         .toList();
 
+        String nationalId =
+                actor.getDniEncrypted() != null
+                        ? dniCipherService.decrypt(actor.getDniEncrypted())
+                        : null;
+
         return new PublicActorResponse(
-                actor.getId(), actor.getFullName(), actor.getRegion(), projects);
+                actor.getId(),
+                actor.getFullName(),
+                actor.getRegion(),
+                actor.getEmail(),
+                actor.getPhone(),
+                nationalId,
+                projects);
     }
 }

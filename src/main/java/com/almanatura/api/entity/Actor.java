@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -31,4 +32,14 @@ public class Actor extends BaseAuditableEntity {
 
     @Column(length = 120)
     private String region;
+
+    @Column(length = 255)
+    private String email;
+
+    @Column(length = 64)
+    private String phone;
+
+    @Lob
+    @Column(name = "dni_encrypted", columnDefinition = "TEXT")
+    private String dniEncrypted;
 }

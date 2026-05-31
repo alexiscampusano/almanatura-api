@@ -1,0 +1,3 @@
+ALTER TABLE actors ADD COLUMN email VARCHAR(255);
+ALTER TABLE actors ADD COLUMN phone VARCHAR(64);
+ALTER TABLE actors ADD COLUMN dni_encrypted TEXT;
