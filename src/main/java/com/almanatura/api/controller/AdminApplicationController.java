@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.almanatura.api.dto.AdminApplicationResponse;
+import com.almanatura.api.dto.ApplicationHistoryResponse;
 import com.almanatura.api.dto.PatchApplicationStatusRequest;
 import com.almanatura.api.enums.ApplicationStatus;
 import com.almanatura.api.service.AdminApplicationService;
@@ -59,5 +60,11 @@ public class AdminApplicationController {
             @PathVariable @Positive long id,
             @Valid @RequestBody PatchApplicationStatusRequest body) {
         return adminApplicationService.patchStatus(id, body);
+    }
+
+    @GetMapping("/{id}/history")
+    @Operation(summary = "Get application history logs")
+    public List<ApplicationHistoryResponse> getHistory(@PathVariable @Positive long id) {
+        return adminApplicationService.getHistory(id);
     }
 }

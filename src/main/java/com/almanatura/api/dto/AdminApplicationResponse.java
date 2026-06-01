@@ -13,4 +13,6 @@ public record AdminApplicationResponse(
         String email,
         String phone,
         String nationalId,
-        Instant createdAt) {}
+        Instant createdAt,
+        Instant updatedAt,
+        String lastModifiedBy) {}

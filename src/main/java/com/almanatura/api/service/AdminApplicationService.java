@@ -6,12 +6,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.almanatura.api.dto.AdminApplicationResponse;
+import com.almanatura.api.dto.ApplicationHistoryResponse;
 import com.almanatura.api.dto.PatchApplicationStatusRequest;
 import com.almanatura.api.entity.Actor;
+import com.almanatura.api.entity.ApplicationHistoryLog;
 import com.almanatura.api.entity.ProjectApplication;
 import com.almanatura.api.enums.ApplicationStatus;
 import com.almanatura.api.exception.ResourceNotFoundException;
 import com.almanatura.api.repository.ActorRepository;
+import com.almanatura.api.repository.ApplicationHistoryLogRepository;
 import com.almanatura.api.repository.ProjectApplicationRepository;
 import com.almanatura.api.util.DniCipherService;
 
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminApplicationService {
 
     private final ProjectApplicationRepository projectApplicationRepository;
+    private final ApplicationHistoryLogRepository historyLogRepository;
     private final ActorRepository actorRepository;
     private final DniCipherService dniCipherService;
 
@@ -39,6 +43,21 @@ public class AdminApplicationService {
                 .findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> ResourceNotFoundException.of("ProjectApplication", id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApplicationHistoryResponse> getHistory(long id) {
+        return historyLogRepository.findByApplicationIdOrderByCreatedAtDesc(id).stream()
+                .map(
+                        log ->
+                                new ApplicationHistoryResponse(
+                                        log.getId(),
+                                        log.getOldStatus(),
+                                        log.getNewStatus(),
+                                        log.getCreatedBy(),
+                                        log.getNotes(),
+                                        log.getCreatedAt()))
+                .toList();
     }
 
     @Transactional
@@ -67,7 +86,20 @@ public class AdminApplicationService {
         }
 
         app.setStatus(to);
-        return toResponse(projectApplicationRepository.save(app));
+        ProjectApplication saved = projectApplicationRepository.save(app);
+
+        historyLogRepository.save(
+                ApplicationHistoryLog.builder()
+                        .application(saved)
+                        .oldStatus(from)
+                        .newStatus(to)
+                        .notes(
+                                body.notes() != null && !body.notes().isBlank()
+                                        ? body.notes().trim()
+                                        : null)
+                        .build());
+
+        return toResponse(saved);
     }
 
     private AdminApplicationResponse toResponse(ProjectApplication entity) {
@@ -81,6 +113,8 @@ public class AdminApplicationService {
                 entity.getEmail(),
                 entity.getPhone(),
                 dniCipherService.decrypt(entity.getDniEncrypted()),
-                entity.getCreatedAt());
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                entity.getLastModifiedBy());
     }
 }

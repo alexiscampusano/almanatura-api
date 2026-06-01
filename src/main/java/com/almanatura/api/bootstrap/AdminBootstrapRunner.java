@@ -67,6 +67,19 @@ public class AdminBootstrapRunner implements ApplicationRunner {
                         .build();
         userRepository.save(admin);
         log.info("Admin bootstrap: created initial super_user '{}'", email);
+
+        if (!userRepository.existsByEmailIgnoreCase("eventos@almanatura.com")) {
+            User eventManager =
+                    User.builder()
+                            .name("Event Manager")
+                            .email("eventos@almanatura.com")
+                            .passwordHash(passwordEncoder.encode(password))
+                            .role(Role.EVENT_MANAGER)
+                            .enabled(true)
+                            .build();
+            userRepository.save(eventManager);
+            log.info("Admin bootstrap: created event_manager 'eventos@almanatura.com'");
+        }
     }
 
     private static boolean isBlank(String value) {

@@ -7,12 +7,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.almanatura.api.dto.ApplicationSubmittedResponse;
 import com.almanatura.api.dto.SubmitApplicationRequest;
+import com.almanatura.api.entity.ApplicationHistoryLog;
 import com.almanatura.api.entity.Project;
 import com.almanatura.api.entity.ProjectApplication;
 import com.almanatura.api.enums.ApplicationStatus;
 import com.almanatura.api.enums.ProjectStatus;
 import com.almanatura.api.exception.ApplicationAlreadyExistsException;
 import com.almanatura.api.exception.ResourceNotFoundException;
+import com.almanatura.api.repository.ApplicationHistoryLogRepository;
 import com.almanatura.api.repository.ProjectApplicationRepository;
 import com.almanatura.api.repository.ProjectRepository;
 import com.almanatura.api.util.DniCipherService;
@@ -26,6 +28,7 @@ public class ApplicationSubmissionService {
 
     private final ProjectRepository projectRepository;
     private final ProjectApplicationRepository projectApplicationRepository;
+    private final ApplicationHistoryLogRepository historyLogRepository;
     private final DniCipherService dniCipherService;
 
     @Transactional
@@ -56,6 +59,12 @@ public class ApplicationSubmissionService {
                         .build();
 
         ProjectApplication saved = projectApplicationRepository.save(entity);
+        historyLogRepository.save(
+                ApplicationHistoryLog.builder()
+                        .application(saved)
+                        .oldStatus(null)
+                        .newStatus(ApplicationStatus.SUBMITTED)
+                        .build());
         return new ApplicationSubmittedResponse(
                 saved.getId(), project.getId(), saved.getCreatedAt());
     }

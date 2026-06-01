@@ -831,3 +831,97 @@ SELECT
     0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM project_impact_entries WHERE project_id = (SELECT id FROM projects WHERE title = 'Lab de Innovación Rural') AND metric_label = 'Proyectos innovadores');
+
+-- ---------- History Logs for existing applications ----------
+-- We will simulate that the applications had some status changes over time.
+-- Note: 'notes' column is supported because V16 was added.
+
+-- For José Luis Moreno Vega -> GIRA Jóvenes (currently APPROVED)
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, 'SUBMITTED', 'UNDER_REVIEW', 'Revisión inicial completada, el perfil encaja.', DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 5 DAY), DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 5 DAY), 'admin@almanatura.com', 0
+FROM applications 
+WHERE email = 'joseluis.moreno@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'GIRA Jóvenes')
+AND NOT EXISTS (SELECT 1 FROM application_history_logs WHERE notes = 'Revisión inicial completada, el perfil encaja.');
+
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, 'UNDER_REVIEW', 'APPROVED', 'Cumple con todos los requisitos para la formación.', DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 2 DAY), DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 2 DAY), 'admin@almanatura.com', 0
+FROM applications 
+WHERE email = 'joseluis.moreno@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'GIRA Jóvenes')
+AND NOT EXISTS (SELECT 1 FROM application_history_logs WHERE notes = 'Cumple con todos los requisitos para la formación.');
+
+-- For Manuel Díaz Herrera -> Comisionado Reto Demográfico (currently NEEDS_INFO)
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, 'SUBMITTED', 'UNDER_REVIEW', NULL, DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 10 DAY), DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 10 DAY), 'admin@almanatura.com', 0
+FROM applications 
+WHERE email = 'manuel.diaz@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Comisionado Reto Demográfico')
+AND NOT EXISTS (SELECT 1 FROM application_history_logs WHERE old_status = 'SUBMITTED' AND new_status = 'UNDER_REVIEW' AND created_by = 'admin@almanatura.com');
+
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, 'UNDER_REVIEW', 'NEEDS_INFO', 'Falta adjuntar el certificado de empadronamiento rural. Por favor, enviar a la brevedad.', DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 1 DAY), DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 1 DAY), 'eventos@almanatura.com', 0
+FROM applications 
+WHERE email = 'manuel.diaz@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Comisionado Reto Demográfico')
+AND NOT EXISTS (SELECT 1 FROM application_history_logs WHERE notes LIKE '%empadronamiento%');
+
+-- For Pedro Sánchez Molina -> Rural Emprende (currently REJECTED)
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, 'SUBMITTED', 'REJECTED', 'El proyecto propuesto no cumple con las bases (no es aplicable en el territorio objetivo).', DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 20 DAY), DATE_SUB(UTC_TIMESTAMP(6), INTERVAL 20 DAY), 'eventos@almanatura.com', 0
+FROM applications 
+WHERE email = 'pedro.sanchez@email.com' AND project_id = (SELECT id FROM projects WHERE title = 'Rural Emprende')
+AND NOT EXISTS (SELECT 1 FROM application_history_logs WHERE notes LIKE '%bases%');
+
+
+-- ---------- Add SUBMITTED logs for all seeded applications ----------
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, NULL, 'SUBMITTED', NULL, created_at, created_at, 'system', 0
+FROM applications a
+WHERE NOT EXISTS (SELECT 1 FROM application_history_logs h WHERE h.application_id = a.id AND h.new_status = 'SUBMITTED');
+
+-- ---------- Add intermediate logs for UNDER_REVIEW ----------
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, 'SUBMITTED', 'UNDER_REVIEW', 'Revisando documentación...', DATE_ADD(created_at, INTERVAL 1 DAY), DATE_ADD(created_at, INTERVAL 1 DAY), 'admin@almanatura.com', 0
+FROM applications a
+WHERE status IN ('UNDER_REVIEW', 'APPROVED', 'REGISTERED_AS_ACTOR')
+AND NOT EXISTS (SELECT 1 FROM application_history_logs h WHERE h.application_id = a.id AND h.new_status = 'UNDER_REVIEW');
+
+-- ---------- Add logs for APPROVED ----------
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, 'UNDER_REVIEW', 'APPROVED', 'Todo en orden. Aprobado.', DATE_ADD(created_at, INTERVAL 3 DAY), DATE_ADD(created_at, INTERVAL 3 DAY), 'admin@almanatura.com', 0
+FROM applications a
+WHERE status IN ('APPROVED', 'REGISTERED_AS_ACTOR')
+AND NOT EXISTS (SELECT 1 FROM application_history_logs h WHERE h.application_id = a.id AND h.new_status = 'APPROVED');
+
+-- ---------- Add logs for REGISTERED_AS_ACTOR ----------
+INSERT INTO application_history_logs (application_id, old_status, new_status, notes, created_at, updated_at, created_by, version)
+SELECT 
+    id, 'APPROVED', 'REGISTERED_AS_ACTOR', 'Usuario registrado como actor en la plataforma.', DATE_ADD(created_at, INTERVAL 4 DAY), DATE_ADD(created_at, INTERVAL 4 DAY), 'system', 0
+FROM applications a
+WHERE status = 'REGISTERED_AS_ACTOR'
+AND NOT EXISTS (SELECT 1 FROM application_history_logs h WHERE h.application_id = a.id AND h.new_status = 'REGISTERED_AS_ACTOR');
+
+-- ---------- Cultural Events ----------
+INSERT INTO cultural_events (title, description, starts_at, ends_at, location, max_attendees, status, version, created_at, updated_at, created_by)
+SELECT 'Festival de Tradiciones Rurales', 'Un encuentro para compartir y celebrar nuestras raíces.', DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 15 DAY), DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 16 DAY), 'Plaza Mayor', 200, 'PUBLISHED', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), 'admin@almanatura.com'
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM cultural_events WHERE title = 'Festival de Tradiciones Rurales');
+
+INSERT INTO cultural_events (title, description, starts_at, ends_at, location, max_attendees, status, version, created_at, updated_at, created_by)
+SELECT 'Taller de Agricultura Regenerativa', 'Aprende técnicas modernas para el cuidado de la tierra.', DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 5 DAY), DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 5 DAY), 'Finca El Sol', 30, 'PUBLISHED', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), 'eventos@almanatura.com'
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM cultural_events WHERE title = 'Taller de Agricultura Regenerativa');
+
+-- ---------- Event Attendees ----------
+INSERT INTO event_attendees (event_id, actor_id, registered_at, status, version, created_at, updated_at)
+SELECT 
+    (SELECT id FROM cultural_events WHERE title = 'Taller de Agricultura Regenerativa'),
+    (SELECT id FROM actors WHERE full_name = 'José Luis Moreno Vega'),
+    UTC_TIMESTAMP(6), 'CONFIRMED', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+FROM DUAL WHERE EXISTS (SELECT 1 FROM cultural_events WHERE title = 'Taller de Agricultura Regenerativa')
+AND NOT EXISTS (SELECT 1 FROM event_attendees WHERE actor_id = (SELECT id FROM actors WHERE full_name = 'José Luis Moreno Vega'));
+
+
