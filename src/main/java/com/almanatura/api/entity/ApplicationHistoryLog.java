@@ -35,6 +35,7 @@ public class ApplicationHistoryLog extends BaseAuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "application_id", nullable = false)
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private ProjectApplication application;
 
     @Enumerated(EnumType.STRING)
