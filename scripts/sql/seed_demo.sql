@@ -905,23 +905,3 @@ SELECT
 FROM applications a
 WHERE status = 'REGISTERED_AS_ACTOR'
 AND NOT EXISTS (SELECT 1 FROM application_history_logs h WHERE h.application_id = a.id AND h.new_status = 'REGISTERED_AS_ACTOR');
-
--- ---------- Cultural Events ----------
-INSERT INTO cultural_events (title, description, starts_at, ends_at, location, max_attendees, status, version, created_at, updated_at, created_by)
-SELECT 'Festival de Tradiciones Rurales', 'Un encuentro para compartir y celebrar nuestras raíces.', DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 15 DAY), DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 16 DAY), 'Plaza Mayor', 200, 'PUBLISHED', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), 'admin@almanatura.com'
-FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM cultural_events WHERE title = 'Festival de Tradiciones Rurales');
-
-INSERT INTO cultural_events (title, description, starts_at, ends_at, location, max_attendees, status, version, created_at, updated_at, created_by)
-SELECT 'Taller de Agricultura Regenerativa', 'Aprende técnicas modernas para el cuidado de la tierra.', DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 5 DAY), DATE_ADD(UTC_TIMESTAMP(6), INTERVAL 5 DAY), 'Finca El Sol', 30, 'PUBLISHED', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), 'eventos@almanatura.com'
-FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM cultural_events WHERE title = 'Taller de Agricultura Regenerativa');
-
--- ---------- Event Attendees ----------
-INSERT INTO event_attendees (event_id, actor_id, registered_at, status, version, created_at, updated_at)
-SELECT 
-    (SELECT id FROM cultural_events WHERE title = 'Taller de Agricultura Regenerativa'),
-    (SELECT id FROM actors WHERE full_name = 'José Luis Moreno Vega'),
-    UTC_TIMESTAMP(6), 'CONFIRMED', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
-FROM DUAL WHERE EXISTS (SELECT 1 FROM cultural_events WHERE title = 'Taller de Agricultura Regenerativa')
-AND NOT EXISTS (SELECT 1 FROM event_attendees WHERE actor_id = (SELECT id FROM actors WHERE full_name = 'José Luis Moreno Vega'));
-
-
