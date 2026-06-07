@@ -91,6 +91,91 @@ class AdminProjectControllerTest {
     }
 
     @Test
+    void list_asEventManager_returnsAllProjects() throws Exception {
+        projectRepository.save(
+                Project.builder()
+                        .title("Alpha")
+                        .pillar(ProjectPillar.TECHNOLOGY)
+                        .startsAt(LocalDate.parse("2030-01-01"))
+                        .status(ProjectStatus.DRAFT)
+                        .build());
+        projectRepository.save(
+                Project.builder()
+                        .title("Beta")
+                        .pillar(ProjectPillar.HEALTH)
+                        .startsAt(LocalDate.parse("2030-02-01"))
+                        .status(ProjectStatus.PUBLISHED)
+                        .build());
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get(ADMIN_PROJECTS)
+                                .with(user(eventManager)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].title").value("Alpha"))
+                .andExpect(jsonPath("$[1].title").value("Beta"));
+    }
+
+    @Test
+    void getById_existingProject_returnsProject() throws Exception {
+        Project p =
+                projectRepository.save(
+                        Project.builder()
+                                .title("Found me")
+                                .pillar(ProjectPillar.EDUCATION)
+                                .startsAt(LocalDate.parse("2030-03-01"))
+                                .status(ProjectStatus.DRAFT)
+                                .build());
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get(ADMIN_PROJECTS + "/" + p.getId())
+                                .with(user(eventManager)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Found me"))
+                .andExpect(jsonPath("$.status").value("DRAFT"));
+    }
+
+    @Test
+    void getById_notFound_returnsResourceNotFound() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get(ADMIN_PROJECTS + "/99999")
+                                .with(user(eventManager)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.code()));
+    }
+
+    @Test
+    void update_asEventManager_updatesProject() throws Exception {
+        Project p =
+                projectRepository.save(
+                        Project.builder()
+                                .title("Original")
+                                .pillar(ProjectPillar.CULTURE)
+                                .startsAt(LocalDate.parse("2030-04-01"))
+                                .status(ProjectStatus.DRAFT)
+                                .build());
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.put(ADMIN_PROJECTS + "/" + p.getId())
+                                .with(user(eventManager))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                                        {
+                                          "title": "Updated Title",
+                                          "description": "Updated description",
+                                          "pillar": "EDUCATION",
+                                          "status": "PUBLISHED",
+                                          "startsAt": "2030-05-01",
+                                          "location": "New location"
+                                        }
+                                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Updated Title"))
+                .andExpect(jsonPath("$.pillar").value("EDUCATION"));
+    }
+
+    @Test
     void delete_withApplications_returnsConflict() throws Exception {
         Project p =
                 projectRepository.save(

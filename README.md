@@ -79,7 +79,7 @@ The CI badge above intentionally reports the status of `main` only:
 ## Quick start
 
 ```bash
-git https://github.com/alexiscampusano/almanatura-api
+git clone https://github.com/alexiscampusano/almanatura-api
 cd almanatura-api
 cp .env.example .env
 # generate strong secrets and put them in .env:
@@ -208,201 +208,143 @@ Real secrets live only in your local `.env` file or the server `.env` file.
 
 Run `make help` for the full list. The most useful commands are:
 
-```bash
-# Base / local
-make build | rebuild
-make up | up-logs
-make down | down-volumes | restart
-make logs | logs-api | logs-db | status
-make shell | db-shell
-make test | verify | coverage
-make format | format-check
-make db-backup | db-restore FILE=...
-make seed-demo
-make clean
+| Category | Target | Description |
+| -------- | ------ | ----------- |
+| **Build** | `make build` | Build base Docker images |
+| | `make rebuild` | Rebuild images without cache |
+| **Run** | `make up` | Start default stack (detached) |
+| | `make up-logs` | Start stack in foreground |
+| | `make up-dev` | Start dev stack (hot-reload + JDWP) |
+| | `make up-tools` | Start helper tooling (phpMyAdmin) |
+| | `make down` | Stop stack |
+| | `make down-volumes` | Stop + remove volumes (destructive) |
+| | `make restart` | Restart containers |
+| **Logs** | `make logs` | Tail all logs |
+| | `make logs-api` | Tail API logs |
+| | `make logs-db` | Tail DB logs |
+| | `make status` | `docker compose ps` |
+| **Shell** | `make shell` | Shell inside API container |
+| | `make db-shell` | MySQL client inside DB container |
+| **Test** | `make test` | Run unit tests (`./mvnw test`) |
+| | `make verify` | Full verification (tests + coverage + format + architecture) |
+| | `make coverage` | Run tests and show JaCoCo report path |
+| **Format** | `make format` | Apply Spotless formatting |
+| | `make format-check` | Verify formatting without changing |
+| **Database** | `make db-backup` | Export MySQL to `./backups` |
+| | `make db-restore FILE=...` | Restore from backup file |
+| | `make seed-demo` | Load idempotent demo data |
+| | `make db-reset` | Reset to empty database |
+| | `make db-reseed` | Reset + seed demo data |
+| | `make wait-db` | Block until DB is ready |
+| **Production** | `make prod-build` | Build production images |
+| | `make prod-up` | Deploy production stack |
+| | `make prod-up-logs` | Deploy with live logs |
+| | `make prod-down` | Stop production stack |
+| | `make prod-restart` | Restart production |
+| | `make prod-logs` | Tail production logs |
+| | `make prod-status` | Production `docker compose ps` |
 
-**Makefile targets (common usage)**
+Best practice: use `make up-dev` for local development and `make db-backup` before destructive targets like `make down-volumes`.
 
-The repository includes a `Makefile` that wraps common development and release tasks. Below are the most-used targets with a short explanation and example usage.
+## Project Structure
 
-- **`make build`**: Build the base Docker images used by the compose files.
-  - Example: `make build`
-- **`make rebuild`**: Rebuild images without using the cache.
-  - Example: `make rebuild`
-- **`make up`**: Start the default stack in detached mode (background).
-  - Example: `make up`
-- **`make up-logs`**: Start the stack in the foreground and stream logs.
-  - Example: `make up-logs`
-- **`make up-dev`**: Start the development stack (mounts sources, enables hot-reload and JDWP debug port).
-  - Example: `make up-dev`
-- **`make up-tools`**: Start helper tooling (e.g. phpMyAdmin) via the `tools` profile.
-  - Example: `make up-tools`
-- **`make down`**: Stop the compose stack.
-  - Example: `make down`
-- **`make down-volumes`**: Stop the stack and remove volumes (destructive; resets DB data).
-  - Example: `make down-volumes`
-- **`make restart`**: Restart running containers.
-  - Example: `make restart`
-- **`make logs` / `make logs-api` / `make logs-db`**: Tail logs for the whole stack, API only, or DB only.
-  - Example: `make logs-api`
-- **`make status`**: Display `docker compose ps` output for the stack.
-
-- **`make shell`**: Open a shell in the API container (useful for debugging inside the container).
-  - Example: `make shell`
-- **`make db-shell`**: Open a MySQL client shell inside the DB container.
-  - Example: `make db-shell`
-
-- **`make test`**: Run unit tests via the Maven wrapper (`./mvnw test`).
-  - Example: `make test`
-- **`make verify`**: Full verification build: tests + code coverage + formatting + architecture checks.
-  - Example: `make verify`
-- **`make coverage`**: Run the build and show where the JaCoCo HTML report is generated (`target/site/jacoco/index.html`).
-
-- **Formatting**: `make format` applies Spotless formatting; `make format-check` verifies formatting without changing files.
-
-- **Database helpers**:
-  - `make db-backup`: Export the MySQL database to `./backups`.
-  - `make db-restore FILE=./backups/your.sql`: Restore from a backup file.
-  - `make seed-demo`: Load idempotent demo data (`scripts/sql/seed_demo.sql`).
-  - `make db-reset`: Recreate the stack with an empty database (stops containers, removes volumes, brings stack up).
-  - `make db-reseed`: `db-reset` followed by `seed-demo`.
-  - `make wait-db`: Block until the DB reports ready (used by scripts that need the DB to be up).
-
-- **Production targets** (use on a deployment host):
-  - `make prod-build` / `make prod-up` / `make prod-up-logs` / `make prod-down` / `make prod-restart` / `make prod-logs` / `make prod-status` — manage the production compose combination (`docker-compose.yml` + `docker-compose.prod.yml`).
-
-Best practice: use `make up-dev` for local development and keep data safe by using `make db-backup` before running destructive targets like `make down-volumes` or `make db-reset`.
-│   │   │   ├── AdminProjectController.java    # CRUD /admin/projects
-│   │   │   ├── AdminProjectImpactController.java          # GET/POST …/projects/{id}/impact-entries
-│   │   │   ├── AdminReportController.java     # GET …/reports/summary, …/projects/applications
-│   │   │   ├── AdminUserController.java       # POST/GET /admin/users (SUPER_USER)
-│   │   │   ├── ApplicationController.java     # Public POST /applications
-│   │   │   ├── AuthController.java            # POST /auth/login, GET /auth/me
-│   │   │   ├── HealthController.java          # GET /ping
-│   │   │   └── ProjectController.java         # Public GET /projects, /{id}
-│   │   │
-│   │   ├── dto/
-│   │   │   ├── AdminApplicationResponse.java  # Decrypted national ID — internal only
-│   │   │   ├── ApplicationSubmittedResponse.java
-│   │   │   ├── CreateOutboundNotificationRequest.java
-│   │   │   ├── CreateProjectImpactEntryRequest.java
-│   │   │   ├── CreateProjectRequest.java
-│   │   │   ├── CreateUserRequest.java
-│   │   │   ├── LoginRequest.java
-│   │   │   ├── LoginResponse.java
-│   │   │   ├── OutboundNotificationResponse.java
-│   │   │   ├── PatchApplicationStatusRequest.java
-│   │   │   ├── ProjectApplicationReportRow.java
-│   │   │   ├── ProjectImpactEntryResponse.java
-│   │   │   ├── ProjectResponse.java
-│   │   │   ├── ProjectStatusCount.java
-│   │   │   ├── PublicActorResponse.java
-│   │   │   ├── PublicProjectResponse.java
-│   │   │   ├── ReportsSummaryResponse.java
-│   │   │   ├── SubmitApplicationRequest.java
-│   │   │   ├── UpdateProjectRequest.java
-│   │   │   └── UserSummary.java
-│   │   │
-│   │   ├── entity/
-│   │   │   ├── Actor.java
-│   │   │   ├── BaseAuditableEntity.java
-│   │   │   ├── OutboundNotification.java
-│   │   │   ├── Project.java
-│   │   │   ├── ProjectApplication.java
-│   │   │   ├── ProjectImpactEntry.java
-│   │   │   └── User.java
-│   │   │
-│   │   ├── enums/
-│   │   │   ├── ApplicationStatus.java
-│   │   │   ├── NotificationChannel.java
-│   │   │   ├── OutboundNotificationStatus.java
-│   │   │   ├── ProjectPillar.java
-│   │   │   ├── ProjectStatus.java
-│   │   │   └── Role.java
-│   │   │
-│   │   ├── exception/
-│   │   │   ├── ApiErrorWriter.java
-│   │   │   ├── ApiProblems.java
-│   │   │   ├── ApplicationAlreadyExistsException.java
-│   │   │   ├── EmailAlreadyInUseException.java
-│   │   │   ├── ErrorCode.java                 # Stable RFC7807 extension `code` values
-│   │   │   ├── FieldViolation.java
-│   │   │   ├── GlobalExceptionHandler.java
-│   │   │   ├── InvalidApplicationTransitionException.java
-│   │   │   ├── ProjectHasApplicationsException.java
-│   │   │   └── ResourceNotFoundException.java
-│   │   │
-│   │   ├── mapper/
-│   │   │   ├── package-info.java
-│   │   │   └── ProjectMapper.java
-│   │   │
-│   │   ├── repository/
-│   │   │   ├── ActorRepository.java
-│   │   │   ├── OutboundNotificationRepository.java
-│   │   │   ├── ProjectApplicationRepository.java
-│   │   │   ├── ProjectImpactEntryRepository.java
-│   │   │   ├── ProjectRepository.java
-│   │   │   └── UserRepository.java
-│   │   │
-│   │   ├── security/
-│   │   │   ├── CustomUserDetailsService.java   # Spring Security user lookup
-│   │   │   ├── JwtAccessDeniedHandler.java     # 403 → ProblemDetail
-│   │   │   ├── JwtAuthenticationEntryPoint.java # 401 → ProblemDetail
-│   │   │   ├── JwtAuthenticationFilter.java    # Bearer extraction + validation
-│   │   │   ├── JwtService.java                 # Sign/verify HS512 tokens (JJWT)
-│   │   │   └── RateLimitFilter.java            # Bucket4j on /auth/login & POST /applications
-│   │   │
-│   │   ├── service/
-│   │   │   ├── AdminActorService.java
-│   │   │   ├── AdminApplicationService.java
-│   │   │   ├── AdminOutboundNotificationService.java
-│   │   │   ├── AdminProjectImpactService.java
-│   │   │   ├── AdminProjectService.java
-│   │   │   ├── AdminReportService.java
-│   │   │   ├── AdminUserService.java
-│   │   │   ├── ApplicationStatusTransitions.java # Allowed PATCH transitions (domain guard)
-│   │   │   ├── ApplicationSubmissionService.java
-│   │   │   ├── AuthService.java
-│   │   │   └── PublicProjectService.java
-│   │   │
-│   │   ├── validation/
-│   │   │   ├── InternalPasswordPolicy.java     # Documents internal password rules
-│   │   │   ├── StrongInternalPassword.java      # Bean Validation annotation for admin passwords
-│   │   │   └── StrongInternalPasswordValidator.java
-│   │   │
-│   │   └── util/
-│   │       └── DniCipherService.java           # AES-GCM for applicant national IDs
-│   │
-│   └── resources/
-│       ├── application.properties              # Common defaults (active profile via env)
-│       ├── application-dev.properties          # Local non-docker dev (verbose logs, MySQL)
-│       ├── application-docker.properties       # Inside the container (host = almanatura-db)
-│       ├── application-prod.properties         # cPanel / prod (no Swagger, ddl=validate)
-│       └── db/migration/                       # Flyway versioned migrations (V1__*.sql, ...)
-│
-└── test/
-    ├── java/com/almanatura/api/
-    │   ├── AbstractIntegrationTest.java        # Optional MySQL Testcontainers base (@Profile integration)
-    │   ├── AlmanaturaApiApplicationTests.java  # Context loads smoke test
-    │   ├── architecture/
-    │   │   └── ArchitectureTest.java           # ArchUnit layered rules
-    │   ├── controller/
-    │   │   ├── AdminApplicationControllerTest.java
-    │   │   ├── AdminOutboundNotificationControllerTest.java
-    │   │   ├── AdminProjectControllerTest.java
-    │   │   ├── AdminProjectImpactControllerTest.java
-    │   │   ├── AdminReportControllerTest.java
-    │   │   ├── AdminUserControllerTest.java
-    │   │   ├── ApplicationControllerTest.java
-    │   │   ├── AuthControllerTest.java
-    │   │   └── ProjectControllerTest.java
-    │   ├── exception/
-    │   │   └── ErrorResponseTest.java          # MockMvc coverage for ProblemDetail responses
-    │   └── validation/
-    │       └── InternalPasswordPolicyTest.java
-    └── resources/
-        ├── application-test.properties         # H2 in-memory, used by @SpringBootTest
-        └── application-integration.properties  # Reserved for Testcontainers (future)
+```text
+almanatura-api/
+├── .github/workflows/ci.yml              # CI: test, verify, format-check
+├── .env.example                          # Local dev environment template
+├── .env.production.example               # Production environment checklist
+├── docker-compose.yml                    # Base compose file
+├── docker-compose.dev.yml                # Dev compose override
+├── docker-compose.prod.yml               # Production compose override
+├── Dockerfile                            # Multi-stage build (dev + runtime)
+├── Makefile                              # Common development targets
+├── pom.xml                               # Maven project descriptor
+├── scripts/sql/
+│   └── seed_demo.sql                     # Idempotent demo data
+├── postman/
+│   ├── Almanatura.postman_collection.json
+│   └── README.md                         # Import and usage instructions
+├── src/
+│   ├── main/
+│   │   ├── java/com/almanatura/api/
+│   │   │   ├── AlmanaturaApiApplication.java
+│   │   │   ├── config/
+│   │   │   │   ├── AppProperties.java         # Type-safe @ConfigurationProperties
+│   │   │   │   ├── CorsConfig.java            # CORS from APP_CORS_ALLOWED_ORIGINS
+│   │   │   │   ├── EncryptionConfig.java      # AES-GCM key from env
+│   │   │   │   ├── JpaConfig.java             # JPA auditing
+│   │   │   │   └── SecurityConfig.java        # Spring Security chain
+│   │   │   ├── controller/
+│   │   │   │   ├── AdminActorController.java
+│   │   │   │   ├── AdminApplicationController.java
+│   │   │   │   ├── AdminNotificationController.java
+│   │   │   │   ├── AdminProjectController.java
+│   │   │   │   ├── AdminProjectImpactController.java
+│   │   │   │   ├── AdminReportController.java
+│   │   │   │   ├── AdminUserController.java
+│   │   │   │   ├── ApplicationController.java  # Public POST /applications
+│   │   │   │   ├── AuthController.java         # POST /auth/login, GET /auth/me
+│   │   │   │   ├── HealthController.java       # GET /ping
+│   │   │   │   └── ProjectController.java      # Public GET /projects, /{id}
+│   │   │   ├── dto/
+│   │   │   │   ├── AdminApplicationResponse.java
+│   │   │   │   ├── ApplicationSubmittedResponse.java
+│   │   │   │   ├── CreateOutboundNotificationRequest.java
+│   │   │   │   ├── CreateProjectImpactEntryRequest.java
+│   │   │   │   ├── CreateProjectRequest.java
+│   │   │   │   ├── CreateUserRequest.java
+│   │   │   │   ├── LoginRequest.java / LoginResponse.java
+│   │   │   │   ├── OutboundNotificationResponse.java
+│   │   │   │   ├── PatchApplicationStatusRequest.java
+│   │   │   │   ├── ProjectApplicationReportRow.java
+│   │   │   │   ├── ProjectImpactEntryResponse.java
+│   │   │   │   ├── ProjectResponse.java
+│   │   │   │   ├── ProjectStatusCount.java
+│   │   │   │   ├── PublicActorResponse.java / PublicProjectResponse.java
+│   │   │   │   ├── ReportsSummaryResponse.java
+│   │   │   │   ├── SubmitApplicationRequest.java
+│   │   │   │   ├── UpdateProjectRequest.java
+│   │   │   │   └── UserSummary.java
+│   │   │   ├── entity/
+│   │   │   │   ├── Actor.java
+│   │   │   │   ├── BaseAuditableEntity.java
+│   │   │   │   ├── OutboundNotification.java
+│   │   │   │   ├── Project.java
+│   │   │   │   ├── ProjectApplication.java
+│   │   │   │   ├── ProjectImpactEntry.java
+│   │   │   │   └── User.java
+│   │   │   ├── enums/                          # ApplicationStatus, ProjectPillar, Role, etc.
+│   │   │   ├── exception/                      # GlobalExceptionHandler, ErrorCode, RFC 7807
+│   │   │   ├── mapper/                         # ProjectMapper (MapStruct)
+│   │   │   ├── repository/                     # JPA repositories (6 interfaces)
+│   │   │   ├── security/                       # JWT, Spring Security, rate limiting
+│   │   │   │   ├── CustomUserDetailsService.java
+│   │   │   │   ├── JwtAccessDeniedHandler.java
+│   │   │   │   ├── JwtAuthenticationEntryPoint.java
+│   │   │   │   ├── JwtAuthenticationFilter.java
+│   │   │   │   ├── JwtService.java
+│   │   │   │   └── RateLimitFilter.java        # Bucket4j
+│   │   │   ├── service/                        # 11 service classes
+│   │   │   ├── validation/                     # InternalPasswordPolicy, custom annotations
+│   │   │   └── util/
+│   │   │       └── DniCipherService.java       # AES-256-GCM for national IDs
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       ├── application-dev.properties
+│   │       ├── application-docker.properties
+│   │       ├── application-prod.properties
+│   │       └── db/migration/                   # Flyway versioned migrations (V1__*.sql, ...)
+│   └── test/
+│       ├── java/com/almanatura/api/
+│       │   ├── AbstractIntegrationTest.java
+│       │   ├── AlmanaturaApiApplicationTests.java
+│       │   ├── architecture/ArchitectureTest.java  # ArchUnit layered rules
+│       │   ├── controller/ (9 controller test classes)
+│       │   ├── exception/ErrorResponseTest.java
+│       │   └── validation/InternalPasswordPolicyTest.java
+│       └── resources/
+│           ├── application-test.properties        # H2 in-memory
+│           └── application-integration.properties # Testcontainers (future)
 ```
 
 ### Conventions enforced by ArchUnit
@@ -534,7 +476,7 @@ The full schema is published on Swagger UI for every operation under
 ## Production checklist
 
 The recommended deployment path is the Docker stack with the production
-override — see [Mode C — Production deployment](#mode-c--production-deployment)
+override — see [Production](#production) above for the actual commands.
 above for the actual commands. Pre-flight checklist:
 
 1. Server has Docker + Docker Compose installed.

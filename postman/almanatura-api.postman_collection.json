@@ -1,877 +1,1030 @@
 {
-	"info": {
-		"_postman_id": "b328783e-70c6-40c6-8024-f26d14b78303",
-		"name": "AlmaNatura API",
-		"description": "Versioned Postman collection for the AlmaNatura backend.\n\nAuthentication: a single Bearer token is configured at the collection level and read from the `accessToken` collection variable. The `Auth > POST login` request has a Tests script that automatically stores the token, so once you log in every other request authenticates itself.\n\nFolders are pre-organised by epic so each new endpoint added in upcoming tasks has an obvious home.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{accessToken}}",
-				"type": "string"
-			}
-		]
-	},
-	"item": [
-		{
-			"name": "Health",
-			"item": [
-				{
-					"name": "GET ping",
-					"id": "90e860a1-37b7-446f-933e-a0e60175860a",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/ping",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"ping"
-							]
-						},
-						"description": "Liveness probe. Returns 200 with `{ \"service\": \"almanatura-api\", \"status\": \"ok\", \"timestamp\": \"...\" }` when the API process is running."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"reports status ok\", function () {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json.service).to.eql(\"almanatura-api\");",
-									"    pm.expect(json.status).to.eql(\"ok\");",
-									"    pm.expect(json.timestamp).to.be.a(\"string\").and.not.empty;",
-									"});"
-								]
-							}
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Auth",
-			"item": [
-				{
-					"name": "POST login",
-					"id": "e3863870-80fe-4fb4-bf42-21ec42ca715c",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/auth/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"auth",
-								"login"
-							]
-						},
-						"description": "Authenticates an internal user (`SUPER_USER` or `EVENT_MANAGER`) and returns a JWT.\n\nThe Tests script stores the returned token in the `accessToken` collection variable so subsequent requests authenticate automatically. Subject to IP rate limiting (see README)."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"response carries a Bearer token\", function () {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json.accessToken, \"accessToken\").to.be.a(\"string\").and.not.empty;",
-									"    pm.expect(json.tokenType, \"tokenType\").to.eql(\"Bearer\");",
-									"});",
-									"",
-									"const json = pm.response.json();",
-									"if (json && json.accessToken) {",
-									"    pm.collectionVariables.set(\"accessToken\", json.accessToken);",
-									"    console.log(\"accessToken stored in collection variables\");",
-									"}"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET me",
-					"id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/auth/me",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"auth",
-								"me"
-							]
-						},
-						"description": "Returns the authenticated internal user's safe profile (`id`, `email`, `name`, `role`). Uses the collection Bearer token from `accessToken` (run **POST login** first)."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"body has user fields\", function () {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json.id).to.be.a(\"number\");",
-									"    pm.expect(json.email).to.be.a(\"string\").and.not.empty;",
-									"    pm.expect(json.name).to.be.a(\"string\");",
-									"    pm.expect(json.role).to.be.oneOf([\"SUPER_USER\", \"EVENT_MANAGER\"]);",
-									"});"
-								]
-							}
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Users (admin)",
-			"description": "Internal user management: create and list users. Requires super_user JWT (login first).",
-			"item": [
-				{
-					"name": "POST create user",
-					"id": "c2d4e6f8-0a1b-4c3d-9e7f-112233445566",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"María García López\",\n  \"email\": \"maria.garcia@almanatura.org\",\n  \"password\": \"CambiarTras1erLogin!\",\n  \"role\": \"EVENT_MANAGER\",\n  \"enabled\": true\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/users",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"users"
-							]
-						},
-						"description": "Creates an internal user. Password must meet the API internal policy (see README). Returns 409 if the email is already in use."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"body is UserSummary\", function () {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json.id).to.be.a(\"number\");",
-									"    pm.expect(json.email).to.be.a(\"string\").and.not.empty;",
-									"    pm.expect(json.name).to.be.a(\"string\");",
-									"    pm.expect(json.role).to.be.oneOf([\"SUPER_USER\", \"EVENT_MANAGER\"]);",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET list users",
-					"id": "d3e5f7a9-1b2c-5d4e-0f8a-223344556677",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/users",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"users"
-							]
-						},
-						"description": "Lists all internal users as safe projections, sorted by id. Uses collection Bearer token (super_user)."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"body is a non-empty array\", function () {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json).to.be.an(\"array\");",
-									"    pm.expect(json.length).to.be.at.least(1);",
-									"});"
-								]
-							}
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Projects (admin)",
-			"description": "CRUD for rural projects. Requires JWT. POST create sets `lastProjectId`.",
-			"item": [
-				{
-					"name": "POST create project",
-					"id": "e4f6a8b0-2c3d-5e6f-7081-92a3b4c5d6e7",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-  "raw": "{\n  \"title\": \"Taller de apicultura rural\",\n  \"description\": \"Curso de habilidades rurales orientado a jóvenes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20\",\n  \"endsAt\": \"2030-12-31\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects"]
-						},
-						"description": "Creates a project in DRAFT status."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"const json = pm.response.json();",
-									"if (json && json.id != null) {",
-									"    pm.collectionVariables.set(\"lastProjectId\", String(json.id));",
-									"}",
-									"pm.test(\"status is DRAFT\", function () {",
-									"    pm.expect(pm.response.json().status).to.eql(\"DRAFT\");",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET list projects",
-					"id": "f5a7b9c1-3d4e-6f70-8192-a3b4c5d6e7f8",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects"]
-						},
-						"description": "Lists all projects sorted by startsAt ascending."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"body is array\", function () {",
-									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET project by id",
-					"id": "a6b8c0d2-4e5f-7081-8293-b4c5d6e7f809",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}"]
-						},
-						"description": "Uses lastProjectId from POST create."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "PUT update project",
-					"id": "b7c9d1e3-5f60-7182-9304-b5c6d7e8f901",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-  "raw": "{\n  \"title\": \"Taller de apicultura rural (actualizado)\",\n  \"description\": \"Curso de habilidades rurales orientado a jóvenes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20\",\n  \"endsAt\": \"2030-12-31\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800\",\n  \"status\": \"PUBLISHED\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}"]
-						},
-						"description": "Full replace including ProjectStatus."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "DELETE project",
-					"id": "c8d0e2f4-6071-8293-0415-c6d7e8f9012a",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}"]
-						},
-						"description": "204 when no applications reference the project."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 204 or 409\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([204, 409]);",
-									"});"
-								]
-							}
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Impact & notifications (admin)",
-			"description": "Stub notification log and project impact entries.",
-			"item": [
-				{
-					"name": "POST outbound notification (stub)",
-					"id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
-					"request": {
-						"method": "POST",
-						"header": [
-							{"key": "Content-Type", "value": "application/json"}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"channel\": \"EMAIL\",\n  \"recipientHint\": \"actor@ejemplo.org\",\n  \"subject\": \"Invitación a taller de emprendimiento\",\n  \"body\": \"Estimado/a participante, le informamos que ha sido seleccionado/a para el próximo taller\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/notifications",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "notifications"]
-						}
-					}
-				},
-				{
-					"name": "POST project impact entry",
-					"id": "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
-					"request": {
-						"method": "POST",
-						"header": [
-							{"key": "Content-Type", "value": "application/json"}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"recordedAt\": \"2030-11-15T12:00:00Z\",\n  \"metricLabel\": \"Hogares alcanzados\",\n  \"numericValue\": 120,\n  \"notes\": \"Estimación del trimestre\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/impact-entries",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}", "impact-entries"]
-						}
-					}
-				},
-				{
-					"name": "GET project impact entries",
-					"id": "a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/impact-entries",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "projects", "{{lastProjectId}}", "impact-entries"]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Projects (public)",
-			  "description": "Published projects only. Optional ?pillar= filter. Paginated (default 6 per page, use ?page=0&size=6).",
-			"item": [
-				{
-					"name": "GET list published projects",
-					"id": "d1e2f3a4-b5c6-7788-9900-aabbccddeeff",
-					"request": {
-						"auth": {"type": "noauth"},
-						"method": "GET",
-						"header": [],
-						"url": {
-    "raw": "{{baseUrl}}/projects?page=0&size=6",
-    "host": ["{{baseUrl}}"],
-    "path": ["projects"],
-    "query": [
-      { "key": "page", "value": "0" },
-      { "key": "size", "value": "6" }
+  "info": {
+    "_postman_id": "b328783e-70c6-40c6-8024-f26d14b78303",
+    "name": "AlmaNatura API",
+    "description": "Versioned Postman collection for the AlmaNatura backend.\n\nAuthentication: a single Bearer token is configured at the collection level and read from the `accessToken` collection variable. The `Auth > POST login` request has a Tests script that automatically stores the token, so once you log in every other request authenticates itself.\n\nFolders are pre-organised by epic so each new endpoint added in upcoming tasks has an obvious home.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
     ]
-						},
-     "description": "Lists PUBLISHED projects sorted by startsAt. Returns paginated response with content[], totalElements, totalPages, etc."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"body has paginated structure\", function () {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json).to.have.property(\"content\").that.is.an(\"array\");",
-									"    pm.expect(json).to.have.property(\"totalElements\");",
-									"    pm.expect(json).to.have.property(\"totalPages\");",
-									"    pm.expect(json).to.have.property(\"number\");",
-									"    pm.expect(json).to.have.property(\"size\");",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET project by id",
-					"id": "e2f3a4b5-c6d7-8899-aabbccddeeff",
-					"request": {
-						"auth": {"type": "noauth"},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/projects/{{publicProjectId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["projects", "{{publicProjectId}}"]
-						},
-						"description": "Set publicProjectId to a published project id."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200 or 404\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-									"});"
-								]
-							}
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Actors (admin)",
-			"description": "Internal actor directory. Requires JWT (super_user or event_manager).",
-			"item": [
-				{
-					"name": "GET list actors",
-					"id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/actors",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "actors"]
-						},
-						"description": "Lists all actors in the internal directory. Uses collection Bearer token."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"body is array\", function () {",
-									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET actor by id",
-					"id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/actors/1",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "actors", "1"]
-						},
-						"description": "Returns a single actor by numeric id. Replace `1` with a valid actor id."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200 or 404\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-									"});"
-								]
-							}
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Applications",
-			"description": "Public POST /applications; admin search and PATCH.",
-			"item": [
-				{
-					"name": "POST submit application",
-					"id": "a4b5c6d7-e8f9-0011-aabb-ccddeeff0022",
-					"request": {
-						"auth": {"type": "noauth"},
-						"method": "POST",
-						"header": [
-							{"key": "Content-Type", "value": "application/json"}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"projectId\": {{publicProjectId}},\n  \"fullName\": \"Carlos Ruiz Martínez\",\n  \"email\": \"carlos.ruiz@ejemplo.org\",\n  \"dni\": \"12345678Z\",\n  \"phone\": \"+34612345678\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/applications",
-							"host": ["{{baseUrl}}"],
-							"path": ["applications"]
-						},
-						"description": "Set publicProjectId to a numeric PUBLISHED project id."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    const j = pm.response.json();",
-									"    pm.collectionVariables.set(\"lastApplicationId\", String(j.id));",
-									"}",
-									"pm.test(\"status code sane\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([201, 400, 404, 409, 429]);",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET admin list applications",
-					"id": "b5c6d7e8-f9a0-1122-bccd-deeff001133",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/applications",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "applications"]
-						},
-						"description": "Optional ?projectId=&status=SUBMITTED"
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"200 or 401\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
-									"});"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET admin application by id",
-					"id": "a6b7c8d9-e0f1-3344-abcd-eeff00224455",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/applications/{{lastApplicationId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "applications", "{{lastApplicationId}}"]
-						},
-						"description": "Returns a single application with decrypted DNI (staff only). Requires lastApplicationId from POST submit."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200 or 404\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
-									"});",
-									"if (pm.response.code === 200) {",
-									"    pm.test(\"body is AdminApplicationResponse\", function () {",
-									"        const json = pm.response.json();",
-									"        pm.expect(json.id).to.be.a(\"number\");",
-									"        pm.expect(json.status).to.be.a(\"string\").and.not.empty;",
-									"    });",
-									"}"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "PATCH application status",
-					"id": "c6d7e8f9-a0b1-2233-cdde-eff00113344",
-					"request": {
-						"method": "PATCH",
-						"header": [
-							{"key": "Content-Type", "value": "application/json"}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"status\": \"UNDER_REVIEW\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/admin/applications/{{lastApplicationId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["admin", "applications", "{{lastApplicationId}}"]
-						},
-						"description": "Requires lastApplicationId from POST submit. Adjust status to match workflow."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"200 or 4xx\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]);",
-									"});"
-								]
-							}
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Reports",
-			"description": "Aggregated metrics: project status counts and applications per project (Bearer JWT). No applicant PII in these endpoints.",
-			"item": [
-				{
-					"name": "GET organization summary",
-					"id": "b7c8d9e0-f1a2-4455-b667-8899aabbccdd",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/reports/summary",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"reports",
-								"summary"
-							]
-						},
-						"description": "Returns projectsByStatus, totals for projects, applications, impact entries, and outbound notification records. Aggregates only; no applicant PII."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200 or 401\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
-									"});",
-									"if (pm.response.code === 200) {",
-									"    const json = pm.response.json();",
-									"    pm.expect(json).to.have.property(\"projectsByStatus\");",
-									"    pm.expect(json).to.have.property(\"totalProjects\");",
-									"    pm.expect(json).to.have.property(\"totalApplications\");",
-									"    pm.expect(json).to.have.property(\"totalImpactEntries\");",
-									"    pm.expect(json).to.have.property(\"totalOutboundNotifications\");",
-								"}"
-								]
-							}
-						}
-					]
-				},
-				{
-					"name": "GET projects by application count",
-					"id": "c8d9e0f1-a2b3-5566-c778-9900bbaaccdd",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/admin/reports/projects/applications",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"admin",
-								"reports",
-								"projects",
-								"applications"
-							]
-						},
-						"description": "Each project with applicationCount. Sorted by count descending."
-					},
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"type": "text/javascript",
-								"exec": [
-									"pm.test(\"status code is 200 or 401\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
-									"});",
-									"if (pm.response.code === 200) {",
-									"    pm.expect(pm.response.json()).to.be.an(\"array\");",
-									"}"
-								]
-							}
-						}
-					]
-				}
-			]
-		}
-	],
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "{{host}}{{contextPath}}",
-			"type": "string",
-			"description": "Composed from the active environment's host + contextPath."
-		},
-		{
-			"key": "accessToken",
-			"value": "",
-			"type": "string",
-			"description": "Filled automatically by the POST login Tests script. Do not commit a value."
-		},
-		{
-			"key": "lastProjectId",
-			"value": "",
-			"type": "string",
-			"description": "Set by Projects (admin) → POST create project."
-		},
-		{
-			"key": "publicProjectId",
-			"value": "",
-			"type": "string",
-			"description": "Published project id for public GET detail and POST /applications."
-		},
-		{
-			"key": "lastApplicationId",
-			"value": "",
-			"type": "string",
-			"description": "Set by Applications → POST submit when response is 201."
-		}
-	]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET ping",
+          "id": "90e860a1-37b7-446f-933e-a0e60175860a",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ping",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ping"
+              ]
+            },
+            "description": "Liveness probe. Returns 200 with `{ \"service\": \"almanatura-api\", \"status\": \"ok\", \"timestamp\": \"...\" }` when the API process is running."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"reports status ok\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.service).to.eql(\"almanatura-api\");",
+                  "    pm.expect(json.status).to.eql(\"ok\");",
+                  "    pm.expect(json.timestamp).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST login",
+          "id": "e3863870-80fe-4fb4-bf42-21ec42ca715c",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticates an internal user (`SUPER_USER` or `EVENT_MANAGER`) and returns a JWT.\n\nThe Tests script stores the returned token in the `accessToken` collection variable so subsequent requests authenticate automatically. Subject to IP rate limiting (see README)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"response carries a Bearer token\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.accessToken, \"accessToken\").to.be.a(\"string\").and.not.empty;",
+                  "    pm.expect(json.tokenType, \"tokenType\").to.eql(\"Bearer\");",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json && json.accessToken) {",
+                  "    pm.collectionVariables.set(\"accessToken\", json.accessToken);",
+                  "    console.log(\"accessToken stored in collection variables\");",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET me",
+          "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Returns the authenticated internal user's safe profile (`id`, `email`, `name`, `role`). Uses the collection Bearer token from `accessToken` (run **POST login** first)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"body has user fields\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.id).to.be.a(\"number\");",
+                  "    pm.expect(json.email).to.be.a(\"string\").and.not.empty;",
+                  "    pm.expect(json.name).to.be.a(\"string\");",
+                  "    pm.expect(json.role).to.be.oneOf([\"SUPER_USER\", \"EVENT_MANAGER\"]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users (admin)",
+      "description": "Internal user management: create and list users. Requires super_user JWT (login first).",
+      "item": [
+        {
+          "name": "POST create user",
+          "id": "c2d4e6f8-0a1b-4c3d-9e7f-112233445566",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mar\u00eda Garc\u00eda L\u00f3pez\",\n  \"email\": \"maria.garcia@almanatura.org\",\n  \"password\": \"CambiarTras1erLogin!\",\n  \"role\": \"EVENT_MANAGER\",\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            },
+            "description": "Creates an internal user. Password must meet the API internal policy (see README). Returns 409 if the email is already in use."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"body is UserSummary\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.id).to.be.a(\"number\");",
+                  "    pm.expect(json.email).to.be.a(\"string\").and.not.empty;",
+                  "    pm.expect(json.name).to.be.a(\"string\");",
+                  "    pm.expect(json.role).to.be.oneOf([\"SUPER_USER\", \"EVENT_MANAGER\"]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET list users",
+          "id": "d3e5f7a9-1b2c-5d4e-0f8a-223344556677",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            },
+            "description": "Lists all internal users as safe projections, sorted by id. Uses collection Bearer token (super_user)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"body is a non-empty array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "    pm.expect(json.length).to.be.at.least(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE delete user",
+          "id": "1ee3b404-5f6b-4bcf-b3e7-fb196f19669f",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/{{lastUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{lastUserId}}"
+              ]
+            },
+            "description": "Deletes an internal user. SUPER_USER only. Set lastUserId in collection variables."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects (admin)",
+      "description": "CRUD for rural projects. Requires JWT. POST create sets `lastProjectId`.",
+      "item": [
+        {
+          "name": "POST create project",
+          "id": "e4f6a8b0-2c3d-5e6f-7081-92a3b4c5d6e7",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Taller de apicultura rural\",\n  \"description\": \"Curso de habilidades rurales orientado a j\u00f3venes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20\",\n  \"endsAt\": \"2030-12-31\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/projects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "projects"
+              ]
+            },
+            "description": "Creates a project in DRAFT status."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "if (json && json.id != null) {",
+                  "    pm.collectionVariables.set(\"lastProjectId\", String(json.id));",
+                  "}",
+                  "pm.test(\"status is DRAFT\", function () {",
+                  "    pm.expect(pm.response.json().status).to.eql(\"DRAFT\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET list projects",
+          "id": "f5a7b9c1-3d4e-6f70-8192-a3b4c5d6e7f8",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/projects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "projects"
+              ]
+            },
+            "description": "Lists all projects sorted by startsAt ascending."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"body is array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET project by id",
+          "id": "a6b8c0d2-4e5f-7081-8293-b4c5d6e7f809",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "projects",
+                "{{lastProjectId}}"
+              ]
+            },
+            "description": "Uses lastProjectId from POST create."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT update project",
+          "id": "b7c9d1e3-5f60-7182-9304-b5c6d7e8f901",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Taller de apicultura rural (actualizado)\",\n  \"description\": \"Curso de habilidades rurales orientado a j\u00f3venes emprendedores del medio rural\",\n  \"pillar\": \"TECHNOLOGY\",\n  \"startsAt\": \"2030-08-20\",\n  \"endsAt\": \"2030-12-31\",\n  \"location\": \"Casa de cultura, Villanueva de los Castillejos\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800\",\n  \"status\": \"PUBLISHED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "projects",
+                "{{lastProjectId}}"
+              ]
+            },
+            "description": "Full replace including ProjectStatus."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE project",
+          "id": "c8d0e2f4-6071-8293-0415-c6d7e8f9012a",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "projects",
+                "{{lastProjectId}}"
+              ]
+            },
+            "description": "204 when no applications reference the project."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 204 or 409\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([204, 409]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Impact & notifications (admin)",
+      "description": "Stub notification log and project impact entries.",
+      "item": [
+        {
+          "name": "POST outbound notification (stub)",
+          "id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel\": \"EMAIL\",\n  \"recipientHint\": \"actor@ejemplo.org\",\n  \"subject\": \"Invitaci\u00f3n a taller de emprendimiento\",\n  \"body\": \"Estimado/a participante, le informamos que ha sido seleccionado/a para el pr\u00f3ximo taller\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "notifications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST project impact entry",
+          "id": "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recordedAt\": \"2030-11-15T12:00:00Z\",\n  \"metricLabel\": \"Hogares alcanzados\",\n  \"numericValue\": 120,\n  \"notes\": \"Estimaci\u00f3n del trimestre\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/impact-entries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "projects",
+                "{{lastProjectId}}",
+                "impact-entries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET project impact entries",
+          "id": "a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/projects/{{lastProjectId}}/impact-entries",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "projects",
+                "{{lastProjectId}}",
+                "impact-entries"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects (public)",
+      "description": "Published projects only. Optional ?pillar= filter. Paginated (default 6 per page, use ?page=0&size=6).",
+      "item": [
+        {
+          "name": "GET list published projects",
+          "id": "d1e2f3a4-b5c6-7788-9900-aabbccddeeff",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects?page=0&size=6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "6"
+                }
+              ]
+            },
+            "description": "Lists PUBLISHED projects sorted by startsAt. Returns paginated response with content[], totalElements, totalPages, etc."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"body has paginated structure\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"content\").that.is.an(\"array\");",
+                  "    pm.expect(json).to.have.property(\"totalElements\");",
+                  "    pm.expect(json).to.have.property(\"totalPages\");",
+                  "    pm.expect(json).to.have.property(\"number\");",
+                  "    pm.expect(json).to.have.property(\"size\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET project by id",
+          "id": "e2f3a4b5-c6d7-8899-aabbccddeeff",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{publicProjectId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "projects",
+                "{{publicProjectId}}"
+              ]
+            },
+            "description": "Set publicProjectId to a published project id."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200 or 404\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Actors (admin)",
+      "description": "Internal actor directory. Requires JWT (super_user or event_manager).",
+      "item": [
+        {
+          "name": "GET list actors",
+          "id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/actors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "actors"
+              ]
+            },
+            "description": "Lists all actors in the internal directory. Uses collection Bearer token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"body is array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET actor by id",
+          "id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8091",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/actors/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "actors",
+                "1"
+              ]
+            },
+            "description": "Returns a single actor by numeric id. Replace `1` with a valid actor id."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200 or 404\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "description": "Public POST /applications; admin search and PATCH.",
+      "item": [
+        {
+          "name": "POST submit application",
+          "id": "a4b5c6d7-e8f9-0011-aabb-ccddeeff0022",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": {{publicProjectId}},\n  \"fullName\": \"Carlos Ruiz Mart\u00ednez\",\n  \"email\": \"carlos.ruiz@ejemplo.org\",\n  \"dni\": \"12345678Z\",\n  \"phone\": \"+34612345678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "applications"
+              ]
+            },
+            "description": "Set publicProjectId to a numeric PUBLISHED project id."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const j = pm.response.json();",
+                  "    pm.collectionVariables.set(\"lastApplicationId\", String(j.id));",
+                  "}",
+                  "pm.test(\"status code sane\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 404, 409, 429]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET admin list applications",
+          "id": "b5c6d7e8-f9a0-1122-bccd-deeff001133",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "applications"
+              ]
+            },
+            "description": "Optional ?projectId=&status=SUBMITTED"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 or 401\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET admin application by id",
+          "id": "a6b7c8d9-e0f1-3344-abcd-eeff00224455",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/applications/{{lastApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "applications",
+                "{{lastApplicationId}}"
+              ]
+            },
+            "description": "Returns a single application with decrypted DNI (staff only). Requires lastApplicationId from POST submit."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200 or 404\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"body is AdminApplicationResponse\", function () {",
+                  "        const json = pm.response.json();",
+                  "        pm.expect(json.id).to.be.a(\"number\");",
+                  "        pm.expect(json.status).to.be.a(\"string\").and.not.empty;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH application status",
+          "id": "c6d7e8f9-a0b1-2233-cdde-eff00113344",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"UNDER_REVIEW\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/applications/{{lastApplicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "applications",
+                "{{lastApplicationId}}"
+              ]
+            },
+            "description": "Requires lastApplicationId from POST submit. Adjust status to match workflow."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 or 4xx\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET application history",
+          "id": "5f3b6911-b885-4be1-b35b-3068fbdac661",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/applications/{{lastApplicationId}}/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "applications",
+                "{{lastApplicationId}}",
+                "history"
+              ]
+            },
+            "description": "Returns status transition history for an application. Set lastApplicationId in collection variables."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "description": "Aggregated metrics: project status counts and applications per project (Bearer JWT). No applicant PII in these endpoints.",
+      "item": [
+        {
+          "name": "GET organization summary",
+          "id": "b7c8d9e0-f1a2-4455-b667-8899aabbccdd",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reports/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reports",
+                "summary"
+              ]
+            },
+            "description": "Returns projectsByStatus, totals for projects, applications, impact entries, and outbound notification records. Aggregates only; no applicant PII."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200 or 401\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"projectsByStatus\");",
+                  "    pm.expect(json).to.have.property(\"totalProjects\");",
+                  "    pm.expect(json).to.have.property(\"totalApplications\");",
+                  "    pm.expect(json).to.have.property(\"totalImpactEntries\");",
+                  "    pm.expect(json).to.have.property(\"totalOutboundNotifications\");",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET projects by application count",
+          "id": "c8d9e0f1-a2b3-5566-c778-9900bbaaccdd",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reports/projects/applications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reports",
+                "projects",
+                "applications"
+              ]
+            },
+            "description": "Each project with applicationCount. Sorted by count descending."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status code is 200 or 401\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "{{host}}{{contextPath}}",
+      "type": "string",
+      "description": "Composed from the active environment's host + contextPath."
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "Filled automatically by the POST login Tests script. Do not commit a value."
+    },
+    {
+      "key": "lastProjectId",
+      "value": "",
+      "type": "string",
+      "description": "Set by Projects (admin) \u2192 POST create project."
+    },
+    {
+      "key": "publicProjectId",
+      "value": "",
+      "type": "string",
+      "description": "Published project id for public GET detail and POST /applications."
+    },
+    {
+      "key": "lastApplicationId",
+      "value": "",
+      "type": "string",
+      "description": "Set by Applications \u2192 POST submit when response is 201."
+    }
+  ]
 }

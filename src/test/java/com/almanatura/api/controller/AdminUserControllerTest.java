@@ -198,6 +198,42 @@ class AdminUserControllerTest {
                                 .value(org.hamcrest.Matchers.hasItem("password")));
     }
 
+    @Test
+    void delete_asSuperUser_removesUser() throws Exception {
+        User toDelete =
+                userRepository.save(
+                        User.builder()
+                                .name("To Delete")
+                                .email("todelete@almanatura.org")
+                                .passwordHash(passwordEncoder.encode("DeleteMe9!Pass"))
+                                .role(Role.EVENT_MANAGER)
+                                .enabled(true)
+                                .build());
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(USERS_PATH + "/" + toDelete.getId())
+                                .with(user(superUser)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void delete_asEventManager_returnsAccessDenied() throws Exception {
+        long someId = superUser.getId();
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(USERS_PATH + "/" + someId)
+                                .with(user(eventManager)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.code()));
+    }
+
+    @Test
+    void delete_withoutAuth_returnsAuthenticationRequired() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.delete(USERS_PATH + "/1"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value(ErrorCode.AUTHENTICATION_REQUIRED.code()));
+    }
+
     private static String createUserJson(
             String name, String email, String password, String role, Boolean enabled) {
         String enabledPart = enabled == null ? "" : ",\"enabled\":" + enabled;
