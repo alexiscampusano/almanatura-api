@@ -94,9 +94,7 @@ class AdminApplicationControllerTest {
         createTestApplication(ApplicationStatus.SUBMITTED);
         createTestApplication(ApplicationStatus.APPROVED);
 
-        mockMvc.perform(
-                        MockMvcRequestBuilders.get(BASE)
-                                .with(user(eventManager)))
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE).with(user(eventManager)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
@@ -144,9 +142,7 @@ class AdminApplicationControllerTest {
 
     @Test
     void getById_notFound_returnsResourceNotFound() throws Exception {
-        mockMvc.perform(
-                        MockMvcRequestBuilders.get(BASE + "/99999")
-                                .with(user(eventManager)))
+        mockMvc.perform(MockMvcRequestBuilders.get(BASE + "/99999").with(user(eventManager)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
     }

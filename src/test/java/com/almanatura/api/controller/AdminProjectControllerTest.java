@@ -107,9 +107,7 @@ class AdminProjectControllerTest {
                         .status(ProjectStatus.PUBLISHED)
                         .build());
 
-        mockMvc.perform(
-                        MockMvcRequestBuilders.get(ADMIN_PROJECTS)
-                                .with(user(eventManager)))
+        mockMvc.perform(MockMvcRequestBuilders.get(ADMIN_PROJECTS).with(user(eventManager)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].title").value("Alpha"))

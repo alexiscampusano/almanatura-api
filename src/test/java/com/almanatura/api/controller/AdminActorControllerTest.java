@@ -52,15 +52,9 @@ class AdminActorControllerTest {
                                 .enabled(true)
                                 .build());
         actorRepository.save(
-                Actor.builder()
-                        .fullName("Carlos Ruiz")
-                        .email("carlos@example.org")
-                        .build());
+                Actor.builder().fullName("Carlos Ruiz").email("carlos@example.org").build());
         actorRepository.save(
-                Actor.builder()
-                        .fullName("Maria Lopez")
-                        .email("maria@example.org")
-                        .build());
+                Actor.builder().fullName("Maria Lopez").email("maria@example.org").build());
     }
 
     @Test
@@ -73,9 +67,7 @@ class AdminActorControllerTest {
 
     @Test
     void list_asEventManager_returnsAllActors() throws Exception {
-        mockMvc.perform(
-                        MockMvcRequestBuilders.get(ACTORS_PATH)
-                                .with(user(eventManager)))
+        mockMvc.perform(MockMvcRequestBuilders.get(ACTORS_PATH).with(user(eventManager)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].fullName").value("Carlos Ruiz"));
@@ -86,18 +78,14 @@ class AdminActorControllerTest {
         var actors = actorRepository.findAll();
         long id = actors.getFirst().getId();
 
-        mockMvc.perform(
-                        MockMvcRequestBuilders.get(ACTORS_PATH + "/" + id)
-                                .with(user(eventManager)))
+        mockMvc.perform(MockMvcRequestBuilders.get(ACTORS_PATH + "/" + id).with(user(eventManager)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.fullName").value("Carlos Ruiz"));
     }
 
     @Test
     void getById_notFound_returnsResourceNotFound() throws Exception {
-        mockMvc.perform(
-                        MockMvcRequestBuilders.get(ACTORS_PATH + "/99999")
-                                .with(user(eventManager)))
+        mockMvc.perform(MockMvcRequestBuilders.get(ACTORS_PATH + "/99999").with(user(eventManager)))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value(ErrorCode.RESOURCE_NOT_FOUND.code()));
